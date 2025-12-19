@@ -1,0 +1,48 @@
+/* ===== PAGE HERO ===== */
+.page-hero {
+  background: var(--green-light);
+  padding: 100px 0;
+  text-align: center;
+}
+
+.page-hero h1 {
+  font-size: 48px;
+  color: var(--green-main);
+  margin-bottom: 16px;
+}
+
+.page-hero p {
+  color: var(--text-muted);
+  font-size: 18px;
+}
+
+/* ===== PAGE CONTENT ===== */
+.page-content {
+  padding: 120px 0;
+}
+
+.page-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 60px;
+}
+
+.page-block h2 {
+  font-size: 22px;
+  margin-bottom: 12px;
+}
+
+.page-block p {
+  color: var(--text-muted);
+}
+
+/* ===== ADAPTIVE ===== */
+@media (max-width: 900px) {
+  .page-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .page-hero h1 {
+    font-size: 36px;
+  }
+}
