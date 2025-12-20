@@ -94,26 +94,39 @@ img {
 /* ===== FOOTER ===== */
 .footer {
   background: var(--green-dark);
+  padding: 120px 0;
   color: var(--white);
-  padding: 60px 0;
 }
 
 .footer__grid {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  flex-direction: column;
+  gap: 32px;
 }
 
+/* ЛОГО */
+.footer__brand {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+/* НАВІГАЦІЯ В ОДНУ КОЛОНКУ */
 .footer__nav {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 20px;
 }
 
-.footer__brand {
-  font-size: 20px;
-  font-weight: 600;
+.footer__nav a {
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+  font-size: 16px;
 }
+
+.footer__nav a:hover {
+  color: #ffffff;
+}
+
 
 /* ===== NAV HOVER ===== */
 .nav a {
