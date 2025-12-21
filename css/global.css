@@ -153,14 +153,17 @@ img {
   box-shadow: 0 8px 20px rgba(0,0,0,0.08);
 }
 
-
-section {
-  opacity: 0;
-  transform: translateY(40px);
-  transition: 0.6s ease;
+section.visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
-section.visible {
+section.animate {
+  transform: translateY(30px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+section.animate.visible {
   opacity: 1;
   transform: translateY(0);
 }
