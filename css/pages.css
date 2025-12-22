@@ -181,34 +181,6 @@
   color: var(--green-main);
 }
 
-/* ===== FINAL CTA ===== */
-.final-cta {
-  padding: 140px 0;
-  background: var(--green-main);
-  color: #ffffff;
-  text-align: center;
-}
-
-.final-cta__content {
-  max-width: 720px;
-  margin: 0 auto;
-}
-
-.final-cta h2 {
-  font-size: 42px;
-  margin-bottom: 16px;
-}
-
-.final-cta p {
-  margin-bottom: 32px;
-  opacity: 0.9;
-}
-
-.final-cta .btn {
-  background: #ffffff;
-  color: var(--green-main);
-}
-
 /* ===== SOLUTIONS LIST ===== */
 .solutions-list {
   padding: 140px 0;
