@@ -4,7 +4,6 @@
 Thumbs.db
 desktop.ini
 
-
 # EDITORS / IDE
 
 .vscode/
@@ -24,7 +23,7 @@ yarn-error.log*
 .cache/
 .tmp/
 
-# OPTIONAL (якщо зʼявиться)
+# OPTIONAL (коли зʼявиться)
 
 node_modules/
 dist/
