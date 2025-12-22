@@ -1,6 +1,6 @@
 /* ===== PAGE HERO ===== */
 .page-hero {
-  padding: 140px 0;
+  padding: 120px 0;
   background: #eaf7f3;
   text-align: center;
 }
@@ -308,17 +308,23 @@
 }
 
 .pricing-card {
-  background: #f9fbfa;
+  background: #ffffff;
+  border: 1px solid #e6eaea;
+  border-radius: 20px;
   padding: 48px 32px;
-  border-radius: 16px;
   text-align: center;
-  position: relative;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    border-color 0.25s ease,
+    background 0.25s ease;
 }
 
 .pricing-card:hover {
+  background: #eaf7f3;
+  border-color: var(--green-main);
   transform: translateY(-6px);
-  box-shadow: 0 16px 40px rgba(0,0,0,0.08);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.08);
 }
 
 .pricing-card h3 {
@@ -343,11 +349,6 @@
   color: var(--text-muted);
 }
 
-.pricing-card--featured {
-  background: #eaf7f3;
-  border: 2px solid var(--green-main);
-}
-
 .badge {
   position: absolute;
   top: -14px;
@@ -370,17 +371,6 @@
   text-align: center;
   line-height: 1.6;
   margin-bottom: 12px;
-  padding-left: 24px;
-  position: relative;
-}
-
-.pricing-card li::before {
-  content: "✓";
-  position: absolute;
-  left: 0;
-  top: 0;
-  color: var(--green-main);
-  font-weight: 600;
 }
 
 /* ===== PRICING TOGGLE ===== */
@@ -390,12 +380,18 @@
   align-items: center;
   justify-content: center;
   gap: 16px;
+  cursor: pointer;
 }
 
 .toggle-label {
   font-size: 15px;
   color: var(--text-muted);
   cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.toggle-label:hover {
+  color: var(--green-main);
 }
 
 .toggle-label.active {
