@@ -3,6 +3,7 @@ package httpserver
 import (
 	"log"
 	"net/http"
+	"time"
 
 	"backend/internal/config"
 	"backend/internal/database"
@@ -12,10 +13,10 @@ import (
 )
 
 func Run() {
-	// 1. Load config
+	// --- config ---
 	cfg := config.Load()
 
-	// 2. Connect DB
+	// --- database ---
 	db, err := database.NewPostgres(database.DBConfig{
 		Host:     cfg.DB.Host,
 		Port:     cfg.DB.Port,
@@ -29,26 +30,30 @@ func Run() {
 	}
 	defer db.DB.Close()
 
-	// 3. Repositories
+	// --- repositories ---
 	userRepo := repository.NewUserRepository(db.DB)
 
-	// 4. Services
+	// --- services ---
 	authService := services.NewAuthService(userRepo)
+	jwtService := services.NewJWTService(
+		cfg.JWT.Secret,
+		time.Duration(cfg.JWT.TTLMinutes)*time.Minute,
+	)
 
-	// 5. Handlers
-	authHandler := handlers.NewAuthHandler(authService)
+	// --- handlers ---
+	authHandler := handlers.NewAuthHandler(authService, jwtService)
 
-	// 6. Router
+	// --- router ---
 	mux := http.NewServeMux()
 	registerRoutes(mux, authHandler)
 
-	// 7. Middlewares
+	// --- middleware ---
 	handler := loggingMiddleware(mux)
 
-	// 8. Server
 	addr := ":" + cfg.Port
 	log.Printf("HTTP server running on %s", addr)
 
+	// --- server ---
 	if err := http.ListenAndServe(addr, handler); err != nil {
 		log.Fatal(err)
 	}

@@ -1,9 +1,17 @@
 package config
 
 import (
+	"fmt"
 	"log"
 	"os"
 )
+
+type Config struct {
+	Env  string
+	Port string
+	DB   DBConfig
+	JWT  JWTConfig
+}
 
 type DBConfig struct {
 	Host     string
@@ -14,10 +22,9 @@ type DBConfig struct {
 	SSLMode  string
 }
 
-type Config struct {
-	Env  string
-	Port string
-	DB   DBConfig
+type JWTConfig struct {
+	Secret     string
+	TTLMinutes int
 }
 
 func Load() *Config {
@@ -27,10 +34,14 @@ func Load() *Config {
 		DB: DBConfig{
 			Host:     getEnv("DB_HOST", "localhost"),
 			Port:     getEnv("DB_PORT", "5432"),
-			User:     getEnv("DB_USER", "postgres"),
-			Password: getEnv("DB_PASSWORD", ""),
-			Name:     getEnv("DB_NAME", "postgres"),
+			User:     getEnv("DB_USER", "selfio"),
+			Password: getEnv("DB_PASSWORD", "selfio_pass"),
+			Name:     getEnv("DB_NAME", "selfio_db"),
 			SSLMode:  getEnv("DB_SSLMODE", "disable"),
+		},
+		JWT: JWTConfig{
+			Secret:     getEnv("JWT_SECRET", "super-secret-key"),
+			TTLMinutes: getEnvInt("JWT_TTL_MINUTES", 60),
 		},
 	}
 
@@ -44,9 +55,22 @@ func Load() *Config {
 	return cfg
 }
 
+// -------- helpers --------
+
 func getEnv(key, fallback string) string {
-	if value, ok := os.LookupEnv(key); ok {
-		return value
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return fallback
+}
+
+func getEnvInt(key string, fallback int) int {
+	if v := os.Getenv(key); v != "" {
+		var i int
+		_, err := fmt.Sscanf(v, "%d", &i)
+		if err == nil {
+			return i
+		}
 	}
 	return fallback
 }
