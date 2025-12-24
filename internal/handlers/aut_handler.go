@@ -2,74 +2,102 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"backend/internal/services"
 )
 
 type AuthHandler struct {
-	auth *services.AuthService
+	authService *services.AuthService
+	jwtService  *services.JWTService
 }
 
-func NewAuthHandler(auth *services.AuthService) *AuthHandler {
-	return &AuthHandler{auth: auth}
+func NewAuthHandler(
+	authService *services.AuthService,
+	jwtService *services.JWTService,
+) *AuthHandler {
+	return &AuthHandler{
+		authService: authService,
+		jwtService:  jwtService,
+	}
 }
 
-type registerRequest struct {
+// ---------- REQUEST / RESPONSE ----------
+
+type authRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
 type authResponse struct {
-	ID    int64  `json:"id"`
-	Email string `json:"email"`
+	Token string `json:"token"`
 }
+
+// ---------- HANDLERS ----------
 
 // POST /auth/register
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
-	var req registerRequest
+	var req authRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	user, err := h.auth.Register(r.Context(), req.Email, req.Password)
+	user, err := h.authService.Register(r.Context(), req.Email, req.Password)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		if errors.Is(err, services.ErrUserAlreadyExists) {
+			http.Error(w, "user already exists", http.StatusConflict)
+			return
+		}
+
+		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
 
-	resp := authResponse{
-		ID:    user.ID,
-		Email: user.Email,
+	token, err := h.jwtService.Generate(user.ID)
+	if err != nil {
+		http.Error(w, "token generation failed", http.StatusInternalServerError)
+		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	_ = json.NewEncoder(w).Encode(resp)
+	writeJSON(w, http.StatusCreated, authResponse{Token: token})
 }
 
 // POST /auth/login
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
-	var req registerRequest
+	var req authRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	user, err := h.auth.Login(r.Context(), req.Email, req.Password)
+	user, err := h.authService.Login(r.Context(), req.Email, req.Password)
 	if err != nil {
-		http.Error(w, "invalid email or password", http.StatusUnauthorized)
+		if errors.Is(err, services.ErrInvalidCredentials) {
+			http.Error(w, "invalid email or password", http.StatusUnauthorized)
+			return
+		}
+
+		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
 
-	resp := authResponse{
-		ID:    user.ID,
-		Email: user.Email,
+	token, err := h.jwtService.Generate(user.ID)
+	if err != nil {
+		http.Error(w, "token generation failed", http.StatusInternalServerError)
+		return
 	}
 
+	writeJSON(w, http.StatusOK, authResponse{Token: token})
+}
+
+// ---------- HELPERS ----------
+
+func writeJSON(w http.ResponseWriter, status int, data any) {
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(resp)
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(data)
 }

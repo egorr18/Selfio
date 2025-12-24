@@ -4,64 +4,52 @@ import (
 	"context"
 	"errors"
 
-	"golang.org/x/crypto/bcrypt"
-
 	"backend/internal/models"
 	"backend/internal/repository"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 var (
-	ErrEmailAlreadyExists = errors.New("email already exists")
-	ErrInvalidCredentials = errors.New("invalid email or password")
+	ErrInvalidCredentials = errors.New("invalid credentials")
+	ErrUserAlreadyExists  = errors.New("user already exists")
 )
 
 type AuthService struct {
-	users *repository.UserRepository
+	repo repository.UserRepository
 }
 
-func NewAuthService(users *repository.UserRepository) *AuthService {
-	return &AuthService{users: users}
+func NewAuthService(repo repository.UserRepository) *AuthService {
+	return &AuthService{repo: repo}
 }
 
-// Register — реєстрація користувача
 func (s *AuthService) Register(
 	ctx context.Context,
 	email string,
 	password string,
 ) (*models.User, error) {
 
-	// 1. Хешуємо пароль
-	hash, err := bcrypt.GenerateFromPassword(
-		[]byte(password),
-		bcrypt.DefaultCost,
-	)
+	hash, err := HashPassword(password)
 	if err != nil {
 		return nil, err
 	}
 
-	// 2. Створюємо користувача
-	user, err := s.users.Create(
-		ctx,
-		email,
-		string(hash),
-	)
+	user, err := s.repo.Create(ctx, email, hash)
 	if err != nil {
-		// тут пізніше можна красиво розпізнавати duplicate email
-		return nil, ErrEmailAlreadyExists
+		// 👉 у PostgreSQL це буде unique violation
+		return nil, ErrUserAlreadyExists
 	}
 
 	return user, nil
 }
 
-// Login — логін користувача
 func (s *AuthService) Login(
 	ctx context.Context,
 	email string,
 	password string,
 ) (*models.User, error) {
 
-	// 1. Знаходимо користувача
-	user, err := s.users.GetByEmail(ctx, email)
+	user, err := s.repo.GetByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, repository.ErrUserNotFound) {
 			return nil, ErrInvalidCredentials
@@ -69,14 +57,20 @@ func (s *AuthService) Login(
 		return nil, err
 	}
 
-	// 2. Порівнюємо пароль
-	err = bcrypt.CompareHashAndPassword(
-		[]byte(user.PasswordHash),
-		[]byte(password),
-	)
-	if err != nil {
+	if err := CheckPassword(password, user.PasswordHash); err != nil {
 		return nil, ErrInvalidCredentials
 	}
 
 	return user, nil
+}
+
+// ---- helpers ----
+
+func HashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	return string(bytes), err
+}
+
+func CheckPassword(password, hash string) error {
+	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 }

@@ -10,15 +10,22 @@ import (
 
 var ErrUserNotFound = errors.New("user not found")
 
-type UserRepository struct {
+// 🔹 INTERFACE (ключ до тестів)
+type UserRepository interface {
+	Create(ctx context.Context, email, passwordHash string) (*models.User, error)
+	GetByEmail(ctx context.Context, email string) (*models.User, error)
+}
+
+// 🔹 POSTGRES IMPLEMENTATION
+type PostgresUserRepository struct {
 	db *sql.DB
 }
 
-func NewUserRepository(db *sql.DB) *UserRepository {
-	return &UserRepository{db: db}
+func NewUserRepository(db *sql.DB) UserRepository {
+	return &PostgresUserRepository{db: db}
 }
 
-func (r *UserRepository) Create(
+func (r *PostgresUserRepository) Create(
 	ctx context.Context,
 	email string,
 	passwordHash string,
@@ -51,7 +58,7 @@ func (r *UserRepository) Create(
 	return &user, nil
 }
 
-func (r *UserRepository) GetByEmail(
+func (r *PostgresUserRepository) GetByEmail(
 	ctx context.Context,
 	email string,
 ) (*models.User, error) {
