@@ -45,7 +45,7 @@ func Run() {
 
 	// --- router ---
 	mux := http.NewServeMux()
-	registerRoutes(mux, authHandler)
+	registerRoutes(mux, authHandler, jwtService)
 
 	// --- middleware ---
 	handler := loggingMiddleware(mux)
