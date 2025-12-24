@@ -1,0 +1,11 @@
+:root {
+  --green-main: #2f6f62;
+  --green-dark: #245d53;
+  --green-light: #e6f4f1;
+
+  --text-dark: #1c1c1c;
+  --text-muted: #6b6b6b;
+  --white: #ffffff;
+
+  --container-width: 1200px;
+}
