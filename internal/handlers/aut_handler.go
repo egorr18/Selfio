@@ -1,3 +1,25 @@
+// Register godoc
+// @Summary Register new user
+// @Description Create new user account
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body RegisterRequest true "Register payload"
+// @Success 201 {object} TokenResponse
+// @Failure 400 {object} ErrorResponse
+// @Router /auth/register [post]
+
+// Login godoc
+// @Summary Login user
+// @Description Authenticate user and return JWT
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body LoginRequest true "Login payload"
+// @Success 200 {object} TokenResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /auth/login [post]
+
 package handlers
 
 import (
@@ -23,8 +45,6 @@ func NewAuthHandler(
 	}
 }
 
-// ---------- REQUEST / RESPONSE ----------
-
 type authRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
@@ -33,8 +53,6 @@ type authRequest struct {
 type authResponse struct {
 	Token string `json:"token"`
 }
-
-// ---------- HANDLERS ----------
 
 // POST /auth/register
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
@@ -93,8 +111,6 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	writeJSON(w, http.StatusOK, authResponse{Token: token})
 }
-
-// ---------- HELPERS ----------
 
 func writeJSON(w http.ResponseWriter, status int, data any) {
 	w.Header().Set("Content-Type", "application/json")

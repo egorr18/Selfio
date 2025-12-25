@@ -1,3 +1,13 @@
+// Profile godoc
+// @Summary Get user profile
+// @Description Get profile of authenticated user
+// @Tags profile
+// @Security BearerAuth
+// @Produce plain
+// @Success 200 {string} string "Hello user with id"
+// @Failure 401 {string} string "Unauthorized"
+// @Router /profile [get]
+
 package handlers
 
 import (

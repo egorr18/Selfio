@@ -6,6 +6,7 @@ import (
 	"backend/internal/handlers"
 	"backend/internal/middleware"
 	"backend/internal/services"
+	"github.com/swaggo/http-swagger"
 )
 
 func registerRoutes(
@@ -17,6 +18,7 @@ func registerRoutes(
 	mux.HandleFunc("/health", healthHandler)
 	mux.HandleFunc("/auth/register", authHandler.Register)
 	mux.HandleFunc("/auth/login", authHandler.Login)
+	mux.Handle("/swagger/", httpSwagger.WrapHandler)
 
 	// protected
 	protected := http.NewServeMux()
