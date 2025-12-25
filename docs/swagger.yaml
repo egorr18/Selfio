@@ -10,7 +10,26 @@ info:
   termsOfService: http://swagger.io/terms/
   title: Selfio API
   version: "1.0"
-paths: {}
+paths:
+  /profile:
+    get:
+      description: Get profile of authenticated user
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Hello user with id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get user profile
+      tags:
+      - profile
 securityDefinitions:
   BearerAuth:
     in: header
