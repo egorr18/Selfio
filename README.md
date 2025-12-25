@@ -1,22 +1,27 @@
-# Selfio — Backend API
+# Selfio Backend API
 
-Production-ready backend service for **Selfio**, a journaling & mental health platform.  
-Built with **Go**, **PostgreSQL**, and **Docker**, following clean architecture principles.
+Backend API for **Selfio** project — modern Go-based REST API with JWT authentication, PostgreSQL, Swagger documentation and full Docker support.
 
-## Overview
+Проєкт створений як **job-ready backend**, з акцентом на чисту архітектуру, безпеку та зручний запуск.
 
-This backend provides a solid foundation for a modern web application:
+## Features
 
-- User registration & authentication
-- Secure password hashing (bcrypt)
-- JWT-based authorization
-- PostgreSQL persistence
-- Clean, layered architecture
-- Dockerized local environment
+- JWT authentication (register / login)
+- Protected routes with middleware
+- PostgreSQL database
+- Swagger / OpenAPI documentation
+- Docker & Docker Compose (one-command startup)
+- Clean architecture (handlers / services / repository)
+- Environment-based configuration
 
-The project is designed to be **readable, testable, and scalable**.
+## Tech Stack
 
-## Architecture
+- **Language:** Go (1.25)
+- **HTTP:** net/http
+- **Database:** PostgreSQL 15
+- **Auth:** JWT (golang-jwt)
+- **Docs:** Swagger (swaggo)
+- **Containerization:** Docker, Docker Compose
 
-The codebase follows a clean separation of concerns:
+## Project Structure
 
