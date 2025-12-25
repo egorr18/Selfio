@@ -1,21 +1,26 @@
-version: "3.9"
-
 services:
   postgres:
     image: postgres:15
     container_name: selfio-postgres
     restart: always
-
     environment:
       POSTGRES_USER: selfio
       POSTGRES_PASSWORD: selfio_pass
       POSTGRES_DB: selfio_db
-
     ports:
       - "5432:5432"
-
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build: .
+    container_name: selfio-backend
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env.docker
 
 volumes:
   postgres_data:

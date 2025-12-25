@@ -1,0 +1,38 @@
+basePath: /
+host: localhost:8080
+info:
+  contact:
+    email: your@email.com
+    name: Egor Korol
+  description: Backend API for Selfio project
+  license:
+    name: MIT
+  termsOfService: http://swagger.io/terms/
+  title: Selfio API
+  version: "1.0"
+paths:
+  /profile:
+    get:
+      description: Get profile of authenticated user
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Hello user with id
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get user profile
+      tags:
+      - profile
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
