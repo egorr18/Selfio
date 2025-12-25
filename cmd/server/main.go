@@ -20,8 +20,8 @@ package main
 import (
 	"log"
 
+	_ "backend/docs"
 	"backend/internal/httpserver"
-
 	"github.com/joho/godotenv"
 )
 
