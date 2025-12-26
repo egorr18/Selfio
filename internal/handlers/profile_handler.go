@@ -7,7 +7,7 @@ import (
 	"backend/internal/middleware"
 )
 
-// Profile godoc
+// Profile GoDoc
 // @Summary Get user profile
 // @Description Get profile of authenticated user
 // @Tags profile

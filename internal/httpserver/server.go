@@ -45,7 +45,14 @@ func Run() {
 
 	// --- router ---
 	mux := http.NewServeMux()
+
+	// 🔹 API routes
 	registerRoutes(mux, authHandler, jwtService)
+
+	// 🔹 FRONTEND (HTML / CSS / JS)
+	// index.html, /css, /js, /pages
+	fs := http.FileServer(http.Dir("./"))
+	mux.Handle("/", fs)
 
 	// --- middleware ---
 	handler := loggingMiddleware(mux)

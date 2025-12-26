@@ -22,6 +22,7 @@ import (
 
 	_ "backend/docs"
 	"backend/internal/httpserver"
+
 	"github.com/joho/godotenv"
 )
 
