@@ -17,17 +17,34 @@ func Run() {
 	cfg := config.Load()
 
 	// --- database ---
-	db, err := database.NewPostgres(database.DBConfig{
-		Host:     cfg.DB.Host,
-		Port:     cfg.DB.Port,
-		User:     cfg.DB.User,
-		Password: cfg.DB.Password,
-		Name:     cfg.DB.Name,
-		SSLMode:  cfg.DB.SSLMode,
-	})
-	if err != nil {
-		log.Fatal("DB connection failed:", err)
+	var db *database.Postgres
+	var err error
+
+	for i := 1; i <= 10; i++ {
+		log.Printf("Trying to connect to DB (attempt %d/10)...", i)
+
+		db, err = database.NewPostgres(database.DBConfig{
+			Host:     cfg.DB.Host,
+			Port:     cfg.DB.Port,
+			User:     cfg.DB.User,
+			Password: cfg.DB.Password,
+			Name:     cfg.DB.Name,
+			SSLMode:  cfg.DB.SSLMode,
+		})
+
+		if err == nil {
+			log.Println("PostgreSQL connected")
+			break
+		}
+
+		log.Println("DB not ready yet, retrying in 2s...")
+		time.Sleep(2 * time.Second)
 	}
+
+	if err != nil {
+		log.Fatal("DB connection failed after retries:", err)
+	}
+
 	defer db.DB.Close()
 
 	// --- repositories ---
@@ -46,10 +63,10 @@ func Run() {
 	// --- router ---
 	mux := http.NewServeMux()
 
-	// 🔹 API routes
+	// API routes
 	registerRoutes(mux, authHandler, jwtService)
 
-	// 🔹 FRONTEND (HTML / CSS / JS)
+	// FRONTEND (HTML / CSS / JS)
 	// index.html, /css, /js, /pages
 	fs := http.FileServer(http.Dir("./"))
 	mux.Handle("/", fs)
