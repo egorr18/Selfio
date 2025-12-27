@@ -1,8 +1,13 @@
-const API_BASE_URL =
-    window.location.hostname === "localhost" ||
-    window.location.hostname === "127.0.0.1"
-        ? "http://localhost:8080"
-        : "https://selfio-backend.onrender.com";
+// ===============================
+// API BASE URL (auto-detect)
+// ===============================
+const isLocal =
+    location.hostname === "localhost" ||
+    location.hostname === "127.0.0.1";
+
+const API_BASE_URL = isLocal
+    ? "http://localhost:8080"
+    : "https://selfio-backend.onrender.com"; // прод-backend
 
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.querySelector("form");
@@ -18,8 +23,13 @@ document.addEventListener("DOMContentLoaded", () => {
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        const email = document.querySelector("input[type='email']").value;
-        const password = document.querySelector("input[type='password']").value;
+        const email = document.querySelector("input[type='email']")?.value?.trim();
+        const password = document.querySelector("input[type='password']")?.value;
+
+        if (!email || !password) {
+            alert("Enter email and password");
+            return;
+        }
 
         try {
             const res = await fetch(`${API_BASE_URL}/auth/login`, {
@@ -28,7 +38,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 body: JSON.stringify({ email, password }),
             });
 
-            const data = await res.json();
+            // безпечний парсинг (щоб не падало, якщо відповідь не JSON)
+            const contentType = res.headers.get("content-type") || "";
+            const data = contentType.includes("application/json")
+                ? await res.json()
+                : {};
 
             if (!res.ok) {
                 alert(data.error || "Invalid credentials");
@@ -39,9 +53,8 @@ document.addEventListener("DOMContentLoaded", () => {
             alert("Login successful");
 
             window.location.href = "/pages/community.html";
-
         } catch (err) {
-            console.error(err);
+            console.error("Network error:", err);
             alert("Backend is not reachable");
         }
     });

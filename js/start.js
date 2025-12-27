@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         localStorage.setItem("prefill_email", email);
 
-        // редірект на signup / signin
+        // редірект на signin
         window.location.href = "/pages/signin.html";
     });
 });
