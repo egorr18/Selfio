@@ -72,7 +72,7 @@ func Run() {
 	mux.Handle("/", fs)
 
 	// --- middleware ---
-	handler := loggingMiddleware(mux)
+	handler := loggingMiddleware(corsMiddleware(mux))
 
 	addr := ":" + cfg.Port
 	log.Printf("HTTP server running on %s", addr)
