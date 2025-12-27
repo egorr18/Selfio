@@ -6,6 +6,11 @@
 
   <title>Start Trial — Selfio</title>
   <meta name="description" content="Start your free journaling trial with Selfio." />
+  <script>
+    if (location.hostname.endsWith("github.io") && location.protocol !== "https:") {
+      location.replace("https://" + location.host + location.pathname + location.search + location.hash);
+    }
+  </script>
 
   <link rel="stylesheet" href="../css/reset.css">
   <link rel="stylesheet" href="../css/variables.css">

@@ -6,6 +6,11 @@
 
   <title>Sign in — Selfio</title>
   <meta name="description" content="Sign in to your Selfio account." />
+  <script>
+    if (location.hostname.endsWith("github.io") && location.protocol !== "https:") {
+      location.replace("https://" + location.host + location.pathname + location.search + location.hash);
+    }
+  </script>
 
   <link rel="stylesheet" href="../css/reset.css">
   <link rel="stylesheet" href="../css/variables.css">
