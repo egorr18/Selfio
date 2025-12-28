@@ -1,35 +1,28 @@
-// ===============================
-// API BASE URL (auto-detect)
-// ===============================
-const isLocal =
-    location.hostname === "localhost" ||
-    location.hostname === "127.0.0.1";
-
-const API_BASE_URL = isLocal
-    ? "http://localhost:8080"
-    : "https://selfio-backend.onrender.com"; // прод-backend
-
 document.addEventListener("DOMContentLoaded", () => {
-    const form = document.querySelector("form");
+    const form = document.querySelector(".auth__form");
     if (!form) return;
 
-    // автопідстановка email
     const savedEmail = localStorage.getItem("prefill_email");
     if (savedEmail) {
-        const emailInput = document.querySelector("input[type='email']");
+        const emailInput = form.querySelector("input[type='email']");
         if (emailInput) emailInput.value = savedEmail;
     }
+
+    const isLocal =
+        location.hostname === "localhost" ||
+        location.hostname === "127.0.0.1";
+
+    const isServedByBackend = isLocal && location.port === "8080";
+
+    const API_BASE_URL = isServedByBackend
+        ? ""
+        : (isLocal ? "http://localhost:8080" : "https://selfio-backend.onrender.com");
 
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        const email = document.querySelector("input[type='email']")?.value?.trim();
-        const password = document.querySelector("input[type='password']")?.value;
-
-        if (!email || !password) {
-            alert("Enter email and password");
-            return;
-        }
+        const email = form.querySelector("input[type='email']").value.trim();
+        const password = form.querySelector("input[type='password']").value;
 
         try {
             const res = await fetch(`${API_BASE_URL}/auth/login`, {
@@ -38,23 +31,21 @@ document.addEventListener("DOMContentLoaded", () => {
                 body: JSON.stringify({ email, password }),
             });
 
-            // безпечний парсинг (щоб не падало, якщо відповідь не JSON)
             const contentType = res.headers.get("content-type") || "";
-            const data = contentType.includes("application/json")
-                ? await res.json()
-                : {};
+            const data = contentType.includes("application/json") ? await res.json() : {};
 
             if (!res.ok) {
-                alert(data.error || "Invalid credentials");
+                alert(data.error || "Invalid email or password");
                 return;
             }
 
             localStorage.setItem("token", data.token);
-            alert("Login successful");
 
+            alert("Login successful");
             window.location.href = "/pages/community.html";
+
         } catch (err) {
-            console.error("Network error:", err);
+            console.error(err);
             alert("Backend is not reachable");
         }
     });

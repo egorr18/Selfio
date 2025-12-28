@@ -1,20 +1,53 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const btn = document.querySelector(".start-btn");
-    const emailInput = document.querySelector("input[type='email']");
+    const form = document.querySelector(".start-trial__form");
+    if (!form) return;
 
-    if (!btn || !emailInput) return;
+    const isLocal =
+        location.hostname === "localhost" ||
+        location.hostname === "127.0.0.1";
 
-    btn.addEventListener("click", () => {
-        const email = emailInput.value.trim();
+    // якщо відкрито з бекенда (localhost:8080) — можна слати відносно "/auth/..."
+    const isServedByBackend = isLocal && location.port === "8080";
 
-        if (!email) {
-            alert("Enter your email");
+    const API_BASE_URL = isServedByBackend
+        ? "" // same-origin
+        : (isLocal ? "http://localhost:8080" : "https://selfio-backend.onrender.com");
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const email = form.querySelector("input[type='email']").value.trim();
+        const password = form.querySelector("input[type='password']").value;
+
+        if (!email || !password) {
+            alert("Fill email and password");
             return;
         }
 
-        localStorage.setItem("prefill_email", email);
+        try {
+            const res = await fetch(`${API_BASE_URL}/auth/register`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password }),
+            });
 
-        // редірект на signin
-        window.location.href = "/pages/signin.html";
+            const contentType = res.headers.get("content-type") || "";
+            const data = contentType.includes("application/json") ? await res.json() : {};
+
+            if (!res.ok) {
+                alert(data.error || "Registration failed");
+                return;
+            }
+
+            // для автопідстановки email на signin
+            localStorage.setItem("prefill_email", email);
+
+            alert("Account created! Now sign in.");
+            window.location.href = "/pages/signin.html";
+
+        } catch (err) {
+            console.error(err);
+            alert("Backend is not reachable");
+        }
     });
 });
