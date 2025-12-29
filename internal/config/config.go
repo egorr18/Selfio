@@ -7,10 +7,11 @@ import (
 )
 
 type Config struct {
-	Env  string
-	Port string
-	DB   DBConfig
-	JWT  JWTConfig
+	Env      string
+	Port     string
+	DB       DBConfig
+	JWT      JWTConfig
+	AdminKey string
 }
 
 type DBConfig struct {
@@ -43,6 +44,7 @@ func Load() *Config {
 			Secret:     getEnv("JWT_SECRET", "super-secret-key"),
 			TTLMinutes: getEnvInt("JWT_TTL_MINUTES", 60),
 		},
+		AdminKey: getEnv("ADMIN_KEY", "dev-admin-key"),
 	}
 
 	log.Printf(

@@ -91,3 +91,38 @@ func (r *PostgresUserRepository) GetByEmail(
 
 	return &user, nil
 }
+
+func (r *PostgresUserRepository) List(ctx context.Context, limit int) ([]models.User, error) {
+	if limit <= 0 || limit > 500 {
+		limit = 100
+	}
+
+	query := `
+		SELECT id, email, password_hash, created_at
+		FROM users
+		ORDER BY created_at DESC
+		LIMIT $1
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	users := make([]models.User, 0, limit)
+
+	for rows.Next() {
+		var u models.User
+		if err := rows.Scan(&u.ID, &u.Email, &u.PasswordHash, &u.CreatedAt); err != nil {
+			return nil, err
+		}
+		users = append(users, u)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}

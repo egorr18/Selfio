@@ -2,48 +2,56 @@ document.addEventListener("DOMContentLoaded", () => {
     const form = document.querySelector(".auth__form");
     if (!form) return;
 
-    const savedEmail = localStorage.getItem("prefill_email");
-    if (savedEmail) {
-        const emailInput = form.querySelector("input[type='email']");
-        if (emailInput) emailInput.value = savedEmail;
-    }
+    const isLocal = location.hostname === "localhost" || location.hostname === "127.0.0.1";
+    const API_BASE_URL = isLocal ? (location.port === "8080" ? "" : "http://localhost:8080")
+        : "https://selfio-backend.onrender.com";
 
-    const isLocal =
-        location.hostname === "localhost" ||
-        location.hostname === "127.0.0.1";
+    const post = (path, body) =>
+        fetch(`${API_BASE_URL}${path}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+        });
 
-    const isServedByBackend = isLocal && location.port === "8080";
-
-    const API_BASE_URL = isServedByBackend
-        ? ""
-        : (isLocal ? "http://localhost:8080" : "https://selfio-backend.onrender.com");
+    const readBody = async (res) => {
+        const ct = res.headers.get("content-type") || "";
+        if (ct.includes("application/json")) return res.json();
+        const text = await res.text();
+        return text ? { message: text } : {};
+    };
 
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        const email = form.querySelector("input[type='email']").value.trim();
-        const password = form.querySelector("input[type='password']").value;
+        const email = form.querySelector("input[type='email']")?.value.trim() || "";
+        const password = form.querySelector("input[type='password']")?.value || "";
+
+        if (!email || !password) {
+            alert("Enter email and password");
+            return;
+        }
 
         try {
-            const res = await fetch(`${API_BASE_URL}/auth/login`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, password }),
-            });
+            // 1) try register
+            let res = await post("/auth/register", { email, password });
 
-            const contentType = res.headers.get("content-type") || "";
-            const data = contentType.includes("application/json") ? await res.json() : {};
+            // if user exists -> login
+            if (res.status === 409) {
+                res = await post("/auth/login", { email, password });
+            }
+
+            const data = await readBody(res);
 
             if (!res.ok) {
-                alert(data.error || "Invalid email or password");
+                alert(data.error || data.message || "Request failed");
                 return;
             }
 
             localStorage.setItem("token", data.token);
+            localStorage.setItem("prefill_email", email);
 
-            alert("Login successful");
-            window.location.href = "/pages/community.html";
-
+            // signin.html is inside /pages, so relative redirect works in both localhost + GitHub Pages
+            window.location.href = "community.html";
         } catch (err) {
             console.error(err);
             alert("Backend is not reachable");

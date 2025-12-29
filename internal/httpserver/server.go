@@ -49,6 +49,10 @@ func Run() {
 
 	// --- repositories ---
 	userRepo := repository.NewUserRepository(db.DB)
+	pgUserRepo, ok := userRepo.(*repository.PostgresUserRepository)
+	if !ok {
+		log.Fatal("user repository type assertion failed")
+	}
 
 	// --- services ---
 	authService := services.NewAuthService(userRepo)
@@ -59,12 +63,14 @@ func Run() {
 
 	// --- handlers ---
 	authHandler := handlers.NewAuthHandler(authService, jwtService)
+	adminHandler := handlers.NewAdminHandler(pgUserRepo, cfg.AdminKey)
 
 	// --- router ---
 	mux := http.NewServeMux()
 
 	// API routes
 	registerRoutes(mux, authHandler, jwtService)
+	mux.HandleFunc("/admin/users", adminHandler.Users)
 
 	// FRONTEND (HTML / CSS / JS)
 	// index.html, /css, /js, /pages
