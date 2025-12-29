@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"time"
 
 	"backend/internal/models"
 )
@@ -92,37 +93,50 @@ func (r *PostgresUserRepository) GetByEmail(
 	return &user, nil
 }
 
-func (r *PostgresUserRepository) List(ctx context.Context, limit int) ([]models.User, error) {
-	if limit <= 0 || limit > 500 {
-		limit = 100
+// ✅ DTO для адмінки
+type AdminUser struct {
+	ID           int64     `json:"id"`
+	Email        string    `json:"email"`
+	CreatedAt    time.Time `json:"created_at"`
+	PasswordHash string    `json:"password_hash,omitempty"`
+}
+
+// Для /admin/users
+func (r *PostgresUserRepository) List(
+	ctx context.Context,
+	includeHash bool,
+) ([]AdminUser, error) {
+
+	var query string
+	if includeHash {
+		query = `SELECT id, email, created_at, password_hash FROM users ORDER BY created_at DESC`
+	} else {
+		query = `SELECT id, email, created_at FROM users ORDER BY created_at DESC`
 	}
 
-	query := `
-		SELECT id, email, password_hash, created_at
-		FROM users
-		ORDER BY created_at DESC
-		LIMIT $1
-	`
-
-	rows, err := r.db.QueryContext(ctx, query, limit)
+	rows, err := r.db.QueryContext(ctx, query)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	users := make([]models.User, 0, limit)
+	out := make([]AdminUser, 0)
 
 	for rows.Next() {
-		var u models.User
-		if err := rows.Scan(&u.ID, &u.Email, &u.PasswordHash, &u.CreatedAt); err != nil {
-			return nil, err
+		var u AdminUser
+
+		if includeHash {
+			if err := rows.Scan(&u.ID, &u.Email, &u.CreatedAt, &u.PasswordHash); err != nil {
+				return nil, err
+			}
+		} else {
+			if err := rows.Scan(&u.ID, &u.Email, &u.CreatedAt); err != nil {
+				return nil, err
+			}
 		}
-		users = append(users, u)
+
+		out = append(out, u)
 	}
 
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return users, nil
+	return out, rows.Err()
 }
