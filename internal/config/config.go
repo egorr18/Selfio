@@ -31,7 +31,7 @@ type JWTConfig struct {
 func Load() *Config {
 	cfg := &Config{
 		Env:  getEnv("APP_ENV", "local"),
-		Port: getEnv("APP_PORT", "8080"),
+		Port: getEnv("PORT", getEnv("APP_PORT", "8080")),
 		DB: DBConfig{
 			Host:     getEnv("DB_HOST", "localhost"),
 			Port:     getEnv("DB_PORT", "5432"),
