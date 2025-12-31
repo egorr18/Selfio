@@ -3,8 +3,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!form) return;
 
     const isLocal = location.hostname === "localhost" || location.hostname === "127.0.0.1";
-    const API_BASE_URL = isLocal ? (location.port === "8080" ? "" : "http://localhost:8080")
-        : "https://selfio-backend.onrender.com";
+    const isServedByBackend = isLocal && location.port === "8080";
+
+    const API_BASE_URL = isServedByBackend
+        ? "" // same-origin (коли відкриваєш через localhost:8080)
+        : (isLocal ? "http://localhost:8080" : "https://selfio-backend.onrender.com");
 
     const post = (path, body) =>
         fetch(`${API_BASE_URL}${path}`, {
@@ -20,41 +23,55 @@ document.addEventListener("DOMContentLoaded", () => {
         return text ? { message: text } : {};
     };
 
+    let submitting = false;
+
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
+        if (submitting) return;
+        submitting = true;
+
+        const btn = form.querySelector("button[type='submit']");
+        if (btn) btn.disabled = true;
 
         const email = form.querySelector("input[type='email']")?.value.trim() || "";
         const password = form.querySelector("input[type='password']")?.value || "";
 
-        if (!email || !password) {
-            alert("Enter email and password");
-            return;
-        }
-
         try {
-            // 1) try register
-            let res = await post("/auth/register", { email, password });
-
-            // if user exists -> login
-            if (res.status === 409) {
-                res = await post("/auth/login", { email, password });
+            if (!email || !password) {
+                alert("Enter email and password");
+                return;
             }
 
-            const data = await readBody(res);
+            // 1) register
+            const reg = await post("/auth/register", { email, password });
 
-            if (!res.ok) {
-                alert(data.error || data.message || "Request failed");
+            // якщо реєстрація НЕ ок і НЕ 409 → показуємо помилку
+            if (!(reg.ok || reg.status === 409)) {
+                const data = await readBody(reg);
+                alert(data.error || data.message || `Register failed: ${reg.status}`);
+                return;
+            }
+
+            // 2) login (завжди)
+            const login = await post("/auth/login", { email, password });
+            const data = await readBody(login);
+
+            if (!login.ok) {
+                alert(data.error || data.message || `Login failed: ${login.status}`);
                 return;
             }
 
             localStorage.setItem("token", data.token);
             localStorage.setItem("prefill_email", email);
 
-            // signin.html is inside /pages, so relative redirect works in both localhost + GitHub Pages
+            // pages/signin.html -> pages/community.html
             window.location.href = "community.html";
         } catch (err) {
             console.error(err);
             alert("Backend is not reachable");
+        } finally {
+            submitting = false;
+            if (btn) btn.disabled = false;
         }
     });
 });
