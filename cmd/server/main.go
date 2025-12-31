@@ -19,8 +19,9 @@ package main
 
 import (
 	"log"
+	"os"
 
-	_ "backend/docs"
+	"backend/docs"
 	"backend/internal/httpserver"
 
 	"github.com/joho/godotenv"
@@ -29,6 +30,11 @@ import (
 func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Println(".env not found, using system env")
+	}
+
+	// якщо задано SWAGGER_HOST — Swagger UI буде підставляти правильний домен
+	if h := os.Getenv("SWAGGER_HOST"); h != "" {
+		docs.SwaggerInfo.Host = h
 	}
 
 	httpserver.Run()
