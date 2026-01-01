@@ -7,7 +7,7 @@
     const DEFAULT_FOCUSES = ["Deep work", "Study", "Health", "Social", "Reset"];
     const DEFAULT_HABITS  = ["Drink water", "Study 30 min"];
 
-    // utils
+// utils
     function ymd(d = new Date()) {
         const yyyy = d.getFullYear();
         const mm = String(d.getMonth() + 1).padStart(2, "0");
@@ -36,18 +36,36 @@
         return norm(s).toLowerCase();
     }
 
+// key per user
+    function appStorageKey() {
+        // важливо: беремо email, який записує sign.js у localStorage
+        let email = normLower(localStorage.getItem(EMAIL_KEY));
+
+        // якщо email не записаний — падаємо в anon
+        if (!email) email = "anon";
+
+        // щоб ключ завжди був безпечний
+        email = email.replace(/\s+/g, "");
+
+        return `${APP_KEY}:${email}`;
+    }
+
     function loadApp() {
-        try { return JSON.parse(localStorage.getItem(APP_KEY)) || {}; }
-        catch { return {}; }
+        try {
+            return JSON.parse(localStorage.getItem(appStorageKey())) || {};
+        } catch {
+            return {};
+        }
     }
 
     function saveApp(state) {
-        localStorage.setItem(APP_KEY, JSON.stringify(state));
+        localStorage.setItem(appStorageKey(), JSON.stringify(state));
     }
 
     function getPlan() {
-        return (localStorage.getItem(PLAN_KEY) || "free").toLowerCase();
+        return normLower(localStorage.getItem(PLAN_KEY)) || "free";
     }
+
 
     function planLimits(plan) {
         // Free: max 5 tasks/day
