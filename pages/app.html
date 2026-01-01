@@ -34,18 +34,22 @@
 
 <section class="app">
     <div class="container">
+
         <div class="app__top">
             <div class="app__title">
                 <h1>Today</h1>
-                <p>Quick check-in: mood, focus, top 3 tasks + habits.</p>
+                <p>Quick check-in: mood, focus, tasks + habits.</p>
             </div>
             <div class="app__meta">Save happens automatically</div>
         </div>
 
         <div class="app__grid">
+
+            <!-- LEFT -->
             <div class="card">
                 <h2>Check-in (30 seconds)</h2>
 
+                <!-- Mood + Focus -->
                 <div class="row">
                     <div>
                         <div class="mini">Mood</div>
@@ -60,33 +64,39 @@
 
                     <div>
                         <div class="mini">Focus today</div>
-                        <select class="select" data-focus style="margin-top:8px;">
-                            <option>Deep work</option>
-                            <option>Study</option>
-                            <option>Health</option>
-                            <option>Social</option>
-                            <option>Reset</option>
-                        </select>
+
+                        <select class="select" data-focus style="margin-top:8px;"></select>
+
+                        <div class="inline" style="margin-top:8px;">
+                            <input class="text text--sm" data-focus-new placeholder="Add your focus (e.g. Exams)" />
+                            <button class="btn btn--ghost btn--sm" type="button" data-focus-add>Add</button>
+                        </div>
                     </div>
                 </div>
 
                 <div style="margin-top:14px;">
-                    <div class="mini">Top 3 tasks</div>
+                    <div class="inline inline--between">
+                        <div class="mini">Tasks</div>
 
-                    <div class="list" style="margin-top:8px;">
-                        <div class="item" data-task>
-                            <input type="checkbox" />
-                            <input type="text" placeholder="Task #1" />
-                        </div>
-                        <div class="item" data-task>
-                            <input type="checkbox" />
-                            <input type="text" placeholder="Task #2" />
-                        </div>
-                        <div class="item" data-task>
-                            <input type="checkbox" />
-                            <input type="text" placeholder="Task #3" />
+                        <div class="inline">
+                            <span class="mini">Per day</span>
+                            <select class="select select--sm" data-tasks-count>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3" selected>3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                            </select>
                         </div>
                     </div>
+
+                    <div class="mini" data-tasks-progress style="margin-top:8px;">Tasks: 0/0 (0%)</div>
+
+                    <div class="progress" style="margin-top:8px;">
+                        <span data-tasks-bar></span>
+                    </div>
+
+                    <div class="list" data-tasks style="margin-top:10px;"></div>
                 </div>
 
                 <div style="margin-top:14px;">
@@ -111,8 +121,8 @@
                     <a class="btn btn--secondary" href="settings.html">Settings</a>
                 </div>
             </div>
-        </div>
 
+        </div>
     </div>
 </section>
 

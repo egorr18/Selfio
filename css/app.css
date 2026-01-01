@@ -179,3 +179,53 @@
 .pill--today {
     border-color: rgba(45,106,92,0.45);
 }
+
+.inline {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.inline--between {
+    justify-content: space-between;
+}
+
+.text--sm {
+    padding: 10px 12px;
+}
+
+.btn--sm {
+    padding: 10px 12px;
+    border-radius: 12px;
+}
+
+.select--sm {
+    padding: 10px 12px;
+    border-radius: 12px;
+    width: 90px;
+}
+
+.progress {
+    width: 100%;
+    height: 10px;
+    border-radius: 999px;
+    background: rgba(0,0,0,0.06);
+    overflow: hidden;
+}
+
+.progress > span {
+    display: block;
+    height: 100%;
+    width: 0%;
+    background: rgba(45,106,92,0.75);
+    border-radius: 999px;
+    transition: width 180ms ease;
+}
+
+.card {
+    border: 1px solid rgba(0,0,0,0.06);
+}
+
+.item {
+    border: 1px solid rgba(0,0,0,0.06);
+}
