@@ -91,11 +91,11 @@
     }
 
     function bindLogout() {
-        const btn = document.querySelector("[data-logout]");
-        if (!btn) return;
-        btn.addEventListener("click", () => {
-            localStorage.removeItem(TOKEN_KEY);
-            location.href = "../index.html";
+        document.querySelectorAll("[data-logout]").forEach((btn) => {
+            btn.addEventListener("click", () => {
+                localStorage.removeItem("selfio_token");
+                location.href = "../index.html";
+            });
         });
     }
 
