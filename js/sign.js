@@ -2,6 +2,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const form = document.querySelector(".auth__form");
     if (!form) return;
 
+    // plan з URL: signin.html?plan=free|pro|premium
+    const plan = new URLSearchParams(location.search).get("plan");
+    if (plan) localStorage.setItem("selfio_plan", plan);
+
     const isLocal = location.hostname === "localhost" || location.hostname === "127.0.0.1";
     const isServedByBackend = isLocal && location.port === "8080";
 
@@ -61,11 +65,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("prefill_email", email);
+            localStorage.setItem("selfio_token", data.token); // або data.accessToken — як у тебе
+            localStorage.setItem("selfio_email", email);
 
             // pages/signin.html -> pages/community.html
-            window.location.href = "community.html";
+            window.location.href = "app.html";
         } catch (err) {
             console.error(err);
             alert("Backend is not reachable");

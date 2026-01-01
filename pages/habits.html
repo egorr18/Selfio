@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Habits — Selfio</title>
+  <meta name="description" content="Create a small list of habits and track it daily." />
+
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/global.css">
+  <link rel="stylesheet" href="../css/app.css">
+</head>
+
+<body data-app data-page="habits">
+
+<header class="header">
+  <div class="container header__inner">
+    <a href="../index.html" class="logo">Selfio</a>
+
+    <nav class="nav">
+      <a href="app.html">Today</a>
+      <a href="weekly.html">Weekly</a>
+      <a href="habits.html" class="active">Habits</a>
+      <a href="settings.html">Settings</a>
+    </nav>
+
+    <div class="header__actions">
+      <span class="link" data-app-meta>—</span>
+      <button class="btn btn--secondary" type="button" data-logout>Logout</button>
+    </div>
+  </div>
+</header>
+
+<section class="app">
+  <div class="container">
+    <div class="app__top">
+      <div class="app__title">
+        <h1>Habits</h1>
+        <p>Add 2–5 habits. Keep it simple.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>My habits (today)</h2>
+
+      <div class="row">
+        <input class="text" data-habit-input placeholder="New habit (e.g. 30 min study)" />
+        <button class="btn btn--primary" type="button" data-habit-add>Add</button>
+      </div>
+
+      <div class="list" data-habits-list style="margin-top:12px;"></div>
+
+      <div class="actions">
+        <a class="btn btn--secondary" href="app.html">Back to Today</a>
+        <a class="btn btn--secondary" href="weekly.html">Weekly</a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<script src="../js/app.js" defer></script>
+</body>
+</html>
