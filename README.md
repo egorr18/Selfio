@@ -1,27 +1,39 @@
 # Selfio Backend API
 
-Backend API for **Selfio** project — modern Go-based REST API with JWT authentication, PostgreSQL, Swagger documentation and full Docker support.
+Production-ready backend for **Selfio** — Go REST API with JWT auth, PostgreSQL, Swagger docs, Docker support, and clean architecture.
 
-Проєкт створений як **job-ready backend**, з акцентом на чисту архітектуру, безпеку та зручний запуск.
+Designed to be easy to run locally (1 command) and straightforward to deploy (Render / any Docker platform).
 
 ## Features
 
-- JWT authentication (register / login)
-- Protected routes with middleware
-- PostgreSQL database
-- Swagger / OpenAPI documentation
-- Docker & Docker Compose (one-command startup)
-- Clean architecture (handlers / services / repository)
-- Environment-based configuration
+-  Auth: **register / login** (JWT)
+-  Secure protected routes (middleware)
+-  PostgreSQL persistence
+-  Swagger / OpenAPI docs
+-  Docker & Docker Compose (one-command startup)
+-  Clean architecture: handlers → services → repository
+-  Environment-based configuration
+-  CORS-ready for frontend (GitHub Pages / local dev)
 
 ## Tech Stack
 
-- **Language:** Go (1.25)
-- **HTTP:** net/http
-- **Database:** PostgreSQL 15
-- **Auth:** JWT (golang-jwt)
-- **Docs:** Swagger (swaggo)
+- **Language:** Go (see `go.mod`)
+- **HTTP:** `net/http`
+- **Database:** PostgreSQL
+- **Auth:** JWT (`golang-jwt`)
+- **Docs:** Swagger (`swaggo`)
 - **Containerization:** Docker, Docker Compose
 
-## Project Structure
+## API Overview
 
+### Auth
+
+#### `POST /auth/register`
+Creates a new user.
+
+**Body**
+```json
+{
+  "email": "user@example.com",
+  "password": "strong_password"
+}
