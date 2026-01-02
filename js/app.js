@@ -7,7 +7,7 @@
     const DEFAULT_FOCUSES = ["Deep work", "Study", "Health", "Social", "Reset"];
     const DEFAULT_HABITS  = ["Drink water", "Study 30 min"];
 
-// utils
+    // utils
     function ymd(d = new Date()) {
         const yyyy = d.getFullYear();
         const mm = String(d.getMonth() + 1).padStart(2, "0");
@@ -36,17 +36,41 @@
         return norm(s).toLowerCase();
     }
 
-// key per user
+    // planned/done helpers (важливо для статистики)
+    function countPlannedTasks(tasks = []) {
+        return tasks.map(t => norm(t)).filter(Boolean).length;
+    }
+
+    function countDoneTasks(tasks = [], tasksDone = []) {
+        let done = 0;
+        for (let i = 0; i < tasks.length; i++) {
+            const t = norm(tasks[i]);
+            if (!t) continue;            // порожня задача НЕ входить у план
+            if (tasksDone[i]) done++;
+        }
+        return done;
+    }
+
+    function pct(done, total) {
+        if (!total) return 0;
+        return Math.round((done / total) * 100);
+    }
+
+    function pickBookByScore(score) {
+        if (score < 50) {
+            return { title: "Atomic Habits", note: "Micro-steps → stable progress." };
+        }
+        if (score < 80) {
+            return { title: "Getting Things Done", note: "Clean system for tasks." };
+        }
+        return { title: "Deep Work", note: "Focus + quality execution." };
+    }
+
+    // key per user
     function appStorageKey() {
-        // важливо: беремо email, який записує sign.js у localStorage
         let email = normLower(localStorage.getItem(EMAIL_KEY));
-
-        // якщо email не записаний — падаємо в anon
         if (!email) email = "anon";
-
-        // щоб ключ завжди був безпечний
         email = email.replace(/\s+/g, "");
-
         return `${APP_KEY}:${email}`;
     }
 
@@ -66,9 +90,7 @@
         return normLower(localStorage.getItem(PLAN_KEY)) || "free";
     }
 
-
     function planLimits(plan) {
-        // Free: max 5 tasks/day
         if (plan === "free") return { maxTasksPerDay: 5 };
         if (plan === "pro") return { maxTasksPerDay: 10 };
         return { maxTasksPerDay: 15 }; // premium
@@ -116,7 +138,6 @@
 
         // habits master list (global)
         if (!Array.isArray(state.settings.habits) || state.settings.habits.length === 0) {
-            // пробуємо взяти зі "сьогоднішнього" дня (старий формат)
             const today = state.days[ymd()];
             if (today && Array.isArray(today.habits) && today.habits.length) {
                 state.settings.habits = today.habits.map(h => norm(h.name)).filter(Boolean);
@@ -130,18 +151,15 @@
 
         Object.keys(state.days).forEach((key) => {
             const day = state.days[key] || {};
-            // old format: habits: [{name, done}]
             if (Array.isArray(day.habits) && day.habits.length) {
                 const map = new Map(day.habits.map(h => [normLower(h.name), !!h.done]));
                 day.habitDone = masterHabits.map(name => !!map.get(normLower(name)));
                 delete day.habits;
             }
 
-            // ensure habitDone exists
             if (!Array.isArray(day.habitDone)) {
                 day.habitDone = masterHabits.map(() => false);
             } else {
-                // resize to master list length
                 while (day.habitDone.length < masterHabits.length) day.habitDone.push(false);
                 day.habitDone = day.habitDone.slice(0, masterHabits.length);
             }
@@ -172,11 +190,9 @@
         const state = initState();
         const limits = planLimits(getPlan());
 
-        // allow open from weekly: app.html?date=YYYY-MM-DD
         const qsDate = new URLSearchParams(location.search).get("date");
         const dayKey = (qsDate && isValidYMD(qsDate)) ? qsDate : ymd();
 
-        // init day if missing
         state.days[dayKey] = state.days[dayKey] || {
             mood: 3,
             focus: state.settings.focuses[0] || "Deep work",
@@ -188,7 +204,6 @@
 
         const day = state.days[dayKey];
 
-        // clamp tasksCount by plan
         state.settings.tasksCount = clamp(safeNum(state.settings.tasksCount, 3), 1, limits.maxTasksPerDay);
         ensureTasksLen(day, state.settings.tasksCount);
 
@@ -209,7 +224,7 @@
         });
         paintMood();
 
-        // focus (options + add custom)
+        // focus
         const focusSel = document.querySelector("[data-focus]");
         const focusNew = document.querySelector("[data-focus-new]");
         const focusAdd = document.querySelector("[data-focus-add]");
@@ -256,19 +271,19 @@
             });
         }
 
-        // tasks (dynamic list + progress)
+        // tasks
         const tasksWrap = document.querySelector("[data-tasks]");
         const tasksCountSel = document.querySelector("[data-tasks-count]");
         const tasksProgress = document.querySelector("[data-tasks-progress]");
         const tasksBar = document.querySelector("[data-tasks-bar]");
 
         function updateTasksProgress() {
-            const total = day.tasks.length;
-            const done = day.tasksDone.filter(Boolean).length;
-            const pct = total ? Math.round((done / total) * 100) : 0;
+            const planned = countPlannedTasks(day.tasks);
+            const done = countDoneTasks(day.tasks, day.tasksDone);
+            const p = pct(done, planned);
 
-            if (tasksProgress) tasksProgress.textContent = `Tasks: ${done}/${total} (${pct}%)`;
-            if (tasksBar) tasksBar.style.width = `${pct}%`;
+            if (tasksProgress) tasksProgress.textContent = `Tasks: ${done}/${planned} (${p}%)`;
+            if (tasksBar) tasksBar.style.width = `${p}%`;
         }
 
         function renderTasks() {
@@ -297,6 +312,7 @@
                 input.addEventListener("input", () => {
                     day.tasks[idx] = input.value;
                     saveApp(state);
+                    updateTasksProgress();
                 });
 
                 row.appendChild(cb);
@@ -308,12 +324,10 @@
         }
 
         if (tasksCountSel) {
-            // disable options > plan limit (на майбутнє)
             Array.from(tasksCountSel.querySelectorAll("option")).forEach(opt => {
                 opt.disabled = Number(opt.value) > limits.maxTasksPerDay;
             });
 
-            // sync select with setting (clamped)
             tasksCountSel.value = String(state.settings.tasksCount);
 
             tasksCountSel.addEventListener("change", () => {
@@ -331,7 +345,7 @@
 
         renderTasks();
 
-        // habits (global names + per day done)
+        // habits
         const habitsWrap = document.querySelector("[data-habits]");
         const masterHabits = state.settings.habits;
 
@@ -356,11 +370,9 @@
                     saveApp(state);
                 });
 
-                // rename habit (updates master list)
                 input.addEventListener("input", () => {
                     const newName = norm(input.value);
                     if (!newName) return;
-
                     state.settings.habits[i] = newName;
                     saveApp(state);
                 });
@@ -371,7 +383,6 @@
             });
         }
 
-        // ensure habitDone length matches master
         while (day.habitDone.length < masterHabits.length) day.habitDone.push(false);
         day.habitDone = day.habitDone.slice(0, masterHabits.length);
 
@@ -387,7 +398,7 @@
             });
         }
 
-        // reset today (resets selected date, not only "today")
+        // reset
         const reset = document.querySelector("[data-reset-today]");
         if (reset) {
             reset.addEventListener("click", () => {
@@ -407,7 +418,6 @@
             });
         }
 
-        // final save
         saveApp(state);
     }
 
@@ -427,6 +437,15 @@
         const names = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
         wrap.innerHTML = "";
 
+        // weekly totals
+        let weekTasksPlanned = 0;
+        let weekTasksDone = 0;
+        let weekHabitsPlanned = 0;
+        let weekHabitsDone = 0;
+
+        let bestDayName = "—";
+        let bestDayPct = -1;
+
         for (let i = 0; i < 7; i++) {
             const d = new Date(monday);
             d.setDate(monday.getDate() + i);
@@ -434,12 +453,25 @@
             const data = state.days[key] || {};
             const isToday = key === ymd();
 
-            const tasksDone = (data.tasksDone || []).filter(Boolean).length;
-            const tasksTotal = (data.tasks || []).length || 0;
-            const habitsDone = (data.habitDone || []).filter(Boolean).length;
-            const habitsTotal = (data.habitDone || []).length || 0;
+            const planned = countPlannedTasks(data.tasks || []);
+            const done = countDoneTasks(data.tasks || [], data.tasksDone || []);
 
-            const pct = tasksTotal ? Math.round((tasksDone / tasksTotal) * 100) : 0;
+            const habitsTotal = (data.habitDone || []).length || 0;
+            const habitsDone = (data.habitDone || []).filter(Boolean).length;
+
+            const dayPct = pct(done, planned);
+
+            weekTasksPlanned += planned;
+            weekTasksDone += done;
+            weekHabitsPlanned += habitsTotal;
+            weekHabitsDone += habitsDone;
+
+            if (planned > 0 && dayPct > bestDayPct) {
+                bestDayPct = dayPct;
+                bestDayName = names[i];
+            }
+
+            const habitsPct = pct(habitsDone, habitsTotal);
 
             const el = document.createElement("div");
             el.className = "day";
@@ -454,9 +486,29 @@
           </div>
           <a class="pill" href="app.html?date=${key}">Open</a>
         </div>
-        <div class="mini">Tasks: ${tasksDone}/${tasksTotal} (${pct}%) • Habits: ${habitsDone}/${habitsTotal}</div>
+        <div class="mini">
+          Tasks: ${done}/${planned} (${dayPct}%) • Habits: ${habitsDone}/${habitsTotal} (${habitsPct}%)
+        </div>
       `;
             wrap.appendChild(el);
+        }
+
+        // Weekly Insights (1–3 короткі рядки)
+        const tasksPct = pct(weekTasksDone, weekTasksPlanned);
+        const habitsPct = pct(weekHabitsDone, weekHabitsPlanned);
+        const score = Math.round(tasksPct * 0.7 + habitsPct * 0.3);
+
+        const book = pickBookByScore(score);
+
+        const linesEl = document.querySelector("[data-weekly-lines]");
+        if (linesEl) {
+            const bestLine = bestDayPct >= 0 ? `${bestDayName} — ${bestDayPct}%` : "—";
+
+            linesEl.innerHTML = `
+              • Week score: <b>${score}%</b> (Tasks ${tasksPct}% • Habits ${habitsPct}%)<br>
+              • Best day: <b>${bestLine}</b><br>
+              • Book tip: <b>${book.title}</b> — ${book.note}
+            `;
         }
     }
 
