@@ -229,3 +229,19 @@
 .item {
     border: 1px solid rgba(0,0,0,0.06);
 }
+
+/* FIX overflow for inputs (width:100% + padding) */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+.select, .text {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+}
+
+/* extra safety for grid items */
+.app__grid > * { min-width: 0; }
+.row > * { min-width: 0; }
+.inline > * { min-width: 0; }
