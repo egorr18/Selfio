@@ -72,7 +72,7 @@
 
     // --- Smart Book Tip 2.0 (tags + seeded) ---
     function extractTag(taskText) {
-        const m = String(taskText || "").match(/#(biz|crypto|sport|growth)\b/i);
+        const m = String(taskText || "").match(/(biz|crypto|sport|growth)\b/i);
         return m ? m[1].toLowerCase() : null;
     }
 
@@ -671,7 +671,7 @@
             ? pickWeeklyBook({ email, weekStart: ymd(monday), score: weekScore, topTag: topTag || "general" })
             : null;
 
-        // WEEK lines (max 3)  ✅ тут саме Smart Book Tip 2.0
+        // WEEK lines (max 3)  тут саме Smart Book Tip 2.0
         if (weekLinesEl) {
             const lines = [];
             lines.push(`Week score: <b>${weekScore}%</b> (${weekDone}/${weekPlanned})`);
