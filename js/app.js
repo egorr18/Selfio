@@ -45,7 +45,7 @@
         let done = 0;
         for (let i = 0; i < tasks.length; i++) {
             const t = norm(tasks[i]);
-            if (!t) continue;      // порожня задача НЕ входить у план
+            if (!t) continue; // порожня задача НЕ входить у план
             if (tasksDone[i]) done++;
         }
         return done;
@@ -54,190 +54,6 @@
     function pct(done, total) {
         if (!total) return 0;
         return Math.round((done / total) * 100);
-    }
-
-    function startOfWeekMonday(date = new Date()) {
-        const d = new Date(date);
-        const shift = (d.getDay() + 6) % 7; // Mon=0
-        d.setDate(d.getDate() - shift);
-        d.setHours(0, 0, 0, 0);
-        return d;
-    }
-
-    function addDays(date, days) {
-        const d = new Date(date);
-        d.setDate(d.getDate() + days);
-        return d;
-    }
-
-    // stable hash for seeded pick
-    function hashString(str) {
-        let h = 2166136261;
-        for (let i = 0; i < str.length; i++) {
-            h ^= str.charCodeAt(i);
-            h = Math.imul(h, 16777619);
-        }
-        return (h >>> 0);
-    }
-
-    function seededPick(arr, seedStr) {
-        if (!arr || !arr.length) return null;
-        const h = hashString(seedStr);
-        return arr[h % arr.length];
-    }
-
-    // tiers by week score
-    function weekTier(score) {
-        if (score >= 85) return "elite";
-        if (score >= 70) return "growth";
-        if (score >= 50) return "stable";
-        return "reset";
-    }
-
-    const PSYCH = {
-        reset:  "Lower the barrier: make the first step ridiculously easy.",
-        stable: "You’re building rhythm — consistency beats intensity.",
-        growth: "You’re improving — add structure, not more tasks.",
-        elite:  "Strong week — protect recovery to avoid burnout.",
-    };
-
-    // book library
-    const BOOKS = {
-        reset: {
-            general: [
-                { title: "Atomic Habits", tip: "Make it tiny: 2 minutes rule." },
-                { title: "Deep Work", tip: "Remove distractions for 1 focused block." },
-            ],
-            sport: [
-                { title: "Atomic Habits", tip: "Attach sport to a fixed trigger (after waking)." },
-                { title: "Can't Hurt Me", tip: "Do the minimum even on low days." },
-            ],
-            crypto: [
-                { title: "Trading in the Zone", tip: "Reduce decisions: write rules before trades." },
-                { title: "The Psychology of Money", tip: "Focus on process, not outcome." },
-            ],
-            biz: [
-                { title: "Getting Things Done", tip: "Capture everything into one inbox." },
-                { title: "The One Thing", tip: "Pick 1 priority and protect it daily." },
-            ],
-            growth: [
-                { title: "Atomic Habits", tip: "Track streaks — don’t break the chain." },
-                { title: "Mindset", tip: "Swap “I can’t” → “I’m learning”." },
-            ],
-        },
-
-        stable: {
-            general: [
-                { title: "Getting Things Done", tip: "Use next-actions, not vague tasks." },
-                { title: "Essentialism", tip: "Cut 1 non-important thing this week." },
-            ],
-            sport: [
-                { title: "Atomic Habits", tip: "Upgrade environment: bag ready in advance." },
-                { title: "Why We Sleep", tip: "Sleep = free performance boost." },
-            ],
-            crypto: [
-                { title: "Trading in the Zone", tip: "Journal 3 trades: entry/exit/why." },
-                { title: "Fooled by Randomness", tip: "Don’t confuse luck with skill." },
-            ],
-            biz: [
-                { title: "The One Thing", tip: "Block 60–90 min for main goal daily." },
-                { title: "Essentialism", tip: "Say no to 1 low-value request." },
-            ],
-            growth: [
-                { title: "Deep Work", tip: "1 distraction-free session per day." },
-                { title: "Atomic Habits", tip: "Make good habits obvious & easy." },
-            ],
-        },
-
-        growth: {
-            general: [
-                { title: "Deep Work", tip: "Add 1 more focused block next week." },
-                { title: "Essentialism", tip: "Do less, but better — choose 3 priorities." },
-            ],
-            sport: [
-                { title: "Atomic Habits", tip: "Increase load by +5% only." },
-                { title: "Why We Sleep", tip: "7+ hours → better recovery → better discipline." },
-            ],
-            crypto: [
-                { title: "Trading in the Zone", tip: "Limit trades: quality > quantity." },
-                { title: "The Psychology of Money", tip: "Create a risk rule and follow it." },
-            ],
-            biz: [
-                { title: "Getting Things Done", tip: "Weekly review to keep system clean." },
-                { title: "The One Thing", tip: "Define 1 KPI for the week." },
-            ],
-            growth: [
-                { title: "Atomic Habits", tip: "Raise the bar: 1% better daily." },
-                { title: "Deep Work", tip: "Protect focus — schedule it first." },
-            ],
-        },
-
-        elite: {
-            general: [
-                { title: "Deep Work", tip: "Optimize: reduce context switching." },
-                { title: "The One Thing", tip: "Double down on what works." },
-            ],
-            sport: [
-                { title: "Atomic Habits", tip: "Keep consistency, avoid overtraining." },
-                { title: "Can't Hurt Me", tip: "Stay sharp: do the hard thing first." },
-            ],
-            crypto: [
-                { title: "Fooled by Randomness", tip: "Stick to risk management always." },
-                { title: "Trading in the Zone", tip: "Master execution, not prediction." },
-            ],
-            biz: [
-                { title: "Essentialism", tip: "Scale by removing low-value tasks." },
-                { title: "Getting Things Done", tip: "Systemize: templates + checklists." },
-            ],
-            growth: [
-                { title: "Atomic Habits", tip: "Make it sustainable — no burnout." },
-                { title: "Deep Work", tip: "Keep your focus as your advantage." },
-            ],
-        },
-    };
-
-    // Detect theme from task text (works with "#biz" OR "business/бізнес", etc.)
-    function extractTheme(taskText) {
-        const s = normLower(taskText);
-        if (!s) return null;
-
-        const has = (re) => re.test(s);
-
-        if (has(/(^|\s)#?(biz|business)\b/) || has(/\bбізнес\b/) || has(/\bbusiness\b/)) return "biz";
-        if (has(/(^|\s)#?(crypto)\b/) || has(/\bкрипт\b/) || has(/\bcrypto\b/)) return "crypto";
-        if (has(/(^|\s)#?(sport)\b/) || has(/\bспорт\b/) || has(/\bsport\b/)) return "sport";
-        if (has(/(^|\s)#?(growth)\b/) || has(/\bсаморозвиток\b/) || has(/\bgrowth\b/)) return "growth";
-
-        return null;
-    }
-
-    function dominantThemeFromWeek(daysArr) {
-        const counts = { biz: 0, crypto: 0, sport: 0, growth: 0 };
-        daysArr.forEach(day => {
-            (day.tasks || []).forEach(t => {
-                const tt = norm(t);
-                if (!tt) return;
-                const theme = extractTheme(tt);
-                if (theme) counts[theme] += 1;
-            });
-        });
-
-        let best = "general";
-        let bestVal = 0;
-        Object.keys(counts).forEach(k => {
-            if (counts[k] > bestVal) {
-                bestVal = counts[k];
-                best = k;
-            }
-        });
-
-        return best; // or "general"
-    }
-
-    function planLimits(plan) {
-        if (plan === "free") return { maxTasksPerDay: 5,  maxHabits: 5,  historyDays: 14,  weekNav: false };
-        if (plan === "pro")  return { maxTasksPerDay: 10, maxHabits: 15, historyDays: 90,  weekNav: true  };
-        return               { maxTasksPerDay: 15, maxHabits: 30, historyDays: 365, weekNav: true  }; // premium
     }
 
     // key per user
@@ -264,6 +80,33 @@
         return normLower(localStorage.getItem(PLAN_KEY)) || "free";
     }
 
+    // PRO / PREMIUM правила
+    function planFeatures(plan) {
+        if (plan === "pro") {
+            return {
+                maxTasksPerDay: 10,
+                maxHabits: 15,
+                historyDays: 90,
+                insights: true,
+            };
+        }
+        if (plan === "premium") {
+            return {
+                maxTasksPerDay: 15,
+                maxHabits: 30,     // можеш змінити як захочеш
+                historyDays: 365,  // або "unlimited"
+                insights: true,
+            };
+        }
+        // free
+        return {
+            maxTasksPerDay: 5,
+            maxHabits: 5,
+            historyDays: 30,
+            insights: false,
+        };
+    }
+
     function requireAuth() {
         const token = localStorage.getItem(TOKEN_KEY);
         if (!token) {
@@ -284,9 +127,22 @@
         document.querySelectorAll("[data-logout]").forEach((btn) => {
             btn.addEventListener("click", () => {
                 localStorage.removeItem("selfio_token");
-                localStorage.removeItem("selfio_email");
                 location.href = "../index.html";
             });
+        });
+    }
+
+    // history prune (щоб free/pro відповідали “History: 30/90 days”)
+    function pruneHistoryDays(state, keepDays) {
+        if (!keepDays || keepDays <= 0) return;
+        const today = new Date();
+        const cutoff = new Date(today);
+        cutoff.setDate(today.getDate() - (keepDays - 1));
+        const cutoffKey = ymd(cutoff);
+
+        Object.keys(state.days || {}).forEach((k) => {
+            if (!isValidYMD(k)) return;
+            if (k < cutoffKey) delete state.days[k];
         });
     }
 
@@ -296,7 +152,8 @@
         state.days = state.days || {};
         state.settings = state.settings || {};
 
-        const limits = planLimits(getPlan());
+        const plan = getPlan();
+        const features = planFeatures(plan);
 
         // focuses
         if (!Array.isArray(state.settings.focuses) || state.settings.focuses.length === 0) {
@@ -304,7 +161,7 @@
         }
 
         // tasksCount (default 3, but clamp by plan)
-        state.settings.tasksCount = clamp(safeNum(state.settings.tasksCount, 3), 1, limits.maxTasksPerDay);
+        state.settings.tasksCount = clamp(safeNum(state.settings.tasksCount, 3), 1, features.maxTasksPerDay);
 
         // habits master list (global)
         if (!Array.isArray(state.settings.habits) || state.settings.habits.length === 0) {
@@ -316,9 +173,9 @@
             }
         }
 
-        // enforce habits limit by plan (PRO=15)
-        if (state.settings.habits.length > limits.maxHabits) {
-            state.settings.habits = state.settings.habits.slice(0, limits.maxHabits);
+        // enforce maxHabits by plan
+        if (state.settings.habits.length > features.maxHabits) {
+            state.settings.habits = state.settings.habits.slice(0, features.maxHabits);
         }
 
         // migrate each day to habitDone array
@@ -334,6 +191,7 @@
                 delete day.habits;
             }
 
+            // ensure habitDone exists & correct length
             if (!Array.isArray(day.habitDone)) {
                 day.habitDone = masterHabits.map(() => false);
             } else {
@@ -343,6 +201,9 @@
 
             state.days[key] = day;
         });
+
+        // prune history
+        pruneHistoryDays(state, features.historyDays);
 
         saveApp(state);
         return state;
@@ -359,13 +220,138 @@
         day.tasksDone = day.tasksDone.slice(0, count);
     }
 
+    // ---------- WEEKLY INSIGHTS helpers ----------
+    function extractTag(taskText) {
+        const s = normLower(taskText);
+        const m = s.match(/^#(biz|crypto|sport|growth)\b/);
+        return m ? m[1] : null;
+    }
+
+    function hashString(str) {
+        // FNV-1a
+        let h = 2166136261;
+        for (let i = 0; i < str.length; i++) {
+            h ^= str.charCodeAt(i);
+            h = Math.imul(h, 16777619);
+        }
+        return (h >>> 0);
+    }
+
+    function seededPick(arr, seedStr) {
+        if (!Array.isArray(arr) || arr.length === 0) return null;
+        const h = hashString(seedStr);
+        return arr[h % arr.length];
+    }
+
+    function weekTier(score) {
+        if (score >= 85) return "elite";
+        if (score >= 70) return "growth";
+        if (score >= 50) return "stable";
+        return "reset";
+    }
+
+    const BOOKS = {
+        reset: {
+            general: [
+                { title: "Atomic Habits", tip: "Make it tiny: use the 2-minute rule." },
+                { title: "Deep Work", tip: "Remove distractions for 1 focused block." },
+            ],
+            sport: [
+                { title: "Atomic Habits", tip: "Attach sport to a fixed trigger (after waking)." },
+                { title: "Can't Hurt Me", tip: "Do the minimum even on low days." },
+            ],
+            crypto: [
+                { title: "Trading in the Zone", tip: "Write rules before trades. Less impulsive decisions." },
+                { title: "The Psychology of Money", tip: "Focus on process, not outcome." },
+            ],
+            biz: [
+                { title: "Getting Things Done", tip: "Capture everything into one inbox." },
+                { title: "The One Thing", tip: "Pick 1 priority and protect it daily." },
+            ],
+            growth: [
+                { title: "Atomic Habits", tip: "Track streaks — don’t break the chain." },
+                { title: "Mindset", tip: "Swap “I can’t” → “I’m learning”." },
+            ],
+        },
+
+        stable: {
+            general: [
+                { title: "Getting Things Done", tip: "Use next-actions, not vague tasks." },
+                { title: "Essentialism", tip: "Cut 1 non-important thing this week." },
+            ],
+            sport: [
+                { title: "Atomic Habits", tip: "Upgrade environment: prepare your gear заранее." },
+                { title: "Why We Sleep", tip: "Sleep = free performance boost." },
+            ],
+            crypto: [
+                { title: "Trading in the Zone", tip: "Journal 3 trades: entry/exit/why." },
+                { title: "Fooled by Randomness", tip: "Don’t confuse luck with skill." },
+            ],
+            biz: [
+                { title: "The One Thing", tip: "Block 60–90 min for your main goal daily." },
+                { title: "Essentialism", tip: "Say no to 1 low-value request." },
+            ],
+            growth: [
+                { title: "Deep Work", tip: "1 distraction-free session per day." },
+                { title: "Atomic Habits", tip: "Make good habits obvious & easy." },
+            ],
+        },
+
+        growth: {
+            general: [
+                { title: "Deep Work", tip: "Add 1 more focused block next week." },
+                { title: "Essentialism", tip: "Choose 3 priorities. Do less, but better." },
+            ],
+            sport: [
+                { title: "Atomic Habits", tip: "Increase load by only +5%." },
+                { title: "Why We Sleep", tip: "7+ hours → better recovery → better discipline." },
+            ],
+            crypto: [
+                { title: "Trading in the Zone", tip: "Limit trades: quality > quantity." },
+                { title: "The Psychology of Money", tip: "Create a risk rule and follow it." },
+            ],
+            biz: [
+                { title: "Getting Things Done", tip: "Do a weekly review to keep system clean." },
+                { title: "The One Thing", tip: "Define 1 KPI for the week." },
+            ],
+            growth: [
+                { title: "Atomic Habits", tip: "Raise the bar: 1% better daily." },
+                { title: "Deep Work", tip: "Schedule focus first — protect it." },
+            ],
+        },
+
+        elite: {
+            general: [
+                { title: "Deep Work", tip: "Optimize: reduce context switching." },
+                { title: "The One Thing", tip: "Double down on what works." },
+            ],
+            sport: [
+                { title: "Atomic Habits", tip: "Keep consistency, avoid overtraining." },
+                { title: "Can't Hurt Me", tip: "Do the hard thing first." },
+            ],
+            crypto: [
+                { title: "Fooled by Randomness", tip: "Stick to risk management always." },
+                { title: "Trading in the Zone", tip: "Master execution, not prediction." },
+            ],
+            biz: [
+                { title: "Essentialism", tip: "Scale by removing low-value tasks." },
+                { title: "Getting Things Done", tip: "Systemize: templates + checklists." },
+            ],
+            growth: [
+                { title: "Atomic Habits", tip: "Make it sustainable — no burnout." },
+                { title: "Deep Work", tip: "Keep focus as your advantage." },
+            ],
+        },
+    };
+
     // pages
     function todayPage() {
         const page = document.body.getAttribute("data-page");
         if (page !== "today") return;
 
         const state = initState();
-        const limits = planLimits(getPlan());
+        const plan = getPlan();
+        const features = planFeatures(plan);
 
         const qsDate = new URLSearchParams(location.search).get("date");
         const dayKey = (qsDate && isValidYMD(qsDate)) ? qsDate : ymd();
@@ -381,7 +367,8 @@
 
         const day = state.days[dayKey];
 
-        state.settings.tasksCount = clamp(safeNum(state.settings.tasksCount, 3), 1, limits.maxTasksPerDay);
+        // clamp tasksCount by plan
+        state.settings.tasksCount = clamp(safeNum(state.settings.tasksCount, 3), 1, features.maxTasksPerDay);
         ensureTasksLen(day, state.settings.tasksCount);
 
         // mood
@@ -501,15 +488,20 @@
         }
 
         if (tasksCountSel) {
-            Array.from(tasksCountSel.querySelectorAll("option")).forEach(opt => {
-                opt.disabled = Number(opt.value) > limits.maxTasksPerDay;
-            });
+            // IMPORTANT: генеруємо опції 1..limit (щоб PRO показував 10, не 5)
+            tasksCountSel.innerHTML = "";
+            for (let i = 1; i <= features.maxTasksPerDay; i++) {
+                const opt = document.createElement("option");
+                opt.value = String(i);
+                opt.textContent = String(i);
+                tasksCountSel.appendChild(opt);
+            }
 
             tasksCountSel.value = String(state.settings.tasksCount);
 
             tasksCountSel.addEventListener("change", () => {
                 const wanted = safeNum(tasksCountSel.value, state.settings.tasksCount);
-                const clamped = clamp(wanted, 1, limits.maxTasksPerDay);
+                const clamped = clamp(wanted, 1, features.maxTasksPerDay);
 
                 state.settings.tasksCount = clamped;
                 tasksCountSel.value = String(clamped);
@@ -524,7 +516,7 @@
 
         // habits
         const habitsWrap = document.querySelector("[data-habits]");
-        const masterHabits = state.settings.habits; // already limited by plan
+        const masterHabits = state.settings.habits;
 
         function renderHabits() {
             if (!habitsWrap) return;
@@ -604,91 +596,67 @@
 
         const state = initState();
         const plan = getPlan();
-        const limits = planLimits(plan);
+        const features = planFeatures(plan);
 
         const wrap = document.querySelector("[data-week]");
-        const linesEl = document.querySelector("[data-weekly-lines]");
-        if (!wrap || !linesEl) return;
+        if (!wrap) return;
 
-        // week offset for Pro/Premium: ?w=0 current, -1 previous, -2, ...
-        const qs = new URLSearchParams(location.search);
-        let w = safeNum(qs.get("w"), 0);
+        const insightsLines = document.querySelector("[data-weekly-lines]");
 
-        // no future weeks
-        w = Math.min(0, w);
-
-        const maxBackWeeks = Math.floor(limits.historyDays / 7);
-        if (!limits.weekNav) w = 0;
-        w = clamp(w, -maxBackWeeks, 0);
-
-        const nav = document.querySelector("[data-week-nav]");
-        const prevBtn = document.querySelector("[data-week-prev]");
-        const nextBtn = document.querySelector("[data-week-next]");
-        const labelEl = document.querySelector("[data-week-label]");
-
-        if (nav) {
-            nav.style.display = limits.weekNav ? "" : "none";
-        }
-
-        function goWeek(newW) {
-            const url = new URL(location.href);
-            url.searchParams.set("w", String(newW));
-            location.href = url.pathname + url.search;
-        }
-
-        if (limits.weekNav && prevBtn && nextBtn) {
-            prevBtn.onclick = () => goWeek(clamp(w - 1, -maxBackWeeks, 0));
-            nextBtn.onclick = () => goWeek(clamp(w + 1, -maxBackWeeks, 0));
-
-            prevBtn.disabled = (w <= -maxBackWeeks);
-            nextBtn.disabled = (w >= 0);
-        }
-
-        const baseMonday = startOfWeekMonday(new Date());
-        const monday = addDays(baseMonday, w * 7);
-
+        const now = new Date();
+        const shift = (now.getDay() + 6) % 7; // Mon=0
+        const monday = new Date(now);
+        monday.setDate(now.getDate() - shift);
         const mondayKey = ymd(monday);
-        const sundayKey = ymd(addDays(monday, 6));
-        if (labelEl) labelEl.textContent = `${mondayKey} → ${sundayKey}`;
 
         const names = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+
+        // totals for week
+        let weekTasksPlanned = 0, weekTasksDone = 0;
+        let weekHabitsTotal = 0, weekHabitsDone = 0;
+
+        const tagCounts = { biz: 0, crypto: 0, sport: 0, growth: 0 };
+
+        // build days
         wrap.innerHTML = "";
 
-        // collect week days data for insights
-        const weekDays = [];
-
-        let weekTasksDone = 0, weekTasksPlanned = 0;
-        let weekHabitsDone = 0, weekHabitsTotal = 0;
-
-        // for streaks (Pro)
-        const dayScores = [];
+        let bestDayIdx = 0;
+        let bestDayScore = -1;
 
         for (let i = 0; i < 7; i++) {
-            const d = addDays(monday, i);
+            const d = new Date(monday);
+            d.setDate(monday.getDate() + i);
             const key = ymd(d);
             const data = state.days[key] || {};
             const isToday = key === ymd();
 
             const planned = countPlannedTasks(data.tasks || []);
             const done = countDoneTasks(data.tasks || [], data.tasksDone || []);
-            const tasksPct = pct(done, planned);
+            const tPct = pct(done, planned);
 
-            const habitsDone = (data.habitDone || []).filter(Boolean).length;
-            const habitsTotal = (data.habitDone || []).length || 0;
-            const habitsPct = pct(habitsDone, habitsTotal);
+            const hTotal = Array.isArray(data.habitDone) ? data.habitDone.length : 0;
+            const hDone = Array.isArray(data.habitDone) ? data.habitDone.filter(Boolean).length : 0;
+            const hPct = pct(hDone, hTotal);
 
-            const dayScore = Math.round((tasksPct + habitsPct) / 2);
+            // day score = avg tasks/habits pct (як у твоєму макеті)
+            const dayScore = Math.round((tPct + hPct) / 2);
 
-            weekTasksDone += done;
+            if (dayScore > bestDayScore) {
+                bestDayScore = dayScore;
+                bestDayIdx = i;
+            }
+
             weekTasksPlanned += planned;
-            weekHabitsDone += habitsDone;
-            weekHabitsTotal += habitsTotal;
+            weekTasksDone += done;
+            weekHabitsTotal += hTotal;
+            weekHabitsDone += hDone;
 
-            dayScores.push({ i, name: names[i], score: dayScore });
-
-            weekDays.push({
-                tasks: data.tasks || [],
-                tasksDone: data.tasksDone || [],
+            // tags (from planned tasks)
+            (data.tasks || []).forEach((t) => {
+                const tt = norm(t);
+                if (!tt) return;
+                const tag = extractTag(tt);
+                if (tag) tagCounts[tag] = (tagCounts[tag] || 0) + 1;
             });
 
             const el = document.createElement("div");
@@ -704,54 +672,47 @@
           </div>
           <a class="pill" href="app.html?date=${key}">Open</a>
         </div>
-        <div class="mini">Tasks: ${done}/${planned} (${tasksPct}%) • Habits: ${habitsDone}/${habitsTotal} (${habitsPct}%)</div>
+        <div class="mini">
+          Tasks: ${done}/${planned} (${tPct}%) • Habits: ${hDone}/${hTotal} (${hPct}%)
+        </div>
       `;
             wrap.appendChild(el);
         }
 
-        const weekTasksPct = pct(weekTasksDone, weekTasksPlanned);
-        const weekHabitsPct = pct(weekHabitsDone, weekHabitsTotal);
-        const weekScore = Math.round((weekTasksPct + weekHabitsPct) / 2);
-
-        // best day
-        const best = dayScores.slice().sort((a, b) => b.score - a.score)[0];
-
-        // streak (Pro): consecutive days with dayScore >= 70
-        let bestStreak = 0, curStreak = 0;
-        dayScores.forEach(ds => {
-            if (ds.score >= 70) {
-                curStreak += 1;
-                bestStreak = Math.max(bestStreak, curStreak);
+        // INSIGHTS (тільки PRO/PREMIUM)
+        if (insightsLines) {
+            if (!features.insights) {
+                insightsLines.innerHTML = `Upgrade to <b>Pro</b> to unlock weekly insights + book tips.`;
             } else {
-                curStreak = 0;
+                const tasksPct = pct(weekTasksDone, weekTasksPlanned);
+                const habitsPct = pct(weekHabitsDone, weekHabitsTotal);
+                const weekScore = Math.round((tasksPct + habitsPct) / 2);
+
+                // dominant tag
+                let dominant = "general";
+                let best = 0;
+                Object.keys(tagCounts).forEach((k) => {
+                    if (tagCounts[k] > best) {
+                        best = tagCounts[k];
+                        dominant = k;
+                    }
+                });
+
+                const tier = weekTier(weekScore);
+                const list = (BOOKS[tier] && (BOOKS[tier][dominant] || BOOKS[tier].general)) || [];
+                const seedStr = `${appStorageKey()}|${mondayKey}|${tier}|${dominant}`;
+                const book = seededPick(list, seedStr) || seededPick((BOOKS[tier] && BOOKS[tier].general) || [], seedStr) || { title: "—", tip: "—" };
+
+                const bestDayName = names[bestDayIdx] || "—";
+
+                // 1–3 lines (буліти)
+                insightsLines.innerHTML = `
+          • Week score: <b>${weekScore}%</b> (Tasks ${tasksPct}% • Habits ${habitsPct}%)<br>
+          • Best day: <b>${bestDayName} — ${bestDayScore}%</b><br>
+          • Book tip: <b>${book.title}</b> — ${book.tip}
+        `;
             }
-        });
-
-        // theme
-        const theme = dominantThemeFromWeek(weekDays); // biz/crypto/sport/growth/general
-        const tier = weekTier(weekScore);
-
-        const email = localStorage.getItem(EMAIL_KEY) || "anon";
-        const seed = `${email}|${mondayKey}|${tier}|${theme}`;
-        const pool =
-            (BOOKS[tier] && BOOKS[tier][theme]) ||
-            (BOOKS[tier] && BOOKS[tier].general) ||
-            [];
-        const book = seededPick(pool, seed) || { title: "Atomic Habits", tip: "Make it easy to start." };
-
-        // Build 1–3 insights
-        const lines = [];
-        lines.push(`Week score: <b>${weekScore}%</b> (Tasks ${weekTasksPct}% • Habits ${weekHabitsPct}%)`);
-        lines.push(`Best day: <b>${best.name}</b> — <b>${best.score}%</b>`);
-        lines.push(`Book tip: <b>${book.title}</b> — ${book.tip}`);
-
-        // Pro/Premium extra (still minimal)
-        if (plan !== "free") {
-            lines.push(`Insight: ${PSYCH[tier] || PSYCH.stable}`);
-            if (bestStreak >= 2) lines.push(`Streak: <b>${bestStreak}</b> days ≥ 70%`);
         }
-
-        linesEl.innerHTML = `<ul style="margin:0; padding-left:18px;">${lines.slice(0, 5).map(x => `<li>${x}</li>`).join("")}</ul>`;
     }
 
     function settingsPage() {
@@ -772,7 +733,7 @@
 
         const state = initState();
         const plan = getPlan();
-        const limits = planLimits(plan);
+        const features = planFeatures(plan);
 
         const masterHabits = state.settings.habits;
 
@@ -832,16 +793,15 @@
                 div.appendChild(del);
                 list.appendChild(div);
             });
-
-            add.disabled = masterHabits.length >= limits.maxHabits;
         }
 
         add.addEventListener("click", () => {
             const name = norm(input.value);
             if (!name) return;
 
-            if (masterHabits.length >= limits.maxHabits) {
-                alert(`Habit limit reached for ${plan.toUpperCase()} plan (${limits.maxHabits}).`);
+            // limit by plan
+            if (masterHabits.length >= features.maxHabits) {
+                alert(`Limit reached: max ${features.maxHabits} habits for your plan (${plan.toUpperCase()}).`);
                 return;
             }
 
