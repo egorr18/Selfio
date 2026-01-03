@@ -41,13 +41,22 @@
       </div>
     </div>
 
-    <!-- Weekly Insights -->
-    <div class="card" data-weekly-insights>
-      <h2>Weekly Insights</h2>
+    <!-- Insights card -->
+    <div class="card" data-insights-card>
+      <div class="inline inline--between" style="margin-bottom:10px;">
+        <h2 style="margin:0;">Insights</h2>
+
+        <div class="inline" data-insights-tabs>
+          <button class="pill" type="button" data-insights-tab="week">Week</button>
+          <button class="pill" type="button" data-insights-tab="month">Month</button>
+        </div>
+      </div>
+
       <div class="mini" data-weekly-lines>—</div>
+      <div class="mini" data-monthly-lines style="display:none;">—</div>
     </div>
 
-    <div class="week" data-week></div>
+    <div class="week" data-week style="margin-top:12px;"></div>
   </div>
 </section>
 
