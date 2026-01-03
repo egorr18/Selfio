@@ -587,7 +587,7 @@
             }
         }
 
-        // week range (Mon..Sun)
+        // week range (Mon/Sun)
         const now = new Date();
         const shift = (now.getDay() + 6) % 7; // Mon=0
         const monday = new Date(now);
