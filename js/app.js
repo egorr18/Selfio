@@ -72,9 +72,10 @@
 
     // --- Smart Book Tip 2.0 (tags + seeded) ---
     function extractTag(taskText) {
-        const m = String(taskText || "").match(/(biz|crypto|sport|growth)\b/i);
+        const m = String(taskText || "").match(/\b(biz|crypto|sport|growth)\b/i);
         return m ? m[1].toLowerCase() : null;
     }
+
 
     // stable hash (FNV-1a)
     function hashString(str) {
