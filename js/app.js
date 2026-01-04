@@ -1,11 +1,11 @@
 (function () {
     const TOKEN_KEY = "selfio_token";
     const EMAIL_KEY = "selfio_email";
-    const PLAN_KEY  = "selfio_plan";
-    const APP_KEY   = "selfio_app_v1";
+    const PLAN_KEY = "selfio_plan";
+    const APP_KEY = "selfio_app_v1";
 
     const DEFAULT_FOCUSES = ["Deep work", "Study", "Health", "Social", "Reset"];
-    const DEFAULT_HABITS  = ["Drink water", "Study 30 min"];
+    const DEFAULT_HABITS = ["Drink water", "Study 30 min"];
 
     // utils
     function ymd(d = new Date()) {
@@ -38,7 +38,7 @@
 
     // planned/done helpers (для статистики)
     function countPlannedTasks(tasks = []) {
-        return tasks.map(t => norm(t)).filter(Boolean).length;
+        return tasks.map((t) => norm(t)).filter(Boolean).length;
     }
 
     function countDoneTasks(tasks = [], tasksDone = []) {
@@ -60,11 +60,13 @@
         return normLower(localStorage.getItem(PLAN_KEY)) || "free";
     }
 
+    // Premium = month insights
     function isPremium() {
         return getPlan() === "premium";
     }
 
-    function isProPlus() {
+    // Pro feature = pro OR premium
+    function isPro() {
         const p = getPlan();
         return p === "pro" || p === "premium";
     }
@@ -75,9 +77,6 @@
         return { maxTasksPerDay: 15 }; // premium
     }
 
-    // =========================
-    // Smart Book Tip 2.0 tag extract
-    // =========================
     function extractTag(taskText) {
         const s = String(taskText || "").toLowerCase();
 
@@ -86,26 +85,81 @@
             .replace(/[^a-z0-9а-яіїєґ#_-]+/gi, " ")
             .split(/\s+/)
             .filter(Boolean)
-            .map(t => t.startsWith("#") ? t.slice(1) : t) // #biz -> biz
-            .map(t => t.replace(/[-_]/g, ""));            // self-dev -> selfdev
+            .map((t) => (t.startsWith("#") ? t.slice(1) : t)) // #biz -> biz
+            .map((t) => t.replace(/[-_]/g, "")); // self-dev -> selfdev
 
         const MAP = {
             biz: new Set([
-                "biz","business","work","startup","client","sales","marketing","project","product",
-                "freelance","job","career",
-                "бізнес","бизнес","робота","работа","стартап","клієнт","клиент"
+                "biz",
+                "business",
+                "work",
+                "startup",
+                "client",
+                "sales",
+                "marketing",
+                "project",
+                "product",
+                "freelance",
+                "job",
+                "career",
+                "бізнес",
+                "бизнес",
+                "робота",
+                "работа",
+                "стартап",
+                "клієнт",
+                "клиент",
             ]),
             crypto: new Set([
-                "crypto","btc","eth","trade","trading","defi","airdrop","binance",
-                "крипта","крипто","трейд","трейдинг","биток","біток"
+                "crypto",
+                "btc",
+                "eth",
+                "trade",
+                "trading",
+                "defi",
+                "airdrop",
+                "binance",
+                "крипта",
+                "крипто",
+                "трейд",
+                "трейдинг",
+                "биток",
+                "біток",
             ]),
             sport: new Set([
-                "sport","sports","gym","workout","training","run","running","cardio","lifting","fitness",
-                "зал","тренування","тренировка","біг","бег"
+                "sport",
+                "sports",
+                "gym",
+                "workout",
+                "training",
+                "run",
+                "running",
+                "cardio",
+                "lifting",
+                "fitness",
+                "зал",
+                "тренування",
+                "тренировка",
+                "біг",
+                "бег",
             ]),
             growth: new Set([
-                "growth","learn","learning","study","reading","skill","skills","selfdev","improve","habits","mindset",
-                "розвиток","развитие","навчання","учеба","учёба"
+                "growth",
+                "learn",
+                "learning",
+                "study",
+                "reading",
+                "skill",
+                "skills",
+                "selfdev",
+                "improve",
+                "habits",
+                "mindset",
+                "розвиток",
+                "развитие",
+                "навчання",
+                "учеба",
+                "учёба",
             ]),
         };
 
@@ -115,7 +169,6 @@
             if (MAP.sport.has(t)) return "sport";
             if (MAP.growth.has(t)) return "growth";
         }
-
         return null;
     }
 
@@ -126,7 +179,7 @@
             h ^= str.charCodeAt(i);
             h = Math.imul(h, 16777619);
         }
-        return (h >>> 0);
+        return h >>> 0;
     }
 
     function seededPick(arr, seedStr) {
@@ -298,7 +351,7 @@
         const state = loadApp();
         state.days = state.days || {};
         state.settings = state.settings || {};
-        state.weeks = state.weeks || {}; // ✅ new: per-week planning
+        state.weeks = state.weeks || {}; // ✅ week plans
 
         // focuses
         if (!Array.isArray(state.settings.focuses) || state.settings.focuses.length === 0) {
@@ -313,7 +366,7 @@
         if (!Array.isArray(state.settings.habits) || state.settings.habits.length === 0) {
             const today = state.days[ymd()];
             if (today && Array.isArray(today.habits) && today.habits.length) {
-                state.settings.habits = today.habits.map(h => norm(h.name)).filter(Boolean);
+                state.settings.habits = today.habits.map((h) => norm(h.name)).filter(Boolean);
             } else {
                 state.settings.habits = DEFAULT_HABITS.slice();
             }
@@ -327,8 +380,8 @@
 
             // old format habits -> habitDone
             if (Array.isArray(day.habits) && day.habits.length) {
-                const map = new Map(day.habits.map(h => [normLower(h.name), !!h.done]));
-                day.habitDone = masterHabits.map(name => !!map.get(normLower(name)));
+                const map = new Map(day.habits.map((h) => [normLower(h.name), !!h.done]));
+                day.habitDone = masterHabits.map((name) => !!map.get(normLower(name)));
                 delete day.habits;
             }
 
@@ -357,28 +410,7 @@
         day.tasksDone = day.tasksDone.slice(0, count);
     }
 
-    function ensureDay(state, dayKey) {
-        if (!state.days[dayKey]) {
-            state.days[dayKey] = {
-                mood: 3,
-                focus: state.settings.focuses[0] || "Deep work",
-                tasks: [],
-                tasksDone: [],
-                habitDone: state.settings.habits.map(() => false),
-                note: ""
-            };
-        }
-        const day = state.days[dayKey];
-        const limits = planLimits(getPlan());
-        const cnt = clamp(safeNum(state.settings.tasksCount, 3), 1, limits.maxTasksPerDay);
-        state.settings.tasksCount = cnt;
-        ensureTasksLen(day, cnt);
-        return day;
-    }
-
-    // =========================
-    // Today page
-    // =========================
+    // pages
     function todayPage() {
         const page = document.body.getAttribute("data-page");
         if (page !== "today") return;
@@ -387,7 +419,7 @@
         const limits = planLimits(getPlan());
 
         const qsDate = new URLSearchParams(location.search).get("date");
-        const dayKey = (qsDate && isValidYMD(qsDate)) ? qsDate : ymd();
+        const dayKey = qsDate && isValidYMD(qsDate) ? qsDate : ymd();
 
         state.days[dayKey] = state.days[dayKey] || {
             mood: 3,
@@ -395,7 +427,7 @@
             tasks: [],
             tasksDone: [],
             habitDone: state.settings.habits.map(() => false),
-            note: ""
+            note: "",
         };
 
         const day = state.days[dayKey];
@@ -406,12 +438,12 @@
         // mood
         const moodBtns = Array.from(document.querySelectorAll("[data-mood]"));
         function paintMood() {
-            moodBtns.forEach(btn => {
+            moodBtns.forEach((btn) => {
                 const val = Number(btn.getAttribute("data-mood"));
                 btn.setAttribute("data-active", String(val === day.mood));
             });
         }
-        moodBtns.forEach(btn => {
+        moodBtns.forEach((btn) => {
             btn.addEventListener("click", () => {
                 day.mood = Number(btn.getAttribute("data-mood"));
                 paintMood();
@@ -428,7 +460,7 @@
         function renderFocusOptions() {
             if (!focusSel) return;
             focusSel.innerHTML = "";
-            state.settings.focuses.forEach(name => {
+            state.settings.focuses.forEach((name) => {
                 const opt = document.createElement("option");
                 opt.value = name;
                 opt.textContent = name;
@@ -436,7 +468,7 @@
             });
         }
 
-        if (!state.settings.focuses.some(f => normLower(f) === normLower(day.focus))) {
+        if (!state.settings.focuses.some((f) => normLower(f) === normLower(day.focus))) {
             state.settings.focuses.push(day.focus);
         }
 
@@ -455,7 +487,7 @@
                 const name = norm(focusNew?.value);
                 if (!name) return;
 
-                const exists = state.settings.focuses.some(f => normLower(f) === normLower(name));
+                const exists = state.settings.focuses.some((f) => normLower(f) === normLower(name));
                 if (!exists) state.settings.focuses.push(name);
 
                 day.focus = name;
@@ -613,7 +645,7 @@
                     tasks: Array.from({ length: n }, () => ""),
                     tasksDone: Array.from({ length: n }, () => false),
                     habitDone: state.settings.habits.map(() => false),
-                    note: ""
+                    note: "",
                 };
 
                 saveApp(state);
@@ -624,7 +656,7 @@
         saveApp(state);
     }
 
-    // STEP (3): Streaks + weekly badge
+    // STEP (3): Streaks helpers
     function getDayStats(state, key) {
         const d = state.days[key] || {};
 
@@ -639,20 +671,18 @@
         return { planned, done, taskScore, habitsDone, habitsTotal, habitsScore };
     }
 
-    function calcCurrentStreakDays(state, predicate, startDate = new Date()) {
+    // current streak from today backwards
+    function calcCurrentStreakDays(state, predicate) {
         let streak = 0;
-        const dt = new Date(startDate);
+        const dt = new Date(); // today
 
         for (let i = 0; i < 366; i++) {
             const key = ymd(dt);
             const st = getDayStats(state, key);
-
             if (!predicate(st)) break;
-
             streak++;
             dt.setDate(dt.getDate() - 1);
         }
-
         return streak;
     }
 
@@ -665,171 +695,14 @@
         return { label: "Reset", cls: "badge--reset" };
     }
 
-    // =========================
-    // Multi-week helpers
-    // =========================
-    function mondayOf(date) {
-        const now = new Date(date);
-        const shift = (now.getDay() + 6) % 7; // Mon=0
-        const monday = new Date(now);
-        monday.setDate(now.getDate() - shift);
-        monday.setHours(0,0,0,0);
-        return monday;
-    }
-
-    function addDays(d, days) {
-        const x = new Date(d);
-        x.setDate(x.getDate() + days);
-        return x;
-    }
-
-    function addWeeks(d, weeks) {
-        return addDays(d, weeks * 7);
-    }
-
-    function fmtRange(monday) {
-        const sun = addDays(monday, 6);
-        return `${ymd(monday)} — ${ymd(sun)}`;
-    }
-
-    function ensureWeekPlan(state, weekKey) {
-        state.weeks = state.weeks || {};
-        if (!state.weeks[weekKey]) {
-            state.weeks[weekKey] = { goals: ["", "", ""], note: "" };
-        }
-        const w = state.weeks[weekKey];
-        if (!Array.isArray(w.goals)) w.goals = ["", "", ""];
-        while (w.goals.length < 3) w.goals.push("");
-        w.goals = w.goals.slice(0, 3);
-        if (typeof w.note !== "string") w.note = "";
-        return w;
-    }
-
-    function copyWeekToNextWeek(state, monday, tasksCount) {
-        const nextMonday = addWeeks(monday, 1);
-
-        for (let i = 0; i < 7; i++) {
-            const srcKey = ymd(addDays(monday, i));
-            const dstKey = ymd(addDays(nextMonday, i));
-
-            const srcDay = state.days[srcKey];
-            if (!srcDay || !Array.isArray(srcDay.tasks)) continue;
-
-            const dstDay = ensureDay(state, dstKey);
-            ensureTasksLen(dstDay, tasksCount);
-
-            const srcTasks = srcDay.tasks || [];
-            for (let j = 0; j < tasksCount; j++) {
-                const t = norm(srcTasks[j] || "");
-                if (!t) continue;
-
-                // fill only empty slots
-                if (!norm(dstDay.tasks[j])) {
-                    dstDay.tasks[j] = t;
-                    dstDay.tasksDone[j] = false;
-                }
-            }
-        }
-    }
-
-    // =========================
-    // Weekly page (with multi-week planning + streaks/badge/book)
-    // =========================
+    // === Weekly page (includes Smart Book Tip 2.0 + Streaks/Badges + PRO Week Plan) ===
     function weeklyPage() {
         const page = document.body.getAttribute("data-page");
         if (page !== "weekly") return;
 
         const state = initState();
-
         const wrap = document.querySelector("[data-week]");
         if (!wrap) return;
-
-        // week nav param
-        const sp = new URLSearchParams(location.search);
-        let w = safeNum(sp.get("w"), 0);
-        w = clamp(w, -104, 104); // 2 years safety
-
-        const baseMonday = mondayOf(new Date());
-        const monday = addWeeks(baseMonday, w);
-
-        // UI elements (week planner)
-        const weekRangeEl = document.querySelector("[data-week-range]");
-        const btnPrev = document.querySelector("[data-week-prev]");
-        const btnNext = document.querySelector("[data-week-next]");
-        const btnThis = document.querySelector("[data-week-this]");
-        const btnCopy = document.querySelector("[data-week-copy]");
-        const lockEl = document.querySelector("[data-weekplan-lock]");
-
-        if (weekRangeEl) weekRangeEl.textContent = fmtRange(monday);
-
-        if (btnPrev) btnPrev.addEventListener("click", () => {
-            location.href = `weekly.html?w=${w - 1}`;
-        });
-
-        if (btnNext) btnNext.addEventListener("click", () => {
-            location.href = `weekly.html?w=${w + 1}`;
-        });
-
-        if (btnThis) btnThis.addEventListener("click", () => {
-            location.href = `weekly.html?w=0`;
-        });
-
-        // week plan (PRO+)
-        const weekKey = ymd(monday);
-        const wplan = ensureWeekPlan(state, weekKey);
-
-        const goalInputs = Array.from(document.querySelectorAll("[data-week-goal]"));
-        const noteTa = document.querySelector("[data-week-note]");
-
-        const pro = isProPlus();
-        if (!pro) {
-            // lock inputs for free
-            if (lockEl) lockEl.style.display = "";
-            goalInputs.forEach(inp => { inp.disabled = true; inp.value = ""; });
-            if (noteTa) { noteTa.disabled = true; noteTa.value = ""; }
-            if (btnCopy) { btnCopy.disabled = true; btnCopy.title = "Pro/Premium only"; }
-        } else {
-            if (lockEl) lockEl.style.display = "none";
-
-            goalInputs.forEach((inp) => {
-                const idx = safeNum(inp.getAttribute("data-week-goal"), 0);
-                inp.value = wplan.goals[idx] || "";
-                inp.addEventListener("input", () => {
-                    const i = safeNum(inp.getAttribute("data-week-goal"), 0);
-                    wplan.goals[i] = inp.value;
-                    state.weeks[weekKey] = wplan;
-                    saveApp(state);
-                });
-            });
-
-            if (noteTa) {
-                noteTa.value = wplan.note || "";
-                noteTa.addEventListener("input", () => {
-                    wplan.note = noteTa.value;
-                    state.weeks[weekKey] = wplan;
-                    saveApp(state);
-                });
-            }
-
-            if (btnCopy) {
-                btnCopy.disabled = false;
-                btnCopy.addEventListener("click", () => {
-                    const limits = planLimits(getPlan());
-                    const cnt = clamp(safeNum(state.settings.tasksCount, 3), 1, limits.maxTasksPerDay);
-
-                    copyWeekToNextWeek(state, monday, cnt);
-                    saveApp(state);
-
-                    // tiny feedback
-                    const old = btnCopy.textContent;
-                    btnCopy.textContent = "Copied ✓";
-                    setTimeout(() => (btnCopy.textContent = old), 1200);
-
-                    // jump to next week (optional nice UX)
-                    location.href = `weekly.html?w=${w + 1}`;
-                });
-            }
-        }
 
         // tabs
         const weekLinesEl = document.querySelector("[data-weekly-lines]");
@@ -846,7 +719,6 @@
         }
 
         if (tabWeek) tabWeek.addEventListener("click", () => setTab("week"));
-
         if (tabMonth) {
             if (!isPremium()) {
                 tabMonth.disabled = true;
@@ -856,190 +728,354 @@
             }
         }
 
-        // week rendering
-        const names = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
-        wrap.innerHTML = "";
+        const now = new Date();
+        const names = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-        let weekPlanned = 0;
-        let weekDone = 0;
-        const daysWithPlans = [];
+        // base Monday (this week)
+        const shift = (now.getDay() + 6) % 7; // Mon=0
+        const baseMonday = new Date(now);
+        baseMonday.setDate(now.getDate() - shift);
 
-        const tagCounts = { biz: 0, crypto: 0, sport: 0, growth: 0 };
+        // ===== PRO Week Plan wiring =====
+        const proUnlocked = isPro();
+        const MAX_OFFSET = proUnlocked ? 2 : 0; // ✅ only up to 2 weeks ahead
 
-        for (let i = 0; i < 7; i++) {
-            const d = addDays(monday, i);
-            const key = ymd(d);
-            const data = state.days[key] || {};
-            const isToday = key === ymd();
+        let weekOffset = 0;
+        let activeWeekKey = null;
 
-            const planned = countPlannedTasks(data.tasks || []);
-            const done = countDoneTasks(data.tasks || [], data.tasksDone || []);
+        const wpCard = document.querySelector("[data-weekplan]");
+        const wpRange = document.querySelector("[data-weekplan-range]");
+        const wpPrev = document.querySelector("[data-weekplan-prev]");
+        const wpNext = document.querySelector("[data-weekplan-next]");
+        const wpToday = document.querySelector("[data-weekplan-today]");
+        const wpCopy = document.querySelector("[data-weekplan-copy]");
+        const wpToast = document.querySelector("[data-weekplan-toast]");
+        const wpHint = document.querySelector("[data-weekplan-hint]");
+        const wpLocked = document.querySelector("[data-weekplan-locked]");
+        const wpFields = document.querySelector("[data-weekplan-fields]");
 
-            weekPlanned += planned;
-            weekDone += done;
+        const goalInputs = Array.from(document.querySelectorAll("[data-week-goal]"));
+        const noteEl = document.querySelector("[data-week-note]");
 
-            const dayScore = pct(done, planned);
-            if (planned > 0) daysWithPlans.push({ name: names[i], score: dayScore, key });
+        function mondayForOffset(off) {
+            const d = new Date(baseMonday);
+            d.setDate(baseMonday.getDate() + off * 7);
+            return d;
+        }
 
-            // count tags from planned tasks
-            for (const t of (data.tasks || [])) {
-                const tt = norm(t);
-                if (!tt) continue;
-                const tag = extractTag(tt);
-                if (tag && tagCounts[tag] !== undefined) tagCounts[tag]++;
+        function rangeText(monday) {
+            const sunday = new Date(monday);
+            sunday.setDate(monday.getDate() + 6);
+            return `${ymd(monday)} — ${ymd(sunday)}`;
+        }
+
+        function ensureWeekPlan(key) {
+            state.weeks = state.weeks || {};
+            if (!state.weeks[key]) {
+                state.weeks[key] = { goals: ["", "", ""], note: "" };
+            } else {
+                // normalize
+                if (!Array.isArray(state.weeks[key].goals)) state.weeks[key].goals = ["", "", ""];
+                while (state.weeks[key].goals.length < 3) state.weeks[key].goals.push("");
+                state.weeks[key].goals = state.weeks[key].goals.slice(0, 3);
+                if (typeof state.weeks[key].note !== "string") state.weeks[key].note = "";
+            }
+            return state.weeks[key];
+        }
+
+        function toast(msg) {
+            if (!wpToast) return;
+            wpToast.textContent = msg;
+            wpToast.style.display = "";
+            setTimeout(() => {
+                wpToast.style.display = "none";
+            }, 1600);
+        }
+
+        // bind inputs ONCE (щоб можна було нормально друкувати)
+        if (goalInputs.length) {
+            goalInputs.forEach((inp, i) => {
+                if (inp.dataset.bound === "1") return;
+                inp.dataset.bound = "1";
+                inp.addEventListener("input", () => {
+                    if (!proUnlocked) return;
+                    if (!activeWeekKey) return;
+                    const wp = ensureWeekPlan(activeWeekKey);
+                    wp.goals[i] = inp.value;
+                    saveApp(state);
+                });
+            });
+        }
+
+        if (noteEl && noteEl.dataset.bound !== "1") {
+            noteEl.dataset.bound = "1";
+            noteEl.addEventListener("input", () => {
+                if (!proUnlocked) return;
+                if (!activeWeekKey) return;
+                const wp = ensureWeekPlan(activeWeekKey);
+                wp.note = noteEl.value;
+                saveApp(state);
+            });
+        }
+
+        function applyWeekPlanUI() {
+            if (!wpCard) return;
+
+            // lock in Free
+            wpCard.classList.toggle("weekplan--locked", !proUnlocked);
+
+            if (wpHint) wpHint.style.display = proUnlocked ? "" : "none";
+            if (wpLocked) wpLocked.style.display = proUnlocked ? "none" : "";
+
+            if (wpFields) wpFields.style.display = proUnlocked ? "" : "none";
+
+            // buttons
+            if (wpPrev) wpPrev.style.display = proUnlocked ? "" : "none";
+            if (wpNext) wpNext.style.display = proUnlocked ? "" : "none";
+            if (wpToday) wpToday.style.display = proUnlocked ? "" : "none";
+            if (wpCopy) wpCopy.style.display = proUnlocked ? "" : "none";
+
+            if (wpPrev) wpPrev.disabled = weekOffset <= 0;
+            if (wpNext) wpNext.disabled = weekOffset >= MAX_OFFSET;
+            if (wpToday) wpToday.disabled = weekOffset === 0;
+            if (wpCopy) wpCopy.disabled = weekOffset >= MAX_OFFSET;
+        }
+
+        function renderForOffset(off) {
+            weekOffset = clamp(off, 0, MAX_OFFSET);
+
+            const monday = mondayForOffset(weekOffset);
+            const weekStart = ymd(monday);
+
+            if (wpRange) wpRange.textContent = rangeText(monday);
+
+            // week plan data (only pro/premium can write/read full UI)
+            if (proUnlocked) {
+                activeWeekKey = weekStart;
+                const wp = ensureWeekPlan(activeWeekKey);
+
+                goalInputs.forEach((inp, i) => (inp.value = wp.goals[i] || ""));
+                if (noteEl) noteEl.value = wp.note || "";
+            } else {
+                activeWeekKey = null;
             }
 
-            const habitsDone = (data.habitDone || []).filter(Boolean).length;
-            const habitsTotal = (data.habitDone || []).length || 0;
+            // render week cards + insights for selected week
+            wrap.innerHTML = "";
 
-            const el = document.createElement("div");
-            el.className = "day";
-            el.innerHTML = `
-        <div class="day__head">
-          <div>
-            <div class="day__name">
-              ${names[i]}
-              <span class="pill ${isToday ? "pill--today" : ""}">${isToday ? "Today" : ""}</span>
+            let weekPlanned = 0;
+            let weekDone = 0;
+            const daysWithPlans = [];
+            const tagCounts = { biz: 0, crypto: 0, sport: 0, growth: 0 };
+
+            for (let i = 0; i < 7; i++) {
+                const d = new Date(monday);
+                d.setDate(monday.getDate() + i);
+                const key = ymd(d);
+                const data = state.days[key] || {};
+                const isToday = key === ymd();
+
+                const planned = countPlannedTasks(data.tasks || []);
+                const done = countDoneTasks(data.tasks || [], data.tasksDone || []);
+
+                weekPlanned += planned;
+                weekDone += done;
+
+                const dayScore = pct(done, planned);
+                if (planned > 0) daysWithPlans.push({ name: names[i], score: dayScore, key });
+
+                // count tags from planned tasks
+                for (const t of data.tasks || []) {
+                    const tt = norm(t);
+                    if (!tt) continue;
+                    const tag = extractTag(tt);
+                    if (tag && tagCounts[tag] !== undefined) tagCounts[tag]++;
+                }
+
+                const habitsDone = (data.habitDone || []).filter(Boolean).length;
+                const habitsTotal = (data.habitDone || []).length || 0;
+
+                const el = document.createElement("div");
+                el.className = "day";
+                el.innerHTML = `
+          <div class="day__head">
+            <div>
+              <div class="day__name">
+                ${names[i]}
+                <span class="pill ${isToday ? "pill--today" : ""}">${isToday ? "Today" : ""}</span>
+              </div>
+              <div class="day__date">${key}</div>
             </div>
-            <div class="day__date">${key}</div>
+            <a class="pill" href="app.html?date=${key}">Open</a>
           </div>
-          <a class="pill" href="app.html?date=${key}">Open</a>
-        </div>
-        <div class="mini">Tasks: ${done}/${planned} (${dayScore}%) • Habits: ${habitsDone}/${habitsTotal}</div>
-      `;
-            wrap.appendChild(el);
-        }
-
-        const weekScore = pct(weekDone, weekPlanned);
-
-        // best day
-        let bestDay = null;
-        for (const d of daysWithPlans) {
-            if (!bestDay || d.score > bestDay.score) bestDay = d;
-        }
-
-        // topTag (seeded if tie)
-        let topTag = null;
-        const maxTagVal = Math.max(tagCounts.biz, tagCounts.crypto, tagCounts.sport, tagCounts.growth);
-        if (maxTagVal > 0) {
-            const candidates = Object.keys(tagCounts).filter(k => tagCounts[k] === maxTagVal);
-            const emailForSeed = (localStorage.getItem(EMAIL_KEY) || "anon").toLowerCase();
-            topTag = seededPick(candidates, `${emailForSeed}|${ymd(monday)}|topTag`) || candidates[0];
-        }
-
-        // book (seeded per week + depends on score + tag)
-        const email = (localStorage.getItem(EMAIL_KEY) || "anon").toLowerCase();
-        const book = weekPlanned
-            ? pickWeeklyBook({ email, weekStart: ymd(monday), score: weekScore, topTag: topTag || "general" })
-            : null;
-
-        // streaks based on selected week ending (Sunday)
-        const weekEnd = addDays(monday, 6);
-        const taskStreak = calcCurrentStreakDays(state, (st) => st.planned > 0 && st.taskScore >= 70, weekEnd);
-        const habitStreak = calcCurrentStreakDays(state, (st) => st.habitsTotal > 0 && st.habitsScore >= 70, weekEnd);
-
-        const activeDays = daysWithPlans.length;
-        const badge = weeklyBadge({ weekScore, weekPlanned, activeDays });
-
-        if (weekLinesEl) {
-            const line1 =
-                `Week: <b>${weekScore}%</b> (${weekDone}/${weekPlanned}) • ` +
-                `Streaks: <b>${taskStreak}d</b> tasks, <b>${habitStreak}d</b> habits`;
-
-            let line2 = `Badge: <span class="pill pill--badge ${badge.cls}">${badge.label}</span> • `;
-
-            if (!weekPlanned) {
-                line2 += `Book: <b>—</b> Add tasks with biz/crypto/sport/growth (optionally with #).`;
-            } else {
-                line2 += `Book: <b>${book.title}</b> — ${book.tip}`;
+          <div class="mini">Tasks: ${done}/${planned} (${dayScore}%) • Habits: ${habitsDone}/${habitsTotal}</div>
+        `;
+                wrap.appendChild(el);
             }
 
-            weekLinesEl.innerHTML = `${line1}<br>${line2}`;
-        }
+            const weekScore = pct(weekDone, weekPlanned);
 
-        // MONTH insights (Premium)
-        if (monthLinesEl) {
-            if (!isPremium()) {
-                monthLinesEl.innerHTML = `Upgrade to <b>Premium</b> to see Month insights.`;
-            } else {
-                const now = new Date();
-                const thisMonth = now.getMonth();
-                const thisYear = now.getFullYear();
+            // best day
+            let bestDay = null;
+            for (const d of daysWithPlans) {
+                if (!bestDay || d.score > bestDay.score) bestDay = d;
+            }
 
-                let mPlanned = 0;
-                let mDone = 0;
+            // topTag (seeded if tie)
+            let topTag = null;
+            const maxTagVal = Math.max(tagCounts.biz, tagCounts.crypto, tagCounts.sport, tagCounts.growth);
+            if (maxTagVal > 0) {
+                const candidates = Object.keys(tagCounts).filter((k) => tagCounts[k] === maxTagVal);
+                const emailForSeed = (localStorage.getItem(EMAIL_KEY) || "anon").toLowerCase();
+                topTag = seededPick(candidates, `${emailForSeed}|${weekStart}|topTag`) || candidates[0];
+            }
 
-                const weekdayAgg = {
-                    Mon: { done: 0, planned: 0 },
-                    Tue: { done: 0, planned: 0 },
-                    Wed: { done: 0, planned: 0 },
-                    Thu: { done: 0, planned: 0 },
-                    Fri: { done: 0, planned: 0 },
-                    Sat: { done: 0, planned: 0 },
-                    Sun: { done: 0, planned: 0 },
-                };
+            const email = (localStorage.getItem(EMAIL_KEY) || "anon").toLowerCase();
+            const book = weekPlanned
+                ? pickWeeklyBook({ email, weekStart, score: weekScore, topTag: topTag || "general" })
+                : null;
 
-                const prev = new Date(now);
-                prev.setMonth(now.getMonth() - 1);
-                const prevMonth = prev.getMonth();
-                const prevYear = prev.getFullYear();
-                let pmPlanned = 0;
-                let pmDone = 0;
+            // streaks + badge
+            const taskStreak = calcCurrentStreakDays(state, (st) => st.planned > 0 && st.taskScore >= 70);
+            const habitStreak = calcCurrentStreakDays(state, (st) => st.habitsTotal > 0 && st.habitsScore >= 70);
 
-                for (const key of Object.keys(state.days)) {
-                    if (!isValidYMD(key)) continue;
-                    const [Y, M, D] = key.split("-").map(Number);
-                    const dt = new Date(Y, M - 1, D);
-                    const dayData = state.days[key] || {};
+            const activeDays = daysWithPlans.length;
+            const badge = weeklyBadge({ weekScore, weekPlanned, activeDays });
 
-                    const planned = countPlannedTasks(dayData.tasks || []);
-                    const done = countDoneTasks(dayData.tasks || [], dayData.tasksDone || []);
+            if (weekLinesEl) {
+                const line1 =
+                    `Week: <b>${weekScore}%</b> (${weekDone}/${weekPlanned}) • ` +
+                    `Streaks: <b>${taskStreak}d</b> tasks, <b>${habitStreak}d</b> habits`;
 
-                    if (planned <= 0) continue;
+                let line2 = `Badge: <span class="pill pill--badge ${badge.cls}">${badge.label}</span> • `;
 
-                    if (dt.getFullYear() === thisYear && dt.getMonth() === thisMonth) {
-                        mPlanned += planned;
-                        mDone += done;
+                if (!weekPlanned) {
+                    line2 += `Book: <b>—</b> Add tasks with biz/crypto/sport/growth (optionally with #).`;
+                } else {
+                    line2 += `Book: <b>${book.title}</b> — ${book.tip}`;
+                }
 
-                        const wname = names[(dt.getDay() + 6) % 7]; // Mon..Sun
-                        if (weekdayAgg[wname]) {
-                            weekdayAgg[wname].planned += planned;
-                            weekdayAgg[wname].done += done;
+                weekLinesEl.innerHTML = `${line1}<br>${line2}`;
+            }
+
+            // month insights (Premium only) — unchanged
+            if (monthLinesEl) {
+                if (!isPremium()) {
+                    monthLinesEl.innerHTML = `Upgrade to <b>Premium</b> to see Month insights.`;
+                } else {
+                    const thisMonth = now.getMonth();
+                    const thisYear = now.getFullYear();
+
+                    let mPlanned = 0;
+                    let mDone = 0;
+                    const weekdayAgg = {
+                        Mon: { done: 0, planned: 0 },
+                        Tue: { done: 0, planned: 0 },
+                        Wed: { done: 0, planned: 0 },
+                        Thu: { done: 0, planned: 0 },
+                        Fri: { done: 0, planned: 0 },
+                        Sat: { done: 0, planned: 0 },
+                        Sun: { done: 0, planned: 0 },
+                    };
+
+                    const prev = new Date(now);
+                    prev.setMonth(now.getMonth() - 1);
+                    const prevMonth = prev.getMonth();
+                    const prevYear = prev.getFullYear();
+                    let pmPlanned = 0;
+                    let pmDone = 0;
+
+                    for (const key of Object.keys(state.days)) {
+                        if (!isValidYMD(key)) continue;
+                        const [Y, M, D] = key.split("-").map(Number);
+                        const dt = new Date(Y, M - 1, D);
+                        const dayData = state.days[key] || {};
+
+                        const planned = countPlannedTasks(dayData.tasks || []);
+                        const done = countDoneTasks(dayData.tasks || [], dayData.tasksDone || []);
+                        if (planned <= 0) continue;
+
+                        if (dt.getFullYear() === thisYear && dt.getMonth() === thisMonth) {
+                            mPlanned += planned;
+                            mDone += done;
+
+                            const wname = names[(dt.getDay() + 6) % 7];
+                            if (weekdayAgg[wname]) {
+                                weekdayAgg[wname].planned += planned;
+                                weekdayAgg[wname].done += done;
+                            }
+                        }
+
+                        if (dt.getFullYear() === prevYear && dt.getMonth() === prevMonth) {
+                            pmPlanned += planned;
+                            pmDone += done;
                         }
                     }
 
-                    if (dt.getFullYear() === prevYear && dt.getMonth() === prevMonth) {
-                        pmPlanned += planned;
-                        pmDone += done;
+                    const monthScore = pct(mDone, mPlanned);
+                    const prevScore = pct(pmDone, pmPlanned);
+                    const trend = monthScore - prevScore;
+
+                    let bestWeekday = null;
+                    for (const k of Object.keys(weekdayAgg)) {
+                        const sc = pct(weekdayAgg[k].done, weekdayAgg[k].planned);
+                        if (weekdayAgg[k].planned <= 0) continue;
+                        if (!bestWeekday || sc > bestWeekday.score) bestWeekday = { name: k, score: sc };
                     }
+
+                    const lines = [];
+                    lines.push(`Month score: <b>${monthScore}%</b> (${mDone}/${mPlanned})`);
+                    if (pmPlanned > 0) {
+                        const sign = trend >= 0 ? "+" : "";
+                        lines.push(`Trend: <b>${sign}${trend}%</b> vs last month`);
+                    } else {
+                        lines.push(`Trend: <b>—</b> (no data last month)`);
+                    }
+                    if (bestWeekday) lines.push(`Best weekday: <b>${bestWeekday.name}</b> — ${bestWeekday.score}%`);
+
+                    monthLinesEl.innerHTML = lines.slice(0, 3).join("<br>");
                 }
-
-                const monthScore = pct(mDone, mPlanned);
-                const prevScore = pct(pmDone, pmPlanned);
-                const trend = monthScore - prevScore;
-
-                let bestWeekday = null;
-                for (const k of Object.keys(weekdayAgg)) {
-                    const sc = pct(weekdayAgg[k].done, weekdayAgg[k].planned);
-                    if (weekdayAgg[k].planned <= 0) continue;
-                    if (!bestWeekday || sc > bestWeekday.score) bestWeekday = { name: k, score: sc };
-                }
-
-                const lines = [];
-                lines.push(`Month score: <b>${monthScore}%</b> (${mDone}/${mPlanned})`);
-                if (pmPlanned > 0) {
-                    const sign = trend >= 0 ? "+" : "";
-                    lines.push(`Trend: <b>${sign}${trend}%</b> vs last month`);
-                } else {
-                    lines.push(`Trend: <b>—</b> (no data last month)`);
-                }
-                if (bestWeekday) lines.push(`Best weekday: <b>${bestWeekday.name}</b> — ${bestWeekday.score}%`);
-
-                monthLinesEl.innerHTML = lines.slice(0, 3).join("<br>");
             }
+
+            applyWeekPlanUI();
+            saveApp(state);
+        }
+
+        // buttons (pro only)
+        if (wpPrev && wpPrev.dataset.bound !== "1") {
+            wpPrev.dataset.bound = "1";
+            wpPrev.addEventListener("click", () => renderForOffset(weekOffset - 1));
+        }
+        if (wpNext && wpNext.dataset.bound !== "1") {
+            wpNext.dataset.bound = "1";
+            wpNext.addEventListener("click", () => renderForOffset(weekOffset + 1));
+        }
+        if (wpToday && wpToday.dataset.bound !== "1") {
+            wpToday.dataset.bound = "1";
+            wpToday.addEventListener("click", () => renderForOffset(0));
+        }
+        if (wpCopy && wpCopy.dataset.bound !== "1") {
+            wpCopy.dataset.bound = "1";
+            wpCopy.addEventListener("click", () => {
+                if (!proUnlocked) return;
+                if (weekOffset >= MAX_OFFSET) return;
+
+                const fromKey = ymd(mondayForOffset(weekOffset));
+                const toKey = ymd(mondayForOffset(weekOffset + 1));
+
+                const from = ensureWeekPlan(fromKey);
+                const to = ensureWeekPlan(toKey);
+
+                to.goals = (from.goals || ["", "", ""]).slice(0, 3);
+                to.note = String(from.note || "");
+
+                saveApp(state);
+                toast("Copied to next week ✅");
+            });
         }
 
         setTab("week");
+        renderForOffset(0);
     }
 
     function settingsPage() {
@@ -1047,7 +1083,7 @@
         if (page !== "settings") return;
 
         const email = localStorage.getItem(EMAIL_KEY) || "—";
-        const plan = (localStorage.getItem(PLAN_KEY) || "free");
+        const plan = localStorage.getItem(PLAN_KEY) || "free";
         const emailEl = document.querySelector("[data-email]");
         const planEl = document.querySelector("[data-plan]");
         if (emailEl) emailEl.textContent = email;
@@ -1067,7 +1103,7 @@
         if (!list || !input || !add) return;
 
         function syncDaysAfterAdd() {
-            Object.keys(state.days).forEach(k => {
+            Object.keys(state.days).forEach((k) => {
                 const d = state.days[k];
                 d.habitDone = Array.isArray(d.habitDone) ? d.habitDone : [];
                 while (d.habitDone.length < masterHabits.length) d.habitDone.push(false);
@@ -1077,7 +1113,7 @@
 
         function removeHabitAt(idx) {
             masterHabits.splice(idx, 1);
-            Object.keys(state.days).forEach(k => {
+            Object.keys(state.days).forEach((k) => {
                 const d = state.days[k];
                 if (Array.isArray(d.habitDone)) d.habitDone.splice(idx, 1);
             });
