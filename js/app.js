@@ -70,17 +70,47 @@
         return { maxTasksPerDay: 15 }; // premium
     }
 
-    // --- Smart Book Tip 2.0 (tags + seeded) ---
-    // FIX: підтримка "#biz", "biz", "business", "sport/sports"
     function extractTag(taskText) {
-        const s = String(taskText || "");
-        const m = s.match(/(?:^|\s)#?(biz|business|crypto|sport|sports|growth)\b/i);
-        if (!m) return null;
+        const s = String(taskText || "").toLowerCase();
 
-        const tag = m[1].toLowerCase();
-        if (tag === "business") return "biz";
-        if (tag === "sports") return "sport";
-        return tag;
+        // 1) розбиваємо на "слова" (прибираємо пунктуацію)
+        const tokens = s
+            .replace(/[\u2019’]/g, "'")
+            .replace(/[^a-z0-9а-яіїєґ#_-]+/gi, " ")
+            .split(/\s+/)
+            .filter(Boolean)
+            .map(t => t.startsWith("#") ? t.slice(1) : t)      // #biz -> biz
+            .map(t => t.replace(/[-_]/g, ""));                // self-dev -> selfdev
+
+        // 2) синоніми → 4 категорії
+        const MAP = {
+            biz: new Set([
+                "biz","business","work","startup","client","sales","marketing","project","product",
+                "freelance","job","career",
+                "бізнес","бизнес","робота","работа","стартап","клієнт","клиент"
+            ]),
+            crypto: new Set([
+                "crypto","btc","eth","trade","trading","defi","airdrop","binance",
+                "крипта","крипто","трейд","трейдинг","биток","біток"
+            ]),
+            sport: new Set([
+                "sport","sports","gym","workout","training","run","running","cardio","lifting","fitness",
+                "зал","тренування","тренировка","біг","бег"
+            ]),
+            growth: new Set([
+                "growth","learn","learning","study","reading","skill","skills","selfdev","improve","habits","mindset",
+                "розвиток","развитие","навчання","учеба","учёба"
+            ]),
+        };
+
+        for (const t of tokens) {
+            if (MAP.biz.has(t)) return "biz";
+            if (MAP.crypto.has(t)) return "crypto";
+            if (MAP.sport.has(t)) return "sport";
+            if (MAP.growth.has(t)) return "growth";
+        }
+
+        return null;
     }
 
     // stable hash (FNV-1a)
