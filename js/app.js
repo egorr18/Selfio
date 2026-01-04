@@ -588,6 +588,47 @@
 
         saveApp(state);
     }
+    // STEP (3): Streaks + weekly badge
+    function getDayStats(state, key) {
+        const d = state.days[key] || {};
+
+        const planned = countPlannedTasks(d.tasks || []);
+        const done = countDoneTasks(d.tasks || [], d.tasksDone || []);
+        const taskScore = pct(done, planned);
+
+        const habitsDone = (d.habitDone || []).filter(Boolean).length;
+        const habitsTotal = (d.habitDone || []).length || 0;
+        const habitsScore = pct(habitsDone, habitsTotal);
+
+        return { planned, done, taskScore, habitsDone, habitsTotal, habitsScore };
+    }
+
+// current streak from today backwards
+    function calcCurrentStreakDays(state, predicate) {
+        let streak = 0;
+        const dt = new Date(); // today
+
+        for (let i = 0; i < 366; i++) { // safety cap
+            const key = ymd(dt);
+            const st = getDayStats(state, key);
+
+            if (!predicate(st)) break;
+
+            streak++;
+            dt.setDate(dt.getDate() - 1);
+        }
+
+        return streak;
+    }
+
+    function weeklyBadge({ weekScore, weekPlanned, activeDays }) {
+        if (weekPlanned <= 0) return { label: "No data", cls: "badge--muted" };
+        if (weekScore === 100 && activeDays >= 5) return { label: "Perfect Week", cls: "badge--elite" };
+        if (weekScore >= 85) return { label: "Elite Week", cls: "badge--elite" };
+        if (weekScore >= 70) return { label: "Momentum", cls: "badge--growth" };
+        if (activeDays >= 4) return { label: "Builder", cls: "badge--stable" };
+        return { label: "Reset", cls: "badge--reset" };
+    }
 
     // === Weekly page (includes Smart Book Tip 2.0) ===
     function weeklyPage() {
@@ -708,19 +749,27 @@
             ? pickWeeklyBook({ email, weekStart: ymd(monday), score: weekScore, topTag: topTag || "general" })
             : null;
 
-        // WEEK lines (max 3)  тут саме Smart Book Tip 2.0
+        // STEP (3): streaks + weekly badge (2 lines)
+        const taskStreak = calcCurrentStreakDays(state, (st) => st.planned > 0 && st.taskScore >= 70);
+        const habitStreak = calcCurrentStreakDays(state, (st) => st.habitsTotal > 0 && st.habitsScore >= 70);
+
+        const activeDays = daysWithPlans.length;
+        const badge = weeklyBadge({ weekScore, weekPlanned, activeDays });
+
         if (weekLinesEl) {
-            const lines = [];
-            lines.push(`Week score: <b>${weekScore}%</b> (${weekDone}/${weekPlanned})`);
-            if (bestDay) lines.push(`Best day: <b>${bestDay.name}</b> — ${bestDay.score}%`);
+            const line1 =
+                `Week: <b>${weekScore}%</b> (${weekDone}/${weekPlanned}) • ` +
+                `Streaks: <b>${taskStreak}d</b> tasks, <b>${habitStreak}d</b> habits`;
+
+            let line2 = `Badge: <span class="pill pill--badge ${badge.cls}">${badge.label}</span> • `;
 
             if (!weekPlanned) {
-                lines.push(`Book tip: <b>—</b> Add tasks with biz/crypto/sport/growth (optionally with #).`);
+                line2 += `Book: <b>—</b> Add tasks with biz/crypto/sport/growth (optionally with #).`;
             } else {
-                lines.push(`Book tip: <b>${book.title}</b> — ${book.tip}`);
+                line2 += `Book: <b>${book.title}</b> — ${book.tip}`;
             }
 
-            weekLinesEl.innerHTML = lines.slice(0, 3).join("<br>");
+            weekLinesEl.innerHTML = `${line1}<br>${line2}`;
         }
 
         // MONTH insights (Premium) — як у тебе
