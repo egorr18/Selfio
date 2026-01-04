@@ -254,13 +254,64 @@
 .badge--reset  { border-color: rgba(0,0,0,0.10); background: transparent; opacity: 0.9; }
 .badge--muted  { border-color: rgba(0,0,0,0.10); opacity: 0.6; }
 
-/* Week plan card */
-.week-plan .item input,
-.week-plan .item textarea {
-    width: 100%;
+/* ===== Week plan (PRO) ===== */
+.weekplan__head{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
 }
 
-.week-plan .item textarea {
-    resize: vertical;
-    min-height: 80px;
+.weekplan__range{
+    opacity:.75;
+    margin-top:4px;
+}
+
+.weekplan__actions{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    align-items:center;
+}
+
+.weekplan__hint{
+    margin-top:10px;
+}
+
+.weekplan__locked{
+    margin-top:10px;
+}
+
+.weekplan__fields{
+    margin-top:12px;
+    display:grid;
+    gap:10px;
+}
+
+.weekplan__fields .item input,
+.weekplan__fields .item textarea{
+    width:100%;
+}
+
+.weekplan__note{
+    min-height:140px;
+    resize:vertical;
+}
+
+.weekplan__footer{
+    margin-top:12px;
+    display:flex;
+    gap:12px;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+}
+
+.weekplan__toast{
+    opacity:.75;
+}
+
+.weekplan--locked{
+    opacity:.7;
 }

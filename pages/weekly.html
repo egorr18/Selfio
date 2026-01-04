@@ -41,51 +41,8 @@
       </div>
     </div>
 
-    <!-- PRO+ Week Plan card -->
-    <div class="card" data-weekplan-card>
-      <div class="inline inline--between" style="margin-bottom:10px;">
-        <div>
-          <h2 style="margin:0;">Week plan</h2>
-          <div class="mini" data-week-range>—</div>
-        </div>
-
-        <div class="inline" style="gap:8px;">
-          <button class="pill" type="button" data-week-prev>Prev</button>
-          <button class="pill" type="button" data-week-this>This week</button>
-          <button class="pill" type="button" data-week-next>Next</button>
-        </div>
-      </div>
-
-      <!-- shown only on Free (JS toggles) -->
-      <div class="mini" data-weekplan-lock style="display:none; margin-bottom:10px;">
-        <b>Pro feature:</b> plan goals for any week + copy plans forward.
-      </div>
-
-      <div class="week-plan">
-        <div class="item">
-          <input type="text" placeholder="Goal #1 (e.g. ship landing page)" data-week-goal="0">
-        </div>
-        <div class="item">
-          <input type="text" placeholder="Goal #2 (e.g. 5 workouts)" data-week-goal="1">
-        </div>
-        <div class="item">
-          <input type="text" placeholder="Goal #3 (e.g. finish 3 lessons)" data-week-goal="2">
-        </div>
-
-        <div class="item">
-          <textarea rows="3" placeholder="Weekly note (optional)" data-week-note></textarea>
-        </div>
-
-        <div class="inline" style="gap:10px; margin-top:8px;">
-          <button class="btn btn--secondary" type="button" data-week-copy>
-            Copy to next week
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Insights card -->
-    <div class="card" data-insights-card style="margin-top:12px;">
+    <!-- Insights -->
+    <div class="card" data-insights-card>
       <div class="inline inline--between" style="margin-bottom:10px;">
         <h2 style="margin:0;">Insights</h2>
 
@@ -99,6 +56,46 @@
       <div class="mini" data-monthly-lines style="display:none;">—</div>
     </div>
 
+    <!-- PRO Week plan -->
+    <div class="card weekplan" data-weekplan style="margin-top:12px;">
+      <div class="weekplan__head">
+        <div>
+          <h2 style="margin:0;">Week plan</h2>
+          <div class="mini weekplan__range" data-weekplan-range>—</div>
+        </div>
+
+        <div class="weekplan__actions">
+          <button class="pill" type="button" data-weekplan-prev>Prev</button>
+          <button class="pill" type="button" data-weekplan-today>This week</button>
+          <button class="pill" type="button" data-weekplan-next>Next</button>
+        </div>
+      </div>
+
+      <div class="mini weekplan__hint" data-weekplan-hint>
+        <b>Pro feature:</b> plan goals for this week + next 2 weeks. Copy plans forward.
+      </div>
+
+      <div class="mini weekplan__locked" data-weekplan-locked style="display:none;">
+        <b>Pro only.</b> Upgrade to PRO to plan this week + next 2 weeks.
+      </div>
+
+      <div class="weekplan__fields" data-weekplan-fields>
+        <div class="item"><input type="text" placeholder="Goal #1 (e.g. ship landing page)" data-week-goal="0"></div>
+        <div class="item"><input type="text" placeholder="Goal #2 (e.g. 5 workouts)" data-week-goal="1"></div>
+        <div class="item"><input type="text" placeholder="Goal #3 (e.g. finish 3 lessons)" data-week-goal="2"></div>
+
+        <div class="item">
+          <textarea class="weekplan__note" placeholder="Weekly note (optional)" data-week-note></textarea>
+        </div>
+      </div>
+
+      <div class="weekplan__footer">
+        <button class="btn" type="button" data-weekplan-copy>Copy to next week</button>
+        <span class="mini weekplan__toast" data-weekplan-toast style="display:none;"></span>
+      </div>
+    </div>
+
+    <!-- Week cards -->
     <div class="week" data-week style="margin-top:12px;"></div>
   </div>
 </section>
