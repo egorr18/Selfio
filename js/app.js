@@ -71,11 +71,17 @@
     }
 
     // --- Smart Book Tip 2.0 (tags + seeded) ---
+    // FIX: підтримка "#biz", "biz", "business", "sport/sports"
     function extractTag(taskText) {
-        const m = String(taskText || "").match(/\b(biz|crypto|sport|growth)\b/i);
-        return m ? m[1].toLowerCase() : null;
-    }
+        const s = String(taskText || "");
+        const m = s.match(/(?:^|\s)#?(biz|business|crypto|sport|sports|growth)\b/i);
+        if (!m) return null;
 
+        const tag = m[1].toLowerCase();
+        if (tag === "business") return "biz";
+        if (tag === "sports") return "sport";
+        return tag;
+    }
 
     // stable hash (FNV-1a)
     function hashString(str) {
@@ -679,7 +685,7 @@
             if (bestDay) lines.push(`Best day: <b>${bestDay.name}</b> — ${bestDay.score}%`);
 
             if (!weekPlanned) {
-                lines.push(`Book tip: <b>—</b> Add tasks with #biz/#crypto/#sport/#growth.`);
+                lines.push(`Book tip: <b>—</b> Add tasks with biz/crypto/sport/growth (optionally with #).`);
             } else {
                 lines.push(`Book tip: <b>${book.title}</b> — ${book.tip}`);
             }
@@ -687,7 +693,7 @@
             weekLinesEl.innerHTML = lines.slice(0, 3).join("<br>");
         }
 
-        // MONTH insights (Premium) — залишив як у тебе
+        // MONTH insights (Premium) — як у тебе
         if (monthLinesEl) {
             if (!isPremium()) {
                 monthLinesEl.innerHTML = `Upgrade to <b>Premium</b> to see Month insights.`;
