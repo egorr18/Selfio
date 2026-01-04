@@ -253,3 +253,14 @@
 .badge--stable { border-color: rgba(0,0,0,0.14); background: rgba(0,0,0,0.03); }
 .badge--reset  { border-color: rgba(0,0,0,0.10); background: transparent; opacity: 0.9; }
 .badge--muted  { border-color: rgba(0,0,0,0.10); opacity: 0.6; }
+
+/* Week plan card */
+.week-plan .item input,
+.week-plan .item textarea {
+    width: 100%;
+}
+
+.week-plan .item textarea {
+    resize: vertical;
+    min-height: 80px;
+}
