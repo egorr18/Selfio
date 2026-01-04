@@ -492,9 +492,16 @@
         }
 
         if (tasksCountSel) {
-            Array.from(tasksCountSel.querySelectorAll("option")).forEach(opt => {
-                opt.disabled = Number(opt.value) > limits.maxTasksPerDay;
-            });
+            const MAX_UI = 15;
+
+            tasksCountSel.innerHTML = "";
+            for (let i = 1; i <= MAX_UI; i++) {
+                const opt = document.createElement("option");
+                opt.value = String(i);
+                opt.textContent = String(i);
+                opt.disabled = i > limits.maxTasksPerDay;
+                tasksCountSel.appendChild(opt);
+            }
 
             tasksCountSel.value = String(state.settings.tasksCount);
 
