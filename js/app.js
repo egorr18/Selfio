@@ -64,25 +64,31 @@
         return getPlan() === "premium";
     }
 
+    function isProPlus() {
+        const p = getPlan();
+        return p === "pro" || p === "premium";
+    }
+
     function planLimits(plan) {
         if (plan === "free") return { maxTasksPerDay: 5 };
         if (plan === "pro") return { maxTasksPerDay: 10 };
         return { maxTasksPerDay: 15 }; // premium
     }
 
+    // =========================
+    // Smart Book Tip 2.0 tag extract
+    // =========================
     function extractTag(taskText) {
         const s = String(taskText || "").toLowerCase();
 
-        // 1) розбиваємо на "слова" (прибираємо пунктуацію)
         const tokens = s
             .replace(/[\u2019’]/g, "'")
             .replace(/[^a-z0-9а-яіїєґ#_-]+/gi, " ")
             .split(/\s+/)
             .filter(Boolean)
-            .map(t => t.startsWith("#") ? t.slice(1) : t)      // #biz -> biz
-            .map(t => t.replace(/[-_]/g, ""));                // self-dev -> selfdev
+            .map(t => t.startsWith("#") ? t.slice(1) : t) // #biz -> biz
+            .map(t => t.replace(/[-_]/g, ""));            // self-dev -> selfdev
 
-        // 2) синоніми → 4 категорії
         const MAP = {
             biz: new Set([
                 "biz","business","work","startup","client","sales","marketing","project","product",
@@ -292,6 +298,7 @@
         const state = loadApp();
         state.days = state.days || {};
         state.settings = state.settings || {};
+        state.weeks = state.weeks || {}; // ✅ new: per-week planning
 
         // focuses
         if (!Array.isArray(state.settings.focuses) || state.settings.focuses.length === 0) {
@@ -350,7 +357,28 @@
         day.tasksDone = day.tasksDone.slice(0, count);
     }
 
-    // pages
+    function ensureDay(state, dayKey) {
+        if (!state.days[dayKey]) {
+            state.days[dayKey] = {
+                mood: 3,
+                focus: state.settings.focuses[0] || "Deep work",
+                tasks: [],
+                tasksDone: [],
+                habitDone: state.settings.habits.map(() => false),
+                note: ""
+            };
+        }
+        const day = state.days[dayKey];
+        const limits = planLimits(getPlan());
+        const cnt = clamp(safeNum(state.settings.tasksCount, 3), 1, limits.maxTasksPerDay);
+        state.settings.tasksCount = cnt;
+        ensureTasksLen(day, cnt);
+        return day;
+    }
+
+    // =========================
+    // Today page
+    // =========================
     function todayPage() {
         const page = document.body.getAttribute("data-page");
         if (page !== "today") return;
@@ -595,6 +623,7 @@
 
         saveApp(state);
     }
+
     // STEP (3): Streaks + weekly badge
     function getDayStats(state, key) {
         const d = state.days[key] || {};
@@ -610,12 +639,11 @@
         return { planned, done, taskScore, habitsDone, habitsTotal, habitsScore };
     }
 
-// current streak from today backwards
-    function calcCurrentStreakDays(state, predicate) {
+    function calcCurrentStreakDays(state, predicate, startDate = new Date()) {
         let streak = 0;
-        const dt = new Date(); // today
+        const dt = new Date(startDate);
 
-        for (let i = 0; i < 366; i++) { // safety cap
+        for (let i = 0; i < 366; i++) {
             const key = ymd(dt);
             const st = getDayStats(state, key);
 
@@ -637,14 +665,171 @@
         return { label: "Reset", cls: "badge--reset" };
     }
 
-    // === Weekly page (includes Smart Book Tip 2.0) ===
+    // =========================
+    // Multi-week helpers
+    // =========================
+    function mondayOf(date) {
+        const now = new Date(date);
+        const shift = (now.getDay() + 6) % 7; // Mon=0
+        const monday = new Date(now);
+        monday.setDate(now.getDate() - shift);
+        monday.setHours(0,0,0,0);
+        return monday;
+    }
+
+    function addDays(d, days) {
+        const x = new Date(d);
+        x.setDate(x.getDate() + days);
+        return x;
+    }
+
+    function addWeeks(d, weeks) {
+        return addDays(d, weeks * 7);
+    }
+
+    function fmtRange(monday) {
+        const sun = addDays(monday, 6);
+        return `${ymd(monday)} — ${ymd(sun)}`;
+    }
+
+    function ensureWeekPlan(state, weekKey) {
+        state.weeks = state.weeks || {};
+        if (!state.weeks[weekKey]) {
+            state.weeks[weekKey] = { goals: ["", "", ""], note: "" };
+        }
+        const w = state.weeks[weekKey];
+        if (!Array.isArray(w.goals)) w.goals = ["", "", ""];
+        while (w.goals.length < 3) w.goals.push("");
+        w.goals = w.goals.slice(0, 3);
+        if (typeof w.note !== "string") w.note = "";
+        return w;
+    }
+
+    function copyWeekToNextWeek(state, monday, tasksCount) {
+        const nextMonday = addWeeks(monday, 1);
+
+        for (let i = 0; i < 7; i++) {
+            const srcKey = ymd(addDays(monday, i));
+            const dstKey = ymd(addDays(nextMonday, i));
+
+            const srcDay = state.days[srcKey];
+            if (!srcDay || !Array.isArray(srcDay.tasks)) continue;
+
+            const dstDay = ensureDay(state, dstKey);
+            ensureTasksLen(dstDay, tasksCount);
+
+            const srcTasks = srcDay.tasks || [];
+            for (let j = 0; j < tasksCount; j++) {
+                const t = norm(srcTasks[j] || "");
+                if (!t) continue;
+
+                // fill only empty slots
+                if (!norm(dstDay.tasks[j])) {
+                    dstDay.tasks[j] = t;
+                    dstDay.tasksDone[j] = false;
+                }
+            }
+        }
+    }
+
+    // =========================
+    // Weekly page (with multi-week planning + streaks/badge/book)
+    // =========================
     function weeklyPage() {
         const page = document.body.getAttribute("data-page");
         if (page !== "weekly") return;
 
         const state = initState();
+
         const wrap = document.querySelector("[data-week]");
         if (!wrap) return;
+
+        // week nav param
+        const sp = new URLSearchParams(location.search);
+        let w = safeNum(sp.get("w"), 0);
+        w = clamp(w, -104, 104); // 2 years safety
+
+        const baseMonday = mondayOf(new Date());
+        const monday = addWeeks(baseMonday, w);
+
+        // UI elements (week planner)
+        const weekRangeEl = document.querySelector("[data-week-range]");
+        const btnPrev = document.querySelector("[data-week-prev]");
+        const btnNext = document.querySelector("[data-week-next]");
+        const btnThis = document.querySelector("[data-week-this]");
+        const btnCopy = document.querySelector("[data-week-copy]");
+        const lockEl = document.querySelector("[data-weekplan-lock]");
+
+        if (weekRangeEl) weekRangeEl.textContent = fmtRange(monday);
+
+        if (btnPrev) btnPrev.addEventListener("click", () => {
+            location.href = `weekly.html?w=${w - 1}`;
+        });
+
+        if (btnNext) btnNext.addEventListener("click", () => {
+            location.href = `weekly.html?w=${w + 1}`;
+        });
+
+        if (btnThis) btnThis.addEventListener("click", () => {
+            location.href = `weekly.html?w=0`;
+        });
+
+        // week plan (PRO+)
+        const weekKey = ymd(monday);
+        const wplan = ensureWeekPlan(state, weekKey);
+
+        const goalInputs = Array.from(document.querySelectorAll("[data-week-goal]"));
+        const noteTa = document.querySelector("[data-week-note]");
+
+        const pro = isProPlus();
+        if (!pro) {
+            // lock inputs for free
+            if (lockEl) lockEl.style.display = "";
+            goalInputs.forEach(inp => { inp.disabled = true; inp.value = ""; });
+            if (noteTa) { noteTa.disabled = true; noteTa.value = ""; }
+            if (btnCopy) { btnCopy.disabled = true; btnCopy.title = "Pro/Premium only"; }
+        } else {
+            if (lockEl) lockEl.style.display = "none";
+
+            goalInputs.forEach((inp) => {
+                const idx = safeNum(inp.getAttribute("data-week-goal"), 0);
+                inp.value = wplan.goals[idx] || "";
+                inp.addEventListener("input", () => {
+                    const i = safeNum(inp.getAttribute("data-week-goal"), 0);
+                    wplan.goals[i] = inp.value;
+                    state.weeks[weekKey] = wplan;
+                    saveApp(state);
+                });
+            });
+
+            if (noteTa) {
+                noteTa.value = wplan.note || "";
+                noteTa.addEventListener("input", () => {
+                    wplan.note = noteTa.value;
+                    state.weeks[weekKey] = wplan;
+                    saveApp(state);
+                });
+            }
+
+            if (btnCopy) {
+                btnCopy.disabled = false;
+                btnCopy.addEventListener("click", () => {
+                    const limits = planLimits(getPlan());
+                    const cnt = clamp(safeNum(state.settings.tasksCount, 3), 1, limits.maxTasksPerDay);
+
+                    copyWeekToNextWeek(state, monday, cnt);
+                    saveApp(state);
+
+                    // tiny feedback
+                    const old = btnCopy.textContent;
+                    btnCopy.textContent = "Copied ✓";
+                    setTimeout(() => (btnCopy.textContent = old), 1200);
+
+                    // jump to next week (optional nice UX)
+                    location.href = `weekly.html?w=${w + 1}`;
+                });
+            }
+        }
 
         // tabs
         const weekLinesEl = document.querySelector("[data-weekly-lines]");
@@ -671,26 +856,18 @@
             }
         }
 
-        // week range (Mon/Sun)
-        const now = new Date();
-        const shift = (now.getDay() + 6) % 7; // Mon=0
-        const monday = new Date(now);
-        monday.setDate(now.getDate() - shift);
-
+        // week rendering
         const names = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
         wrap.innerHTML = "";
 
-        // week totals
         let weekPlanned = 0;
         let weekDone = 0;
         const daysWithPlans = [];
 
-        // TAG COUNTS (planned tasks only)
         const tagCounts = { biz: 0, crypto: 0, sport: 0, growth: 0 };
 
         for (let i = 0; i < 7; i++) {
-            const d = new Date(monday);
-            d.setDate(monday.getDate() + i);
+            const d = addDays(monday, i);
             const key = ymd(d);
             const data = state.days[key] || {};
             const isToday = key === ymd();
@@ -704,7 +881,7 @@
             const dayScore = pct(done, planned);
             if (planned > 0) daysWithPlans.push({ name: names[i], score: dayScore, key });
 
-            // count tags from PLANNED tasks
+            // count tags from planned tasks
             for (const t of (data.tasks || [])) {
                 const tt = norm(t);
                 if (!tt) continue;
@@ -756,9 +933,10 @@
             ? pickWeeklyBook({ email, weekStart: ymd(monday), score: weekScore, topTag: topTag || "general" })
             : null;
 
-        // STEP (3): streaks + weekly badge (2 lines)
-        const taskStreak = calcCurrentStreakDays(state, (st) => st.planned > 0 && st.taskScore >= 70);
-        const habitStreak = calcCurrentStreakDays(state, (st) => st.habitsTotal > 0 && st.habitsScore >= 70);
+        // streaks based on selected week ending (Sunday)
+        const weekEnd = addDays(monday, 6);
+        const taskStreak = calcCurrentStreakDays(state, (st) => st.planned > 0 && st.taskScore >= 70, weekEnd);
+        const habitStreak = calcCurrentStreakDays(state, (st) => st.habitsTotal > 0 && st.habitsScore >= 70, weekEnd);
 
         const activeDays = daysWithPlans.length;
         const badge = weeklyBadge({ weekScore, weekPlanned, activeDays });
@@ -779,17 +957,18 @@
             weekLinesEl.innerHTML = `${line1}<br>${line2}`;
         }
 
-        // MONTH insights (Premium) — як у тебе
+        // MONTH insights (Premium)
         if (monthLinesEl) {
             if (!isPremium()) {
                 monthLinesEl.innerHTML = `Upgrade to <b>Premium</b> to see Month insights.`;
             } else {
+                const now = new Date();
                 const thisMonth = now.getMonth();
                 const thisYear = now.getFullYear();
 
-                // current month
                 let mPlanned = 0;
                 let mDone = 0;
+
                 const weekdayAgg = {
                     Mon: { done: 0, planned: 0 },
                     Tue: { done: 0, planned: 0 },
@@ -800,7 +979,6 @@
                     Sun: { done: 0, planned: 0 },
                 };
 
-                // prev month
                 const prev = new Date(now);
                 prev.setMonth(now.getMonth() - 1);
                 const prevMonth = prev.getMonth();
@@ -819,7 +997,6 @@
 
                     if (planned <= 0) continue;
 
-                    // this month
                     if (dt.getFullYear() === thisYear && dt.getMonth() === thisMonth) {
                         mPlanned += planned;
                         mDone += done;
@@ -831,7 +1008,6 @@
                         }
                     }
 
-                    // prev month
                     if (dt.getFullYear() === prevYear && dt.getMonth() === prevMonth) {
                         pmPlanned += planned;
                         pmDone += done;
@@ -842,7 +1018,6 @@
                 const prevScore = pct(pmDone, pmPlanned);
                 const trend = monthScore - prevScore;
 
-                // best weekday by avg score
                 let bestWeekday = null;
                 for (const k of Object.keys(weekdayAgg)) {
                     const sc = pct(weekdayAgg[k].done, weekdayAgg[k].planned);
