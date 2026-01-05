@@ -45,7 +45,7 @@
 
         <div class="app__grid">
 
-            <!-- LEFT -->
+            <!-- LEFT COLUMN -->
             <div class="card">
                 <h2>Check-in (30 seconds)</h2>
 
@@ -90,7 +90,6 @@
 
                     <div>
                         <div class="mini">Focus today</div>
-
                         <select class="select" data-focus style="margin-top:8px;"></select>
 
                         <div class="inline" style="margin-top:8px;">
@@ -100,19 +99,14 @@
                     </div>
                 </div>
 
+                <!-- Tasks -->
                 <div style="margin-top:14px;">
                     <div class="inline inline--between">
                         <div class="mini">Tasks</div>
 
                         <div class="inline">
                             <span class="mini">Per day</span>
-                            <select class="select select--sm" data-tasks-count>
-                                <option value="1">1</option>
-                                <option value="2">2</option>
-                                <option value="3" selected>3</option>
-                                <option value="4">4</option>
-                                <option value="5">5</option>
-                            </select>
+                            <select class="select select--sm" data-tasks-count></select>
                         </div>
                     </div>
 
@@ -123,7 +117,9 @@
                     </div>
 
                     <div class="list" data-tasks style="margin-top:10px;"></div>
-                    <div class="row" style="margin-top:10px;">
+
+                    <!-- wrapped -->
+                    <div class="quickAddRow">
                         <input class="text text--sm" data-quick-task placeholder="Quick add task..." />
                         <select class="select select--sm" data-quick-when>
                             <option value="0">Today</option>
@@ -134,28 +130,30 @@
                     </div>
 
                     <div class="mini" data-quick-toast style="display:none; margin-top:8px;"></div>
-
                 </div>
 
+                <!-- Note -->
                 <div style="margin-top:14px;">
                     <div class="mini">1 sentence (optional)</div>
                     <input class="text" data-note placeholder="What matters today?" style="margin-top:8px;" />
                 </div>
 
-                <div class="actions">
+                <!-- wrapped -->
+                <div class="actionsRow">
                     <a class="btn btn--secondary" href="weekly.html">Open weekly</a>
                     <button class="btn btn--ghost" type="button" data-carry-tomorrow>Move undone → tomorrow</button>
                     <button class="btn btn--ghost" type="button" data-reset-today>Reset today</button>
                 </div>
+            </div>
 
-
-                <div class="card">
+            <!-- RIGHT COLUMN -->
+            <div class="card">
                 <h2>Habits (tap & done)</h2>
                 <div class="mini">Edit names прямо тут. Список береться з Today.</div>
 
                 <div class="list" data-habits style="margin-top:10px;"></div>
 
-                <div class="actions">
+                <div class="actionsRow">
                     <a class="btn btn--primary" href="habits.html">Manage habits</a>
                     <a class="btn btn--secondary" href="settings.html">Settings</a>
                 </div>

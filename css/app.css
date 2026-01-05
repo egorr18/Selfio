@@ -393,3 +393,76 @@
     opacity:.75;
 }
 
+/* === Today layout polish === */
+[data-page="today"] .container {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 28px 16px;
+}
+
+[data-page="today"] .card {
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 10px 26px rgba(0,0,0,.06);
+}
+
+/* Make rows slimmer (tasks + habits) */
+[data-page="today"] .item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid rgba(0,0,0,.07);
+    border-radius: 12px;
+    margin: 10px 0;
+}
+
+[data-page="today"] .item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+}
+
+[data-page="today"] .item input[type="text"] {
+    flex: 1;
+    border: 0;
+    outline: none;
+    background: transparent;
+    padding: 6px 0;
+    font-size: 14px;
+}
+
+/* Progress bar a bit slimmer */
+[data-page="today"] [data-tasks-bar] {
+    height: 8px;
+    border-radius: 999px;
+}
+
+/* Quick add: don’t make button huge */
+[data-page="today"] .quickAddRow {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 12px;
+}
+
+[data-page="today"] .quickAddRow input {
+    flex: 1;
+}
+
+[data-page="today"] .quickAddRow select {
+    width: 160px;
+}
+
+[data-page="today"] .quickAddRow button {
+    width: 120px;
+}
+
+/* Action buttons row tighter */
+[data-page="today"] .actionsRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 12px;
+}
+

@@ -7,7 +7,7 @@
     const DEFAULT_FOCUSES = ["Deep work", "Study", "Health", "Social", "Reset"];
     const DEFAULT_HABITS = ["Drink water", "Study 30 min"];
 
-    // utils
+    // ===== utils =====
     function ymd(d = new Date()) {
         const yyyy = d.getFullYear();
         const mm = String(d.getMonth() + 1).padStart(2, "0");
@@ -56,16 +56,21 @@
         return `${ymd(monday)} — ${ymd(sunday)}`;
     }
 
+    function addDaysKey(baseKey, addDays) {
+        const dt = parseYMDToDate(baseKey);
+        dt.setDate(dt.getDate() + addDays);
+        return ymd(dt);
+    }
+
+    // ===== plans =====
     function getPlan() {
         return normLower(localStorage.getItem(PLAN_KEY)) || "free";
     }
 
-    // Premium = month insights + templates + extended week-plan
     function isPremium() {
         return getPlan() === "premium";
     }
 
-    // Pro feature = pro OR premium
     function isPro() {
         const p = getPlan();
         return p === "pro" || p === "premium";
@@ -77,7 +82,6 @@
         return { maxTasksPerDay: 15 }; // premium
     }
 
-    // Week-plan horizon per plan (offsets 0/N => this week + next N weeks)
     function weekPlanHorizonWeeks() {
         const p = getPlan();
         if (p === "free") return 0;
@@ -108,13 +112,7 @@
         return wp;
     }
 
-    function addDaysKey(baseKey, addDays) {
-        const dt = parseYMDToDate(baseKey);
-        dt.setDate(dt.getDate() + addDays);
-        return ymd(dt);
-    }
-
-    // planned/done helpers (для статистики)
+    // ===== stats helpers =====
     function countPlannedTasks(tasks = []) {
         return tasks.map((t) => norm(t)).filter(Boolean).length;
     }
@@ -161,7 +159,7 @@
             ]),
             growth: new Set([
                 "growth", "learn", "learning", "study", "reading", "skill", "skills", "selfdev", "improve", "habits", "mindset",
-                "розвиток", "развитие", "навчання", "учеба", "учёба", // ✅ FIX: "учебa" -> "учеба"
+                "розвиток", "развитие", "навчання", "учеба", "учёба",
             ]),
         };
 
@@ -197,7 +195,7 @@
         return "reset";
     }
 
-    // Book library: BOOKS[tier][category]
+    // ===== Book library =====
     const BOOKS = {
         reset: {
             general: [
@@ -300,7 +298,7 @@
         return seededPick(pool, seed) || pool[0];
     }
 
-    // key per user
+    // ===== storage =====
     function appStorageKey() {
         let email = normLower(localStorage.getItem(EMAIL_KEY));
         if (!email) email = "anon";
@@ -345,12 +343,12 @@
         });
     }
 
-    // state normalize / migration
+    // ===== state normalize / migration =====
     function initState() {
         const state = loadApp();
         state.days = state.days || {};
         state.settings = state.settings || {};
-        state.weeks = state.weeks || {}; // week plans
+        state.weeks = state.weeks || {};
 
         // focuses
         if (!Array.isArray(state.settings.focuses) || state.settings.focuses.length === 0) {
@@ -409,7 +407,7 @@
         day.tasksDone = day.tasksDone.slice(0, count);
     }
 
-    // pages
+    // ===== Today page =====
     function todayPage() {
         const page = document.body.getAttribute("data-page");
         if (page !== "today") return;
@@ -587,7 +585,7 @@
             const toastEl = document.querySelector("[data-quick-toast]");
             if (!input || !whenSel || !addBtn) return;
 
-            const unlocked = isPro(); // plan ahead only for Pro/Premium
+            const unlocked = isPro();
 
             function toast(msg) {
                 if (!toastEl) return;
@@ -596,12 +594,12 @@
                 setTimeout(() => (toastEl.style.display = "none"), 1600);
             }
 
-            // lock future options in Free
+            // lock future options in Free (без повторного "(PRO)")
             Array.from(whenSel.options).forEach((opt) => {
                 const v = Number(opt.value);
                 if (v > 0 && !unlocked) {
                     opt.disabled = true;
-                    opt.textContent += " (PRO)";
+                    if (!opt.textContent.includes("(PRO)")) opt.textContent += " (PRO)";
                 }
             });
 
@@ -619,7 +617,6 @@
             }
 
             function putTaskInto(dayObj, text) {
-                // find empty slot
                 let idx = dayObj.tasks.findIndex((t) => !norm(t));
                 if (idx === -1) {
                     const limits2 = planLimits(getPlan());
@@ -654,7 +651,6 @@
 
                 saveApp(state);
 
-                // if added to current day — rerender
                 if (targetKey === dayKey) renderTasks();
 
                 input.value = "";
@@ -698,13 +694,12 @@
                 if (!undone.length) return;
 
                 for (const u of undone) {
-                    let slot = tomorrow.tasks.findIndex((t) => !norm(t));
+                    const slot = tomorrow.tasks.findIndex((t) => !norm(t));
                     if (slot === -1) break;
 
                     tomorrow.tasks[slot] = u.text;
                     tomorrow.tasksDone[slot] = false;
 
-                    // remove from today
                     day.tasks[u.idx] = "";
                     day.tasksDone[u.idx] = false;
                 }
@@ -874,7 +869,7 @@
         saveApp(state);
     }
 
-    // streaks helpers
+    // ===== streaks =====
     function getDayStats(state, key) {
         const d = state.days[key] || {};
 
@@ -912,7 +907,7 @@
         return { label: "Reset", cls: "badge--reset" };
     }
 
-    // === Weekly page (Smart Book Tip + Streaks/Badges + Pro/Premium Week Plan) ===
+    // ===== Weekly page =====
     function weeklyPage() {
         const page = document.body.getAttribute("data-page");
         if (page !== "weekly") return;
@@ -921,7 +916,6 @@
         const wrap = document.querySelector("[data-week]");
         if (!wrap) return;
 
-        // tabs
         const weekLinesEl = document.querySelector("[data-weekly-lines]");
         const monthLinesEl = document.querySelector("[data-monthly-lines]");
         const tabWeek = document.querySelector('[data-insights-tab="week"]');
@@ -930,7 +924,6 @@
         function setTab(active) {
             if (tabWeek) tabWeek.classList.toggle("pill--today", active === "week");
             if (tabMonth) tabMonth.classList.toggle("pill--today", active === "month");
-
             if (weekLinesEl) weekLinesEl.style.display = active === "week" ? "" : "none";
             if (monthLinesEl) monthLinesEl.style.display = active === "month" ? "" : "none";
         }
@@ -953,14 +946,14 @@
         const baseMonday = new Date(now);
         baseMonday.setDate(now.getDate() - shift);
 
-        // ===== Week Plan (Pro/Premium) =====
         const proUnlocked = isPro();
         const premiumUnlocked = isPremium();
-        const MAX_OFFSET = weekPlanHorizonWeeks(); // 0 free, 2 pro, 8 premium
+        const MAX_OFFSET = weekPlanHorizonWeeks();
 
         let weekOffset = 0;
         let activeWeekKey = null;
 
+        // week plan dom
         const wpCard = document.querySelector("[data-weekplan]");
         const wpRange = document.querySelector("[data-weekplan-range]");
         const wpPrev = document.querySelector("[data-weekplan-prev]");
@@ -1031,87 +1024,12 @@
             setTimeout(() => (wpToast.style.display = "none"), 1600);
         }
 
-        // Dynamic goals renderer (no goalInputs, no crashes)
-        function renderWeekGoals(wp) {
-            if (!goalsWrap) return;
-
-            const maxGoals = weekPlanGoalsLimit(); // pro=3, premium=8
-            const minGoals = maxGoals ? Math.min(3, maxGoals) : 0;
-
-            wp.goals = Array.isArray(wp.goals) ? wp.goals : [];
-            while (wp.goals.length < minGoals) wp.goals.push("");
-            if (maxGoals) wp.goals = wp.goals.slice(0, maxGoals);
-
-            goalsWrap.innerHTML = "";
-
-            wp.goals.forEach((val, i) => {
-                const row = document.createElement("div");
-                row.className = "item";
-
-                const input = document.createElement("input");
-                input.type = "text";
-                input.placeholder = `Goal #${i + 1}`;
-                input.value = val || "";
-
-                input.addEventListener("input", () => {
-                    if (!proUnlocked) return;
-                    if (!activeWeekKey) return;
-                    const w = ensureWeekPlan(activeWeekKey);
-                    w.goals[i] = input.value;
-                    saveApp(state);
-
-                    if (goalLimitEl) {
-                        const filled = (w.goals || []).map((x) => norm(x)).filter(Boolean).length;
-                        goalLimitEl.textContent = `${filled}/${maxGoals || 0}`;
-                    }
-                });
-
-                row.appendChild(input);
-
-                // remove тільки для додаткових (4+) і тільки Premium
-                if (premiumUnlocked && i >= 3) {
-                    const del = document.createElement("button");
-                    del.type = "button";
-                    del.className = "btn btn--ghost";
-                    del.textContent = "Remove";
-                    del.addEventListener("click", () => {
-                        if (!activeWeekKey) return;
-                        const w = ensureWeekPlan(activeWeekKey);
-                        w.goals.splice(i, 1);
-                        saveApp(state);
-                        renderWeekGoals(w);
-                    });
-                    row.appendChild(del);
-                }
-
-                goalsWrap.appendChild(row);
-            });
-
-            if (goalLimitEl) {
-                const filled = (wp.goals || []).map((x) => norm(x)).filter(Boolean).length;
-                goalLimitEl.textContent = `${filled}/${maxGoals || 0}`;
-            }
-        }
-
-        if (noteEl && noteEl.dataset.bound !== "1") {
-            noteEl.dataset.bound = "1";
-            noteEl.addEventListener("input", () => {
-                if (!proUnlocked) return;
-                if (!activeWeekKey) return;
-                const wp = ensureWeekPlan(activeWeekKey);
-                wp.note = noteEl.value;
-                saveApp(state);
-            });
-        }
-
         function setHintText() {
             if (!wpHint) return;
             if (!proUnlocked) return;
-            if (premiumUnlocked) {
-                wpHint.innerHTML = `<b>Premium:</b> plan goals for this week + next <b>8</b> weeks. Use templates & copy forward.`;
-            } else {
-                wpHint.innerHTML = `<b>Pro:</b> plan goals for this week + next <b>2</b> weeks. Copy to next week.`;
-            }
+            wpHint.innerHTML = premiumUnlocked
+                ? `<b>Premium:</b> plan goals for this week + next <b>8</b> weeks. Use templates & copy forward.`
+                : `<b>Pro:</b> plan goals for this week + next <b>2</b> weeks. Copy to next week.`;
         }
 
         function fillCopyWeeksOptions() {
@@ -1123,8 +1041,8 @@
 
             wpCopyWeeks.style.display = "";
             const maxForward = Math.max(0, MAX_OFFSET - weekOffset);
-
             const opts = [1, 2, 4, 8].filter((n) => n <= maxForward);
+
             if (opts.length === 0) {
                 wpCopyWeeks.innerHTML = `<option value="1">+1 week</option>`;
                 wpCopyWeeks.disabled = true;
@@ -1187,12 +1105,81 @@
             if (wpTemplateApply) wpTemplateApply.style.display = premiumUnlocked ? "" : "none";
             if (wpClear) wpClear.style.display = premiumUnlocked ? "" : "none";
 
-            // Add goal button only Premium (бо Pro має рівно 3)
             if (goalAddBtn) goalAddBtn.style.display = premiumUnlocked ? "" : "none";
 
             setHintText();
             fillCopyWeeksOptions();
             fillTemplateOptions();
+        }
+
+        function renderWeekGoals(wp) {
+            if (!goalsWrap) return;
+
+            const maxGoals = weekPlanGoalsLimit(); // pro=3, premium=8
+            const minGoals = maxGoals ? Math.min(3, maxGoals) : 0;
+
+            wp.goals = Array.isArray(wp.goals) ? wp.goals : [];
+            while (wp.goals.length < minGoals) wp.goals.push("");
+            if (maxGoals) wp.goals = wp.goals.slice(0, maxGoals);
+
+            goalsWrap.innerHTML = "";
+
+            wp.goals.forEach((val, i) => {
+                const row = document.createElement("div");
+                row.className = "item";
+
+                const input = document.createElement("input");
+                input.type = "text";
+                input.placeholder = `Goal #${i + 1}`;
+                input.value = val || "";
+
+                input.addEventListener("input", () => {
+                    if (!proUnlocked || !activeWeekKey) return;
+                    const w = ensureWeekPlan(activeWeekKey);
+                    w.goals[i] = input.value;
+                    saveApp(state);
+
+                    if (goalLimitEl) {
+                        const filled = (w.goals || []).map((x) => norm(x)).filter(Boolean).length;
+                        goalLimitEl.textContent = `${filled}/${maxGoals || 0}`;
+                    }
+                });
+
+                row.appendChild(input);
+
+                // remove тільки для додаткових (4+) і тільки Premium
+                if (premiumUnlocked && i >= 3) {
+                    const del = document.createElement("button");
+                    del.type = "button";
+                    del.className = "btn btn--ghost";
+                    del.textContent = "Remove";
+                    del.addEventListener("click", () => {
+                        if (!activeWeekKey) return;
+                        const w = ensureWeekPlan(activeWeekKey);
+                        w.goals.splice(i, 1);
+                        saveApp(state);
+                        renderWeekGoals(w);
+                    });
+                    row.appendChild(del);
+                }
+
+                goalsWrap.appendChild(row);
+            });
+
+            if (goalLimitEl) {
+                const filled = (wp.goals || []).map((x) => norm(x)).filter(Boolean).length;
+                goalLimitEl.textContent = `${filled}/${maxGoals || 0}`;
+            }
+        }
+
+        if (noteEl && noteEl.dataset.bound !== "1") {
+            noteEl.dataset.bound = "1";
+            noteEl.addEventListener("input", () => {
+                if (!proUnlocked || !activeWeekKey) return;
+                const wp = ensureWeekPlan(activeWeekKey);
+                wp.note = noteEl.value;
+                saveApp(state);
+            });
         }
 
         function renderForOffset(off) {
@@ -1206,17 +1193,15 @@
             if (proUnlocked) {
                 activeWeekKey = weekStart;
                 const wp = ensureWeekPlan(activeWeekKey);
-
                 renderWeekGoals(wp);
                 if (noteEl) noteEl.value = wp.note || "";
 
                 if (goalAddBtn && goalAddBtn.dataset.bound !== "1") {
                     goalAddBtn.dataset.bound = "1";
                     goalAddBtn.addEventListener("click", () => {
-                        if (!premiumUnlocked) return;
-                        if (!activeWeekKey) return;
+                        if (!premiumUnlocked || !activeWeekKey) return;
 
-                        const w = ensureWeekPlanState(state, activeWeekKey);
+                        const w = ensureWeekPlan(activeWeekKey);
                         const maxGoals = weekPlanGoalsLimit();
                         if (w.goals.length >= maxGoals) return toast(`Limit: ${maxGoals} goals`);
 
@@ -1292,9 +1277,7 @@
             }
 
             const email = (localStorage.getItem(EMAIL_KEY) || "anon").toLowerCase();
-            const book = weekPlanned
-                ? pickWeeklyBook({ email, weekStart, score: weekScore, topTag: topTag || "general" })
-                : null;
+            const book = weekPlanned ? pickWeeklyBook({ email, weekStart, score: weekScore, topTag: topTag || "general" }) : null;
 
             const taskStreak = calcCurrentStreakDays(state, (st) => st.planned > 0 && st.taskScore >= 70);
             const habitStreak = calcCurrentStreakDays(state, (st) => st.habitsTotal > 0 && st.habitsScore >= 70);
@@ -1308,7 +1291,6 @@
                     `Streaks: <b>${taskStreak}d</b> tasks, <b>${habitStreak}d</b> habits`;
 
                 let line2 = `Badge: <span class="pill pill--badge ${badge.cls}">${badge.label}</span> • `;
-
                 if (!weekPlanned) line2 += `Book: <b>—</b> Add tasks with biz/crypto/sport/growth (optionally with #).`;
                 else line2 += `Book: <b>${book.title}</b> — ${book.tip}`;
 
@@ -1413,7 +1395,7 @@
             wpToday.addEventListener("click", () => renderForOffset(0));
         }
 
-        // Copy forward copy up to plan limit (3 for Pro, 8 for Premium)
+        // Copy forward
         if (wpCopy && wpCopy.dataset.bound !== "1") {
             wpCopy.dataset.bound = "1";
             wpCopy.addEventListener("click", () => {
@@ -1445,19 +1427,18 @@
             });
         }
 
-        // Premium: Apply template FIX: no goalInputs
+        // Premium: Apply template
         if (wpTemplateApply && wpTemplateApply.dataset.bound !== "1") {
             wpTemplateApply.dataset.bound = "1";
             wpTemplateApply.addEventListener("click", () => {
-                if (!premiumUnlocked) return;
-                if (!activeWeekKey) return;
+                if (!premiumUnlocked || !activeWeekKey) return;
 
                 const id = wpTemplate ? String(wpTemplate.value || "") : "";
                 const t = WEEK_TEMPLATES.find((x) => x.id === id) || WEEK_TEMPLATES[0];
 
                 const wp = ensureWeekPlan(activeWeekKey);
 
-                const maxGoals = weekPlanGoalsLimit(); // 8
+                const maxGoals = weekPlanGoalsLimit();
                 const minGoals = Math.min(3, maxGoals);
 
                 wp.goals = (t.goals || []).slice(0, maxGoals);
@@ -1471,12 +1452,11 @@
             });
         }
 
-        // Premium: no goalInputs
+        // Premium: Clear
         if (wpClear && wpClear.dataset.bound !== "1") {
             wpClear.dataset.bound = "1";
             wpClear.addEventListener("click", () => {
-                if (!premiumUnlocked) return;
-                if (!activeWeekKey) return;
+                if (!premiumUnlocked || !activeWeekKey) return;
 
                 const wp = ensureWeekPlan(activeWeekKey);
                 const maxGoals = weekPlanGoalsLimit();
@@ -1496,6 +1476,7 @@
         renderForOffset(0);
     }
 
+    // ===== Settings page =====
     function settingsPage() {
         const page = document.body.getAttribute("data-page");
         if (page !== "settings") return;
@@ -1507,7 +1488,6 @@
         if (emailEl) emailEl.textContent = email;
         if (planEl) planEl.textContent = plan.toUpperCase();
 
-        // perks block (optional)
         const perks = document.querySelector("[data-plan-perks]");
         if (perks) {
             const p = getPlan();
@@ -1530,6 +1510,7 @@
         }
     }
 
+    // ===== Habits page =====
     function habitsPage() {
         const page = document.body.getAttribute("data-page");
         if (page !== "habits") return;
@@ -1537,7 +1518,6 @@
         const state = initState();
         const masterHabits = state.settings.habits;
 
-        // goals preview (optional)
         const goalsPreview = document.querySelector("[data-weekgoals-preview]");
         if (goalsPreview) {
             if (!isPro()) {
@@ -1623,7 +1603,7 @@
         render();
     }
 
-    // init
+    // ===== init =====
     const isAppPage = document.body.hasAttribute("data-app");
     if (!isAppPage) return;
 
