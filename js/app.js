@@ -60,7 +60,7 @@
         return normLower(localStorage.getItem(PLAN_KEY)) || "free";
     }
 
-    // Premium = month insights
+    // Premium = month insights + extended week-plan features
     function isPremium() {
         return getPlan() === "premium";
     }
@@ -77,6 +77,14 @@
         return { maxTasksPerDay: 15 }; // premium
     }
 
+    // Week-plan horizon per plan
+    function weekPlanHorizonWeeks() {
+        const p = getPlan();
+        if (p === "free") return 0;
+        if (p === "pro") return 2;
+        return 8; // premium
+    }
+
     function extractTag(taskText) {
         const s = String(taskText || "").toLowerCase();
 
@@ -90,76 +98,21 @@
 
         const MAP = {
             biz: new Set([
-                "biz",
-                "business",
-                "work",
-                "startup",
-                "client",
-                "sales",
-                "marketing",
-                "project",
-                "product",
-                "freelance",
-                "job",
-                "career",
-                "бізнес",
-                "бизнес",
-                "робота",
-                "работа",
-                "стартап",
-                "клієнт",
-                "клиент",
+                "biz", "business", "work", "startup", "client", "sales", "marketing", "project", "product",
+                "freelance", "job", "career",
+                "бізнес", "бизнес", "робота", "работа", "стартап", "клієнт", "клиент",
             ]),
             crypto: new Set([
-                "crypto",
-                "btc",
-                "eth",
-                "trade",
-                "trading",
-                "defi",
-                "airdrop",
-                "binance",
-                "крипта",
-                "крипто",
-                "трейд",
-                "трейдинг",
-                "биток",
-                "біток",
+                "crypto", "btc", "eth", "trade", "trading", "defi", "airdrop", "binance",
+                "крипта", "крипто", "трейд", "трейдинг", "биток", "біток",
             ]),
             sport: new Set([
-                "sport",
-                "sports",
-                "gym",
-                "workout",
-                "training",
-                "run",
-                "running",
-                "cardio",
-                "lifting",
-                "fitness",
-                "зал",
-                "тренування",
-                "тренировка",
-                "біг",
-                "бег",
+                "sport", "sports", "gym", "workout", "training", "run", "running", "cardio", "lifting", "fitness",
+                "зал", "тренування", "тренировка", "біг", "бег",
             ]),
             growth: new Set([
-                "growth",
-                "learn",
-                "learning",
-                "study",
-                "reading",
-                "skill",
-                "skills",
-                "selfdev",
-                "improve",
-                "habits",
-                "mindset",
-                "розвиток",
-                "развитие",
-                "навчання",
-                "учеба",
-                "учёба",
+                "growth", "learn", "learning", "study", "reading", "skill", "skills", "selfdev", "improve", "habits", "mindset",
+                "розвиток", "развитие", "навчання", "учеба", "учёба",
             ]),
         };
 
@@ -351,7 +304,7 @@
         const state = loadApp();
         state.days = state.days || {};
         state.settings = state.settings || {};
-        state.weeks = state.weeks || {}; // ✅ week plans
+        state.weeks = state.weeks || {}; // week plans
 
         // focuses
         if (!Array.isArray(state.settings.focuses) || state.settings.focuses.length === 0) {
@@ -695,7 +648,7 @@
         return { label: "Reset", cls: "badge--reset" };
     }
 
-    // === Weekly page (includes Smart Book Tip 2.0 + Streaks/Badges + PRO Week Plan) ===
+    // === Weekly page (Smart Book Tip + Streaks/Badges + Pro/Premium Week Plan) ===
     function weeklyPage() {
         const page = document.body.getAttribute("data-page");
         if (page !== "weekly") return;
@@ -736,9 +689,11 @@
         const baseMonday = new Date(now);
         baseMonday.setDate(now.getDate() - shift);
 
-        // ===== PRO Week Plan wiring =====
+        // ===== Week Plan (Pro/Premium) =====
         const proUnlocked = isPro();
-        const MAX_OFFSET = proUnlocked ? 2 : 0; // ✅ only up to 2 weeks ahead
+        const premiumUnlocked = isPremium();
+
+        const MAX_OFFSET = weekPlanHorizonWeeks(); // 0 free, 2 pro, 8 premium
 
         let weekOffset = 0;
         let activeWeekKey = null;
@@ -749,6 +704,10 @@
         const wpNext = document.querySelector("[data-weekplan-next]");
         const wpToday = document.querySelector("[data-weekplan-today]");
         const wpCopy = document.querySelector("[data-weekplan-copy]");
+        const wpCopyWeeks = document.querySelector("[data-weekplan-copy-weeks]");
+        const wpTemplate = document.querySelector("[data-weekplan-template]");
+        const wpTemplateApply = document.querySelector("[data-weekplan-template-apply]");
+        const wpClear = document.querySelector("[data-weekplan-clear]");
         const wpToast = document.querySelector("[data-weekplan-toast]");
         const wpHint = document.querySelector("[data-weekplan-hint]");
         const wpLocked = document.querySelector("[data-weekplan-locked]");
@@ -756,6 +715,39 @@
 
         const goalInputs = Array.from(document.querySelectorAll("[data-week-goal]"));
         const noteEl = document.querySelector("[data-week-note]");
+
+        const WEEK_TEMPLATES = [
+            {
+                id: "study",
+                name: "Study Sprint",
+                goals: ["Finish 3 lessons", "Solve 30 задач", "Write summary notes"],
+                note: "Block 60–90 min deep work daily. Keep phone away.",
+            },
+            {
+                id: "project",
+                name: "Build a Project",
+                goals: ["Ship 1 feature", "Fix 10 bugs", "Deploy / update README"],
+                note: "One small release > perfect big plan.",
+            },
+            {
+                id: "fitness",
+                name: "Fitness Week",
+                goals: ["3 workouts", "8k steps/day", "Sleep 7+ hours"],
+                note: "Consistency > intensity. Don’t burn out.",
+            },
+            {
+                id: "biz",
+                name: "Business Push",
+                goals: ["Reach 10 clients", "Improve landing page", "Post 3 updates"],
+                note: "Small daily actions compound fast.",
+            },
+            {
+                id: "blank",
+                name: "Blank (empty)",
+                goals: ["", "", ""],
+                note: "",
+            },
+        ];
 
         function mondayForOffset(off) {
             const d = new Date(baseMonday);
@@ -774,7 +766,6 @@
             if (!state.weeks[key]) {
                 state.weeks[key] = { goals: ["", "", ""], note: "" };
             } else {
-                // normalize
                 if (!Array.isArray(state.weeks[key].goals)) state.weeks[key].goals = ["", "", ""];
                 while (state.weeks[key].goals.length < 3) state.weeks[key].goals.push("");
                 state.weeks[key].goals = state.weeks[key].goals.slice(0, 3);
@@ -792,7 +783,7 @@
             }, 1600);
         }
 
-        // bind inputs ONCE (щоб можна було нормально друкувати)
+        // bind inputs ONCE
         if (goalInputs.length) {
             goalInputs.forEach((inp, i) => {
                 if (inp.dataset.bound === "1") return;
@@ -818,27 +809,96 @@
             });
         }
 
+        function setHintText() {
+            if (!wpHint) return;
+            if (!proUnlocked) return;
+
+            if (premiumUnlocked) {
+                wpHint.innerHTML = `<b>Premium:</b> plan goals for this week + next <b>8</b> weeks. Use templates & copy forward.`;
+            } else {
+                wpHint.innerHTML = `<b>Pro:</b> plan goals for this week + next <b>2</b> weeks. Copy to next week.`;
+            }
+        }
+
+        function fillCopyWeeksOptions() {
+            if (!wpCopyWeeks) return;
+            if (!premiumUnlocked) {
+                wpCopyWeeks.style.display = "none";
+                return;
+            }
+
+            wpCopyWeeks.style.display = "";
+            const maxForward = Math.max(0, MAX_OFFSET - weekOffset);
+
+            const opts = [1, 2, 4, 8].filter((n) => n <= maxForward);
+            if (opts.length === 0) {
+                wpCopyWeeks.innerHTML = `<option value="1">+1 week</option>`;
+                wpCopyWeeks.disabled = true;
+                return;
+            }
+
+            wpCopyWeeks.disabled = false;
+            const currentVal = safeNum(wpCopyWeeks.value, opts[0]);
+            wpCopyWeeks.innerHTML = "";
+            for (const n of opts) {
+                const opt = document.createElement("option");
+                opt.value = String(n);
+                opt.textContent = `+${n} week${n === 1 ? "" : "s"}`;
+                wpCopyWeeks.appendChild(opt);
+            }
+            wpCopyWeeks.value = String(opts.includes(currentVal) ? currentVal : opts[0]);
+        }
+
+        function fillTemplateOptions() {
+            if (!wpTemplate) return;
+            if (!premiumUnlocked) {
+                wpTemplate.style.display = "none";
+                return;
+            }
+
+            wpTemplate.style.display = "";
+            if (wpTemplate.dataset.filled === "1") return;
+            wpTemplate.dataset.filled = "1";
+
+            wpTemplate.innerHTML = "";
+            for (const t of WEEK_TEMPLATES) {
+                const opt = document.createElement("option");
+                opt.value = t.id;
+                opt.textContent = t.name;
+                wpTemplate.appendChild(opt);
+            }
+            wpTemplate.value = "study";
+        }
+
         function applyWeekPlanUI() {
             if (!wpCard) return;
 
             // lock in Free
             wpCard.classList.toggle("weekplan--locked", !proUnlocked);
 
-            if (wpHint) wpHint.style.display = proUnlocked ? "" : "none";
             if (wpLocked) wpLocked.style.display = proUnlocked ? "none" : "";
-
             if (wpFields) wpFields.style.display = proUnlocked ? "" : "none";
+            if (wpHint) wpHint.style.display = proUnlocked ? "" : "none";
 
-            // buttons
+            // nav buttons (only if unlocked)
             if (wpPrev) wpPrev.style.display = proUnlocked ? "" : "none";
             if (wpNext) wpNext.style.display = proUnlocked ? "" : "none";
             if (wpToday) wpToday.style.display = proUnlocked ? "" : "none";
-            if (wpCopy) wpCopy.style.display = proUnlocked ? "" : "none";
 
             if (wpPrev) wpPrev.disabled = weekOffset <= 0;
             if (wpNext) wpNext.disabled = weekOffset >= MAX_OFFSET;
             if (wpToday) wpToday.disabled = weekOffset === 0;
-            if (wpCopy) wpCopy.disabled = weekOffset >= MAX_OFFSET;
+
+            // copy + premium tools
+            if (wpCopy) wpCopy.style.display = proUnlocked ? "" : "none";
+            if (wpCopy) wpCopy.disabled = !proUnlocked || weekOffset >= MAX_OFFSET;
+
+            if (wpTemplateApply) wpTemplateApply.style.display = premiumUnlocked ? "" : "none";
+            if (wpClear) wpClear.style.display = premiumUnlocked ? "" : "none";
+
+            setHintText();
+            fillCopyWeeksOptions();
+            fillTemplateOptions();
         }
 
         function renderForOffset(off) {
@@ -849,11 +909,9 @@
 
             if (wpRange) wpRange.textContent = rangeText(monday);
 
-            // week plan data (only pro/premium can write/read full UI)
             if (proUnlocked) {
                 activeWeekKey = weekStart;
                 const wp = ensureWeekPlan(activeWeekKey);
-
                 goalInputs.forEach((inp, i) => (inp.value = wp.goals[i] || ""));
                 if (noteEl) noteEl.value = wp.note || "";
             } else {
@@ -884,7 +942,6 @@
                 const dayScore = pct(done, planned);
                 if (planned > 0) daysWithPlans.push({ name: names[i], score: dayScore, key });
 
-                // count tags from planned tasks
                 for (const t of data.tasks || []) {
                     const tt = norm(t);
                     if (!tt) continue;
@@ -914,12 +971,6 @@
             }
 
             const weekScore = pct(weekDone, weekPlanned);
-
-            // best day
-            let bestDay = null;
-            for (const d of daysWithPlans) {
-                if (!bestDay || d.score > bestDay.score) bestDay = d;
-            }
 
             // topTag (seeded if tie)
             let topTag = null;
@@ -1041,7 +1092,7 @@
             saveApp(state);
         }
 
-        // buttons (pro only)
+        // buttons
         if (wpPrev && wpPrev.dataset.bound !== "1") {
             wpPrev.dataset.bound = "1";
             wpPrev.addEventListener("click", () => renderForOffset(weekOffset - 1));
@@ -1054,6 +1105,10 @@
             wpToday.dataset.bound = "1";
             wpToday.addEventListener("click", () => renderForOffset(0));
         }
+
+        // Copy forward:
+        // - Pro: always +1 week
+        // - Premium: choose +1/+2/+4/+8 and apply to ALL next N weeks (same plan)
         if (wpCopy && wpCopy.dataset.bound !== "1") {
             wpCopy.dataset.bound = "1";
             wpCopy.addEventListener("click", () => {
@@ -1061,16 +1116,65 @@
                 if (weekOffset >= MAX_OFFSET) return;
 
                 const fromKey = ymd(mondayForOffset(weekOffset));
-                const toKey = ymd(mondayForOffset(weekOffset + 1));
-
                 const from = ensureWeekPlan(fromKey);
-                const to = ensureWeekPlan(toKey);
 
-                to.goals = (from.goals || ["", "", ""]).slice(0, 3);
-                to.note = String(from.note || "");
+                let n = 1;
+                if (premiumUnlocked && wpCopyWeeks) {
+                    n = safeNum(wpCopyWeeks.value, 1);
+                }
+                n = clamp(n, 1, Math.max(1, MAX_OFFSET - weekOffset));
+
+                for (let i = 1; i <= n; i++) {
+                    const toKey = ymd(mondayForOffset(weekOffset + i));
+                    const to = ensureWeekPlan(toKey);
+                    to.goals = (from.goals || ["", "", ""]).slice(0, 3);
+                    to.note = String(from.note || "");
+                }
 
                 saveApp(state);
-                toast("Copied to next week ✅");
+                toast(premiumUnlocked ? `Copied forward ${n} week(s) ✅` : "Copied to next week ✅");
+                fillCopyWeeksOptions();
+            });
+        }
+
+        // Premium: Apply template
+        if (wpTemplateApply && wpTemplateApply.dataset.bound !== "1") {
+            wpTemplateApply.dataset.bound = "1";
+            wpTemplateApply.addEventListener("click", () => {
+                if (!premiumUnlocked) return;
+                if (!activeWeekKey) return;
+
+                const id = wpTemplate ? String(wpTemplate.value || "") : "";
+                const t = WEEK_TEMPLATES.find((x) => x.id === id) || WEEK_TEMPLATES[0];
+
+                const wp = ensureWeekPlan(activeWeekKey);
+                wp.goals = (t.goals || ["", "", ""]).slice(0, 3);
+                wp.note = String(t.note || "");
+
+                goalInputs.forEach((inp, i) => (inp.value = wp.goals[i] || ""));
+                if (noteEl) noteEl.value = wp.note || "";
+
+                saveApp(state);
+                toast("Template applied ✅");
+            });
+        }
+
+        // Premium: Clear current week plan
+        if (wpClear && wpClear.dataset.bound !== "1") {
+            wpClear.dataset.bound = "1";
+            wpClear.addEventListener("click", () => {
+                if (!premiumUnlocked) return;
+                if (!activeWeekKey) return;
+
+                const wp = ensureWeekPlan(activeWeekKey);
+                wp.goals = ["", "", ""];
+                wp.note = "";
+
+                goalInputs.forEach((inp) => (inp.value = ""));
+                if (noteEl) noteEl.value = "";
+
+                saveApp(state);
+                toast("Cleared ✅");
             });
         }
 
