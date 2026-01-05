@@ -338,3 +338,29 @@
 .weekplan--locked{
     opacity:.7;
 }
+
+.weekmini{
+    margin-top:10px;
+    padding:12px;
+    border-radius:16px;
+    border:1px solid rgba(0,0,0,.06);
+    background:rgba(255,255,255,.55);
+}
+
+.weekmini ul{ margin:6px 0 0; }
+
+.weekplan__tools{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    margin-top:10px;
+    flex-wrap:wrap;
+}
+
+.weekplan__select{
+    padding:10px 12px;
+    border-radius:12px;
+    border:1px solid rgba(0,0,0,.08);
+    background:rgba(255,255,255,.6);
+}
+

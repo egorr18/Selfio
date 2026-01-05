@@ -56,7 +56,7 @@
       <div class="mini" data-monthly-lines style="display:none;">—</div>
     </div>
 
-    <!-- Pro/Premium Week plan -->
+    <!-- Week plan -->
     <div class="card weekplan" data-weekplan style="margin-top:12px;">
       <div class="weekplan__head">
         <div>
@@ -71,21 +71,18 @@
         </div>
       </div>
 
-      <div class="mini weekplan__hint" data-weekplan-hint>
-        —
-      </div>
-
+      <div class="mini weekplan__hint" data-weekplan-hint></div>
       <div class="mini weekplan__locked" data-weekplan-locked style="display:none;">
-        <b>Pro/Premium only.</b> Upgrade to plan ahead.
+        <b>Pro only.</b> Upgrade to PRO to plan weeks ahead.
       </div>
 
       <!-- Premium tools -->
       <div class="weekplan__tools">
         <select class="weekplan__select" data-weekplan-template>
-          <!-- filled by JS -->
+          <option value="study">Study Sprint</option>
         </select>
-        <button class="pill" type="button" data-weekplan-template-apply>Apply template</button>
 
+        <button class="pill" type="button" data-weekplan-template-apply>Apply template</button>
         <button class="pill" type="button" data-weekplan-clear>Clear</button>
       </div>
 

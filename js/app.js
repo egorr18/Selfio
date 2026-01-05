@@ -78,7 +78,7 @@
         let done = 0;
         for (let i = 0; i < tasks.length; i++) {
             const t = norm(tasks[i]);
-            if (!t) continue; // порожня задача НЕ входить у план
+            if (!t) continue;
             if (tasksDone[i]) done++;
         }
         return done;
@@ -93,7 +93,7 @@
         return normLower(localStorage.getItem(PLAN_KEY)) || "free";
     }
 
-    // Premium = month insights + extended week-plan features
+    // Premium = month insights + templates + extended week-plan
     function isPremium() {
         return getPlan() === "premium";
     }
@@ -110,7 +110,7 @@
         return { maxTasksPerDay: 15 }; // premium
     }
 
-    // Week-plan horizon per plan
+    // Week-plan horizon per plan (offsets 0..N => this week + next N weeks)
     function weekPlanHorizonWeeks() {
         const p = getPlan();
         if (p === "free") return 0;
@@ -126,8 +126,8 @@
             .replace(/[^a-z0-9а-яіїєґ#_-]+/gi, " ")
             .split(/\s+/)
             .filter(Boolean)
-            .map((t) => (t.startsWith("#") ? t.slice(1) : t)) // #biz -> biz
-            .map((t) => t.replace(/[-_]/g, "")); // self-dev -> selfdev
+            .map((t) => (t.startsWith("#") ? t.slice(1) : t))
+            .map((t) => t.replace(/[-_]/g, ""));
 
         const MAP = {
             biz: new Set([
@@ -145,7 +145,7 @@
             ]),
             growth: new Set([
                 "growth", "learn", "learning", "study", "reading", "skill", "skills", "selfdev", "improve", "habits", "mindset",
-                "розвиток", "развитие", "навчання", "учеба", "учёба",
+                "розвиток", "развитие", "навчання", "учебa", "учёба",
             ]),
         };
 
@@ -205,7 +205,6 @@
                 { title: "Mindset", tip: "Swap “I can’t” → “I’m learning”." },
             ],
         },
-
         stable: {
             general: [
                 { title: "Getting Things Done", tip: "Use next-actions, not vague tasks." },
@@ -228,7 +227,6 @@
                 { title: "Atomic Habits", tip: "Make good habits obvious & easy." },
             ],
         },
-
         growth: {
             general: [
                 { title: "Deep Work", tip: "Add 1 more focused block next week." },
@@ -251,7 +249,6 @@
                 { title: "Deep Work", tip: "Schedule focus first, then everything else." },
             ],
         },
-
         elite: {
             general: [
                 { title: "Deep Work", tip: "Optimize: reduce context switching." },
@@ -536,93 +533,6 @@
 
             updateTasksProgress();
         }
-        // ✅ Week plan mini (PRO/Premium): show goals + push to Today
-        (function weekMini() {
-            const wm = document.querySelector("[data-weekmini]");
-            if (!wm) return;
-
-            const wmRange = document.querySelector("[data-weekmini-range]");
-            const wmGoals = document.querySelector("[data-weekmini-goals]");
-            const wmPush = document.querySelector("[data-weekmini-push]");
-            const wmToast = document.querySelector("[data-weekmini-toast]");
-            const wmLocked = document.querySelector("[data-weekmini-locked]");
-            const wmBody = document.querySelector("[data-weekmini-body]");
-
-            const unlocked = isPro(); // pro OR premium
-
-            function toast(msg) {
-                if (!wmToast) return;
-                wmToast.textContent = msg;
-                wmToast.style.display = "";
-                setTimeout(() => (wmToast.style.display = "none"), 1600);
-            }
-
-            function renderGoalsList(container, goals) {
-                if (!container) return;
-
-                container.innerHTML = "";
-                if (!goals.length) {
-                    container.textContent = "— Add 1–3 goals in Weekly.";
-                    return;
-                }
-
-                const ul = document.createElement("ul");
-                ul.style.margin = "6px 0 0";
-                ul.style.paddingLeft = "16px";
-
-                goals.forEach((g) => {
-                    const li = document.createElement("li");
-                    li.textContent = g;
-                    ul.appendChild(li);
-                });
-
-                container.appendChild(ul);
-            }
-
-            // Week based on selected dayKey (not only today)
-            const monday = startOfWeekMonday(parseYMDToDate(dayKey));
-            const weekKey = ymd(monday);
-
-            if (wmRange) wmRange.textContent = weekRangeTextFromMonday(monday);
-
-            if (wmLocked) wmLocked.style.display = unlocked ? "none" : "";
-            if (wmBody) wmBody.style.display = unlocked ? "" : "none";
-
-            if (!unlocked) {
-                if (wmGoals) wmGoals.textContent = "Upgrade to PRO to plan weeks ahead + push goals to Today.";
-                return;
-            }
-
-            const wp = ensureWeekPlanState(state, weekKey);
-            const goals = (wp.goals || []).map((x) => norm(x)).filter(Boolean);
-            renderGoalsList(wmGoals, goals);
-
-            if (wmPush && wmPush.dataset.bound !== "1") {
-                wmPush.dataset.bound = "1";
-                wmPush.addEventListener("click", () => {
-                    const wp2 = ensureWeekPlanState(state, weekKey);
-                    const gs = (wp2.goals || []).map((x) => norm(x)).filter(Boolean);
-
-                    if (!gs.length) return toast("No goals yet");
-
-                    let added = 0;
-
-                    for (const g of gs) {
-                        const idx = day.tasks.findIndex((t) => !norm(t));
-                        if (idx === -1) break; // no slots
-                        day.tasks[idx] = g;
-                        day.tasksDone[idx] = false;
-                        added++;
-                    }
-
-                    saveApp(state);
-                    renderTasks();
-
-                    if (added === 0) toast("No empty task slots");
-                    else toast(`Added ${added} goal(s) ✅`);
-                });
-            }
-        })();
 
         if (tasksCountSel) {
             const MAX_UI = 15;
@@ -652,6 +562,90 @@
         }
 
         renderTasks();
+
+        // ✅ Week plan mini (PRO/Premium): show goals + push to Today
+        (function weekMini() {
+            const wm = document.querySelector("[data-weekmini]");
+            if (!wm) return;
+
+            const wmRange = document.querySelector("[data-weekmini-range]");
+            const wmGoals = document.querySelector("[data-weekmini-goals]");
+            const wmPush = document.querySelector("[data-weekmini-push]");
+            const wmToast = document.querySelector("[data-weekmini-toast]");
+            const wmLocked = document.querySelector("[data-weekmini-locked]");
+            const wmBody = document.querySelector("[data-weekmini-body]");
+
+            const unlocked = isPro();
+
+            function toast(msg) {
+                if (!wmToast) return;
+                wmToast.textContent = msg;
+                wmToast.style.display = "";
+                setTimeout(() => (wmToast.style.display = "none"), 1600);
+            }
+
+            function renderGoalsList(container, goals) {
+                if (!container) return;
+                container.innerHTML = "";
+                if (!goals.length) {
+                    container.textContent = "— Add 1–3 goals in Weekly.";
+                    return;
+                }
+
+                const ul = document.createElement("ul");
+                ul.style.margin = "6px 0 0";
+                ul.style.paddingLeft = "16px";
+
+                goals.forEach((g) => {
+                    const li = document.createElement("li");
+                    li.textContent = g;
+                    ul.appendChild(li);
+                });
+
+                container.appendChild(ul);
+            }
+
+            const monday = startOfWeekMonday(parseYMDToDate(dayKey));
+            const weekKey = ymd(monday);
+
+            if (wmRange) wmRange.textContent = weekRangeTextFromMonday(monday);
+
+            if (wmLocked) wmLocked.style.display = unlocked ? "none" : "";
+            if (wmBody) wmBody.style.display = unlocked ? "" : "none";
+
+            if (!unlocked) {
+                if (wmGoals) wmGoals.textContent = "Upgrade to PRO to plan weeks ahead + push goals to Today.";
+                return;
+            }
+
+            const wp = ensureWeekPlanState(state, weekKey);
+            const goals = (wp.goals || []).map((x) => norm(x)).filter(Boolean);
+            renderGoalsList(wmGoals, goals);
+
+            if (wmPush && wmPush.dataset.bound !== "1") {
+                wmPush.dataset.bound = "1";
+                wmPush.addEventListener("click", () => {
+                    const wp2 = ensureWeekPlanState(state, weekKey);
+                    const gs = (wp2.goals || []).map((x) => norm(x)).filter(Boolean);
+                    if (!gs.length) return toast("No goals yet");
+
+                    let added = 0;
+                    for (const g of gs) {
+                        const idx = day.tasks.findIndex((t) => !norm(t));
+                        if (idx === -1) break;
+                        day.tasks[idx] = g;
+                        day.tasksDone[idx] = false;
+                        added++;
+                    }
+
+                    saveApp(state);
+                    renderTasks();
+
+                    if (added === 0) toast("No empty task slots");
+                    else toast(`Added ${added} goal(s) ✅`);
+                });
+            }
+        })();
 
         // habits
         const habitsWrap = document.querySelector("[data-habits]");
@@ -729,7 +723,7 @@
         saveApp(state);
     }
 
-    // STEP (3): Streaks helpers
+    // streaks helpers
     function getDayStats(state, key) {
         const d = state.days[key] || {};
 
@@ -744,10 +738,9 @@
         return { planned, done, taskScore, habitsDone, habitsTotal, habitsScore };
     }
 
-    // current streak from today backwards
     function calcCurrentStreakDays(state, predicate) {
         let streak = 0;
-        const dt = new Date(); // today
+        const dt = new Date();
 
         for (let i = 0; i < 366; i++) {
             const key = ymd(dt);
@@ -805,14 +798,13 @@
         const names = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
         // base Monday (this week)
-        const shift = (now.getDay() + 6) % 7; // Mon=0
+        const shift = (now.getDay() + 6) % 7;
         const baseMonday = new Date(now);
         baseMonday.setDate(now.getDate() - shift);
 
         // ===== Week Plan (Pro/Premium) =====
         const proUnlocked = isPro();
         const premiumUnlocked = isPremium();
-
         const MAX_OFFSET = weekPlanHorizonWeeks(); // 0 free, 2 pro, 8 premium
 
         let weekOffset = 0;
@@ -861,12 +853,7 @@
                 goals: ["Reach 10 clients", "Improve landing page", "Post 3 updates"],
                 note: "Small daily actions compound fast.",
             },
-            {
-                id: "blank",
-                name: "Blank (empty)",
-                goals: ["", "", ""],
-                note: "",
-            },
+            { id: "blank", name: "Blank (empty)", goals: ["", "", ""], note: "" },
         ];
 
         function mondayForOffset(off) {
@@ -882,41 +869,28 @@
         }
 
         function ensureWeekPlan(key) {
-            state.weeks = state.weeks || {};
-            if (!state.weeks[key]) {
-                state.weeks[key] = { goals: ["", "", ""], note: "" };
-            } else {
-                if (!Array.isArray(state.weeks[key].goals)) state.weeks[key].goals = ["", "", ""];
-                while (state.weeks[key].goals.length < 3) state.weeks[key].goals.push("");
-                state.weeks[key].goals = state.weeks[key].goals.slice(0, 3);
-                if (typeof state.weeks[key].note !== "string") state.weeks[key].note = "";
-            }
-            return state.weeks[key];
+            return ensureWeekPlanState(state, key);
         }
 
         function toast(msg) {
             if (!wpToast) return;
             wpToast.textContent = msg;
             wpToast.style.display = "";
-            setTimeout(() => {
-                wpToast.style.display = "none";
-            }, 1600);
+            setTimeout(() => (wpToast.style.display = "none"), 1600);
         }
 
         // bind inputs ONCE
-        if (goalInputs.length) {
-            goalInputs.forEach((inp, i) => {
-                if (inp.dataset.bound === "1") return;
-                inp.dataset.bound = "1";
-                inp.addEventListener("input", () => {
-                    if (!proUnlocked) return;
-                    if (!activeWeekKey) return;
-                    const wp = ensureWeekPlan(activeWeekKey);
-                    wp.goals[i] = inp.value;
-                    saveApp(state);
-                });
+        goalInputs.forEach((inp, i) => {
+            if (inp.dataset.bound === "1") return;
+            inp.dataset.bound = "1";
+            inp.addEventListener("input", () => {
+                if (!proUnlocked) return;
+                if (!activeWeekKey) return;
+                const wp = ensureWeekPlan(activeWeekKey);
+                wp.goals[i] = inp.value;
+                saveApp(state);
             });
-        }
+        });
 
         if (noteEl && noteEl.dataset.bound !== "1") {
             noteEl.dataset.bound = "1";
@@ -932,7 +906,6 @@
         function setHintText() {
             if (!wpHint) return;
             if (!proUnlocked) return;
-
             if (premiumUnlocked) {
                 wpHint.innerHTML = `<b>Premium:</b> plan goals for this week + next <b>8</b> weeks. Use templates & copy forward.`;
             } else {
@@ -993,14 +966,12 @@
         function applyWeekPlanUI() {
             if (!wpCard) return;
 
-            // lock in Free
             wpCard.classList.toggle("weekplan--locked", !proUnlocked);
 
             if (wpLocked) wpLocked.style.display = proUnlocked ? "none" : "";
             if (wpFields) wpFields.style.display = proUnlocked ? "" : "none";
             if (wpHint) wpHint.style.display = proUnlocked ? "" : "none";
 
-            // nav buttons (only if unlocked)
             if (wpPrev) wpPrev.style.display = proUnlocked ? "" : "none";
             if (wpNext) wpNext.style.display = proUnlocked ? "" : "none";
             if (wpToday) wpToday.style.display = proUnlocked ? "" : "none";
@@ -1009,7 +980,6 @@
             if (wpNext) wpNext.disabled = weekOffset >= MAX_OFFSET;
             if (wpToday) wpToday.disabled = weekOffset === 0;
 
-            // copy + premium tools
             if (wpCopy) wpCopy.style.display = proUnlocked ? "" : "none";
             if (wpCopy) wpCopy.disabled = !proUnlocked || weekOffset >= MAX_OFFSET;
 
@@ -1038,7 +1008,6 @@
                 activeWeekKey = null;
             }
 
-            // render week cards + insights for selected week
             wrap.innerHTML = "";
 
             let weekPlanned = 0;
@@ -1092,7 +1061,7 @@
 
             const weekScore = pct(weekDone, weekPlanned);
 
-            // topTag (seeded if tie)
+            // topTag
             let topTag = null;
             const maxTagVal = Math.max(tagCounts.biz, tagCounts.crypto, tagCounts.sport, tagCounts.growth);
             if (maxTagVal > 0) {
@@ -1102,11 +1071,8 @@
             }
 
             const email = (localStorage.getItem(EMAIL_KEY) || "anon").toLowerCase();
-            const book = weekPlanned
-                ? pickWeeklyBook({ email, weekStart, score: weekScore, topTag: topTag || "general" })
-                : null;
+            const book = weekPlanned ? pickWeeklyBook({ email, weekStart, score: weekScore, topTag: topTag || "general" }) : null;
 
-            // streaks + badge
             const taskStreak = calcCurrentStreakDays(state, (st) => st.planned > 0 && st.taskScore >= 70);
             const habitStreak = calcCurrentStreakDays(state, (st) => st.habitsTotal > 0 && st.habitsScore >= 70);
 
@@ -1120,16 +1086,13 @@
 
                 let line2 = `Badge: <span class="pill pill--badge ${badge.cls}">${badge.label}</span> • `;
 
-                if (!weekPlanned) {
-                    line2 += `Book: <b>—</b> Add tasks with biz/crypto/sport/growth (optionally with #).`;
-                } else {
-                    line2 += `Book: <b>${book.title}</b> — ${book.tip}`;
-                }
+                if (!weekPlanned) line2 += `Book: <b>—</b> Add tasks with biz/crypto/sport/growth (optionally with #).`;
+                else line2 += `Book: <b>${book.title}</b> — ${book.tip}`;
 
                 weekLinesEl.innerHTML = `${line1}<br>${line2}`;
             }
 
-            // month insights (Premium only) — unchanged
+            // month insights
             if (monthLinesEl) {
                 if (!isPremium()) {
                     monthLinesEl.innerHTML = `Upgrade to <b>Premium</b> to see Month insights.`;
@@ -1139,6 +1102,14 @@
 
                     let mPlanned = 0;
                     let mDone = 0;
+
+                    const prev = new Date(now);
+                    prev.setMonth(now.getMonth() - 1);
+                    const prevMonth = prev.getMonth();
+                    const prevYear = prev.getFullYear();
+                    let pmPlanned = 0;
+                    let pmDone = 0;
+
                     const weekdayAgg = {
                         Mon: { done: 0, planned: 0 },
                         Tue: { done: 0, planned: 0 },
@@ -1148,13 +1119,6 @@
                         Sat: { done: 0, planned: 0 },
                         Sun: { done: 0, planned: 0 },
                     };
-
-                    const prev = new Date(now);
-                    prev.setMonth(now.getMonth() - 1);
-                    const prevMonth = prev.getMonth();
-                    const prevYear = prev.getFullYear();
-                    let pmPlanned = 0;
-                    let pmDone = 0;
 
                     for (const key of Object.keys(state.days)) {
                         if (!isValidYMD(key)) continue;
@@ -1226,9 +1190,7 @@
             wpToday.addEventListener("click", () => renderForOffset(0));
         }
 
-        // Copy forward:
-        // - Pro: always +1 week
-        // - Premium: choose +1/+2/+4/+8 and apply to ALL next N weeks (same plan)
+        // Copy forward
         if (wpCopy && wpCopy.dataset.bound !== "1") {
             wpCopy.dataset.bound = "1";
             wpCopy.addEventListener("click", () => {
@@ -1239,9 +1201,7 @@
                 const from = ensureWeekPlan(fromKey);
 
                 let n = 1;
-                if (premiumUnlocked && wpCopyWeeks) {
-                    n = safeNum(wpCopyWeeks.value, 1);
-                }
+                if (premiumUnlocked && wpCopyWeeks) n = safeNum(wpCopyWeeks.value, 1);
                 n = clamp(n, 1, Math.max(1, MAX_OFFSET - weekOffset));
 
                 for (let i = 1; i <= n; i++) {
@@ -1279,7 +1239,7 @@
             });
         }
 
-        // Premium: Clear current week plan
+        // Premium: Clear
         if (wpClear && wpClear.dataset.bound !== "1") {
             wpClear.dataset.bound = "1";
             wpClear.addEventListener("click", () => {
@@ -1312,6 +1272,28 @@
         const planEl = document.querySelector("[data-plan]");
         if (emailEl) emailEl.textContent = email;
         if (planEl) planEl.textContent = plan.toUpperCase();
+
+        // ✅ perks block (optional)
+        const perks = document.querySelector("[data-plan-perks]");
+        if (perks) {
+            const p = getPlan();
+            if (p === "free") {
+                perks.innerHTML =
+                    `Free: daily check-in + habits.<br>` +
+                    `PRO: week plan (this + next 2 weeks) + copy + push goals to Today.<br>` +
+                    `Premium: templates + up to 8 weeks + Month insights.`;
+            } else if (p === "pro") {
+                perks.innerHTML =
+                    `✅ PRO active: plan goals for this week + next 2 weeks.<br>` +
+                    `✅ Push goals to Today (plan → tasks).<br>` +
+                    `Upgrade to Premium for templates + 8 weeks + Month insights.`;
+            } else {
+                perks.innerHTML =
+                    `✅ Premium active: templates + plan up to 8 weeks ahead.<br>` +
+                    `✅ Month insights + trends.<br>` +
+                    `✅ Push goals to Today (plan → tasks).`;
+            }
+        }
     }
 
     function habitsPage() {
@@ -1320,6 +1302,20 @@
 
         const state = initState();
         const masterHabits = state.settings.habits;
+
+        // ✅ goals preview (optional)
+        const goalsPreview = document.querySelector("[data-weekgoals-preview]");
+        if (goalsPreview) {
+            if (!isPro()) {
+                goalsPreview.textContent = "PRO feature — upgrade to see goals here.";
+            } else {
+                const monday = startOfWeekMonday(new Date());
+                const weekKey = ymd(monday);
+                const wp = ensureWeekPlanState(state, weekKey);
+                const goals = (wp.goals || []).map((x) => norm(x)).filter(Boolean);
+                goalsPreview.textContent = goals.length ? goals.join(" • ") : "— Add 1–3 goals in Weekly.";
+            }
+        }
 
         const list = document.querySelector("[data-habits-list]");
         const input = document.querySelector("[data-habit-input]");
