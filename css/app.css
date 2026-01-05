@@ -363,4 +363,33 @@
     border:1px solid rgba(0,0,0,.08);
     background:rgba(255,255,255,.6);
 }
+/* Week plan dynamic goals */
+.weekplan__goals{
+    margin-top:12px;
+    display:grid;
+    gap:10px;
+}
+
+.weekplan__goal-row{
+    display:flex;
+    gap:10px;
+    align-items:center;
+}
+
+.weekplan__goal-row input{
+    flex:1;
+    width:100%;
+}
+
+.weekplan__goal-actions{
+    margin-top:10px;
+    display:flex;
+    gap:10px;
+    align-items:center;
+    flex-wrap:wrap;
+}
+
+[data-quick-toast]{
+    opacity:.75;
+}
 

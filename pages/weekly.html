@@ -87,14 +87,18 @@
       </div>
 
       <div class="weekplan__fields" data-weekplan-fields>
-        <div class="item"><input type="text" placeholder="Goal #1 (e.g. ship landing page)" data-week-goal="0"></div>
-        <div class="item"><input type="text" placeholder="Goal #2 (e.g. 5 workouts)" data-week-goal="1"></div>
-        <div class="item"><input type="text" placeholder="Goal #3 (e.g. finish 3 lessons)" data-week-goal="2"></div>
+        <div class="weekplan__goals" data-week-goals></div>
+
+        <div class="weekplan__goal-actions">
+          <button class="btn btn--ghost btn--sm" type="button" data-week-goal-add>+ Add goal</button>
+          <span class="mini" data-week-goal-limit></span>
+        </div>
 
         <div class="item">
           <textarea class="weekplan__note" placeholder="Weekly note (optional)" data-week-note></textarea>
         </div>
       </div>
+
 
       <div class="weekplan__footer">
         <div class="weekplan__copy">

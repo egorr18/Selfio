@@ -123,6 +123,18 @@
                     </div>
 
                     <div class="list" data-tasks style="margin-top:10px;"></div>
+                    <div class="row" style="margin-top:10px;">
+                        <input class="text text--sm" data-quick-task placeholder="Quick add task..." />
+                        <select class="select select--sm" data-quick-when>
+                            <option value="0">Today</option>
+                            <option value="1">Tomorrow</option>
+                            <option value="2">+2 days</option>
+                        </select>
+                        <button class="btn btn--primary btn--sm" type="button" data-quick-add>Add</button>
+                    </div>
+
+                    <div class="mini" data-quick-toast style="display:none; margin-top:8px;"></div>
+
                 </div>
 
                 <div style="margin-top:14px;">
@@ -132,11 +144,12 @@
 
                 <div class="actions">
                     <a class="btn btn--secondary" href="weekly.html">Open weekly</a>
+                    <button class="btn btn--ghost" type="button" data-carry-tomorrow>Move undone → tomorrow</button>
                     <button class="btn btn--ghost" type="button" data-reset-today>Reset today</button>
                 </div>
-            </div>
 
-            <div class="card">
+
+                <div class="card">
                 <h2>Habits (tap & done)</h2>
                 <div class="mini">Edit names прямо тут. Список береться з Today.</div>
 
