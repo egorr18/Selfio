@@ -44,7 +44,14 @@
     <div class="card">
       <h2>My habits (today)</h2>
 
-      <div class="row">
+      <!-- Preview goals -->
+      <div style="margin-top:8px;">
+        <div class="mini"><b>This week goals</b></div>
+        <div class="mini" data-weekgoals-preview style="margin-top:6px;">—</div>
+        <a class="pill" href="weekly.html" style="margin-top:8px; display:inline-block;">Edit in Weekly</a>
+      </div>
+
+      <div class="row" style="margin-top:12px;">
         <input class="text" data-habit-input placeholder="New habit (e.g. 30 min study)" />
         <button class="btn btn--primary" type="button" data-habit-add>Add</button>
       </div>

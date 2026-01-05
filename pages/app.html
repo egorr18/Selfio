@@ -49,8 +49,34 @@
             <div class="card">
                 <h2>Check-in (30 seconds)</h2>
 
+                <!-- Week plan mini (PRO/Premium) -->
+                <div class="weekmini" data-weekmini style="margin-top:10px;">
+                    <div class="inline inline--between" style="gap:10px; flex-wrap:wrap;">
+                        <div>
+                            <div class="mini"><b>This week plan</b></div>
+                            <div class="mini" data-weekmini-range>—</div>
+                        </div>
+                        <a class="pill" href="weekly.html">Open</a>
+                    </div>
+
+                    <div class="mini" data-weekmini-locked style="display:none; margin-top:8px;">
+                        <b>PRO feature.</b> Plan weeks ahead + push goals to Today.
+                    </div>
+
+                    <div data-weekmini-body style="margin-top:8px;">
+                        <div class="mini" data-weekmini-goals>—</div>
+
+                        <div class="inline" style="margin-top:10px; gap:10px; flex-wrap:wrap;">
+                            <button class="btn btn--primary btn--sm" type="button" data-weekmini-push>
+                                Push goals to Today
+                            </button>
+                            <span class="mini" data-weekmini-toast style="display:none;"></span>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Mood + Focus -->
-                <div class="row">
+                <div class="row" style="margin-top:14px;">
                     <div>
                         <div class="mini">Mood</div>
                         <div class="mood" style="margin-top:8px;">
