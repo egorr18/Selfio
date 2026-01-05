@@ -56,7 +56,7 @@
       <div class="mini" data-monthly-lines style="display:none;">—</div>
     </div>
 
-    <!-- PRO Week plan -->
+    <!-- Pro/Premium Week plan -->
     <div class="card weekplan" data-weekplan style="margin-top:12px;">
       <div class="weekplan__head">
         <div>
@@ -72,11 +72,21 @@
       </div>
 
       <div class="mini weekplan__hint" data-weekplan-hint>
-        <b>Pro feature:</b> plan goals for this week + next 2 weeks. Copy plans forward.
+        —
       </div>
 
       <div class="mini weekplan__locked" data-weekplan-locked style="display:none;">
-        <b>Pro only.</b> Upgrade to PRO to plan this week + next 2 weeks.
+        <b>Pro/Premium only.</b> Upgrade to plan ahead.
+      </div>
+
+      <!-- Premium tools -->
+      <div class="weekplan__tools">
+        <select class="weekplan__select" data-weekplan-template>
+          <!-- filled by JS -->
+        </select>
+        <button class="pill" type="button" data-weekplan-template-apply>Apply template</button>
+
+        <button class="pill" type="button" data-weekplan-clear>Clear</button>
       </div>
 
       <div class="weekplan__fields" data-weekplan-fields>
@@ -90,7 +100,13 @@
       </div>
 
       <div class="weekplan__footer">
-        <button class="btn" type="button" data-weekplan-copy>Copy to next week</button>
+        <div class="weekplan__copy">
+          <select class="weekplan__select" data-weekplan-copy-weeks>
+            <option value="1">+1 week</option>
+          </select>
+          <button class="btn" type="button" data-weekplan-copy>Copy forward</button>
+        </div>
+
         <span class="mini weekplan__toast" data-weekplan-toast style="display:none;"></span>
       </div>
     </div>
