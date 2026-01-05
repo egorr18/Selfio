@@ -30,6 +30,30 @@
     text-align: right;
     opacity: 0.75;
     font-size: 14px;
+    opacity: 0.7;
+    white-space: nowrap;
+}
+
+.app__meta--saved{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(0,0,0,.08);
+    background: rgba(255,255,255,.6);
+}
+
+.app__meta--saved::before{
+    content: "✓";
+    font-weight: 700;
+    opacity: 0.8;
+}
+
+@media (max-width: 640px) {
+    .app__meta{
+        display: none;
+    }
 }
 
 .app__grid {
@@ -332,11 +356,11 @@
 }
 
 .weekplan__toast{
-    opacity:.75;
+    opacity:0.75;
 }
 
 .weekplan--locked{
-    opacity:.7;
+    opacity:0.7;
 }
 
 .weekmini{
@@ -390,7 +414,7 @@
 }
 
 [data-quick-toast]{
-    opacity:.75;
+    opacity: 0.75;
 }
 
 /* === Today layout polish === */
