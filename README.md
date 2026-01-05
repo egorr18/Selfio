@@ -6,14 +6,14 @@ Designed to be easy to run locally (1 command) and straightforward to deploy (Re
 
 ## Features
 
--  Auth: **register / login** (JWT)
--  Secure protected routes (middleware)
--  PostgreSQL persistence
--  Swagger / OpenAPI docs
--  Docker & Docker Compose (one-command startup)
--  Clean architecture: handlers → services → repository
--  Environment-based configuration
--  CORS-ready for frontend (GitHub Pages / local dev)
+- Auth: **register / login** (JWT)
+- Secure protected routes (middleware)
+- PostgreSQL persistence
+- Swagger / OpenAPI docs
+- Docker & Docker Compose (one-command startup)
+- Clean architecture: handlers → services → repository
+- Environment-based configuration
+- CORS-ready for frontend (GitHub Pages / local dev)
 
 ## Tech Stack
 
@@ -21,19 +21,19 @@ Designed to be easy to run locally (1 command) and straightforward to deploy (Re
 - **HTTP:** `net/http`
 - **Database:** PostgreSQL
 - **Auth:** JWT (`golang-jwt`)
-- **Docs:** Swagger (`swaggo`)
+- **Docs:** Swagger (`swaggo/swag`, `swaggo/http-swagger`)
 - **Containerization:** Docker, Docker Compose
 
-## API Overview
+---
 
-### Auth
+## Quickstart (Local)
 
-#### `POST /auth/register`
-Creates a new user.
+### 1) Requirements
+- Go 1.21+ (or your version in `go.mod`)
+- Docker + Docker Compose
 
-**Body**
-```json
-{
-  "email": "user@example.com",
-  "password": "strong_password"
-}
+### 2) Configure env
+Create `.env` from example:
+
+```bash
+cp .env.example .env
