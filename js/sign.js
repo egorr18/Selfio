@@ -6,18 +6,38 @@ document.addEventListener("DOMContentLoaded", () => {
     const EMAIL_KEY = "selfio_email";
     const PLAN_KEY = "selfio_plan";
 
-    // next: куди йти після логіну (але якщо план не вибраний — все одно на choose-plan)
+    // next: куди йти після логіну
     const qs = new URLSearchParams(location.search);
-    const rawNext = qs.get("next") || "app.html";
 
-    const ALLOWED_NEXT = new Set([
+    const ALLOWED_BASE = new Set([
         "app.html",
         "weekly.html",
         "habits.html",
         "settings.html",
         "choose-plan.html",
     ]);
-    const next = ALLOWED_NEXT.has(rawNext) ? rawNext : "app.html";
+
+    function sanitizeNext(raw) {
+        let v = String(raw || "").trim();
+        if (!v) return "app.html";
+
+        // захист від зовнішніх редіректів
+        const low = v.toLowerCase();
+        if (low.startsWith("http:") || low.startsWith("https:") || low.startsWith("//") || low.startsWith("javascript:")) {
+            return "app.html";
+        }
+
+        // якщо раптом прийшло double-encoded
+        try { v = decodeURIComponent(v); } catch {}
+
+        // перевіряємо базову сторінку (до ? або #)
+        const base = v.split(/[?#]/)[0];
+        if (!ALLOWED_BASE.has(base)) return "app.html";
+
+        return v; // повертаємо ПОВНИЙ next з query (?pref=...)
+    }
+
+    const next = sanitizeNext(qs.get("next"));
 
     const isLocal = location.hostname === "localhost" || location.hostname === "127.0.0.1";
     const isServedByBackend = isLocal && location.port === "8080";
@@ -69,8 +89,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            // IMPORTANT: більше НІКОЛИ не ставимо план із URL на signin
-            // і чистимо “поточний” план, щоб не тягнувся з минулого акаунта
+            // не тягнемо “поточний” план з минулого акаунта
             localStorage.removeItem(PLAN_KEY);
 
             // 1) register (ok або 409 якщо вже існує)
@@ -91,20 +110,25 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            localStorage.setItem(TOKEN_KEY, data.token); // якщо в тебе інше поле — підстав
+            localStorage.setItem(TOKEN_KEY, data.token); // якщо інше поле — підстав
             localStorage.setItem(EMAIL_KEY, email);
 
             // 3) підтягуємо план саме для ЦЬОГО email
             const savedPlan = normalizePlan(localStorage.getItem(planKeyForEmail(email)));
             if (savedPlan) localStorage.setItem(PLAN_KEY, savedPlan);
 
-            // 4) якщо плану нема — onboarding choose-plan
+            // 4) якщо плану нема — йдемо на choose-plan
             if (!savedPlan) {
-                window.location.href = `choose-plan.html?next=${encodeURIComponent(next)}`;
+                // якщо next вже є choose-plan з pref=..., не обгортай ще раз
+                if (String(next).startsWith("choose-plan.html")) {
+                    window.location.href = next;
+                } else {
+                    window.location.href = `choose-plan.html?next=${encodeURIComponent(next)}`;
+                }
                 return;
             }
 
-            // 5) інакше — одразу в app
+            // 5) інакше — одразу туди, куди просили (включно з choose-plan?pref=premium...)
             window.location.href = next;
         } catch (err) {
             console.error(err);
