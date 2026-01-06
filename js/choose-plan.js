@@ -20,6 +20,10 @@
 
     let selected = (localStorage.getItem(planKey) || "").trim().toLowerCase();
 
+    // PREF з URL: choose-plan.html?pref=free|pro|premium
+    const pref = (new URLSearchParams(location.search).get("pref") || "").trim().toLowerCase();
+    if (["free", "pro", "premium"].includes(pref)) selected = pref;
+
     function toast(msg) {
         if (!toastEl) return;
         toastEl.textContent = msg;
@@ -61,7 +65,7 @@
             // і синхронізуємо “поточний” для хедера
             localStorage.setItem(PLAN_KEY, selected);
 
-            toast("Saved ");
+            toast("Saved ✅");
 
             const next = new URLSearchParams(location.search).get("next");
             setTimeout(() => {
