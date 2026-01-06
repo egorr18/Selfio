@@ -374,18 +374,28 @@
         const el = document.querySelector("[data-app-meta]");
         if (el) el.textContent = `${email} • ${plan}`;
     }
-
     function bindLogout() {
         document.querySelectorAll("[data-logout]").forEach((btn) => {
             btn.addEventListener("click", () => {
-                // важливо: прибираємо і email+plan, щоб не “липли” між акаунтами
+                const email = (localStorage.getItem(EMAIL_KEY) || "").trim().toLowerCase();
+                const perEmailPlanKey = `${PLAN_KEY}:${email || "anon"}`;
+
+                // закінчили сесію
                 localStorage.removeItem(TOKEN_KEY);
                 localStorage.removeItem(EMAIL_KEY);
                 localStorage.removeItem(PLAN_KEY);
+
+                // “забути” вибір плану для цього email (щоб наступний логін знову кидав на choose-plan)
+                localStorage.removeItem(perEmailPlanKey);
+
+                // (опціонально) якщо хочеш також стерти дані Today/Weekly цього юзера:
+                // localStorage.removeItem(`${APP_KEY}:${(email || "anon").replace(/\s+/g, "")}`);
+
                 location.href = "../index.html";
             });
         });
     }
+
 
     // ===== state normalize / migration =====
     function initState() {
