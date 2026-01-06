@@ -62,9 +62,31 @@
         return ymd(dt);
     }
 
+    // ===== plan guard helpers =====
+    const VALID_PLANS = new Set(["free", "pro", "premium"]);
+
+    function normalizePlan(p) {
+        const v = normLower(p);
+        return VALID_PLANS.has(v) ? v : "";
+    }
+
+    function getStoredPlan() {
+        return normalizePlan(localStorage.getItem(PLAN_KEY));
+    }
+
+    function requirePlan() {
+        // якщо план ще не вибраний — кидаємо на choose-plan
+        if (!getStoredPlan()) {
+            location.href = "choose-plan.html";
+            return false;
+        }
+        return true;
+    }
+
     // ===== plans =====
     function getPlan() {
-        return normLower(localStorage.getItem(PLAN_KEY)) || "free";
+        // якщо в storage криве/пусте — вважаємо free (але guard окремо не пустить в app без вибору)
+        return getStoredPlan() || "free";
     }
 
     function isPremium() {
@@ -329,7 +351,7 @@
 
     function setHeaderMeta() {
         const email = localStorage.getItem(EMAIL_KEY) || "Signed user";
-        const plan = (localStorage.getItem(PLAN_KEY) || "free").toUpperCase();
+        const plan = (getStoredPlan() || "free").toUpperCase();
         const el = document.querySelector("[data-app-meta]");
         if (el) el.textContent = `${email} • ${plan}`;
     }
@@ -1607,6 +1629,7 @@
     const isAppPage = document.body.hasAttribute("data-app");
     if (!isAppPage) return;
 
+    if (!requireAuth()) return;
     if (!requireAuth()) return;
     setHeaderMeta();
     bindLogout();

@@ -2,15 +2,37 @@ document.addEventListener("DOMContentLoaded", () => {
     const form = document.querySelector(".auth__form");
     if (!form) return;
 
-    // plan з URL: signin.html?plan=free|pro|premium
-    const plan = new URLSearchParams(location.search).get("plan");
-    if (plan) localStorage.setItem("selfio_plan", plan);
+    const TOKEN_KEY = "selfio_token";
+    const EMAIL_KEY = "selfio_email";
+    const PLAN_KEY = "selfio_plan";
+    const VALID_PLANS = new Set(["free", "pro", "premium"]);
+
+    const normalizePlan = (p) => {
+        const v = String(p || "").trim().toLowerCase();
+        return VALID_PLANS.has(v) ? v : "";
+    };
+
+    const safeNext = (next) => {
+        const v = String(next || "").trim();
+        // дозволяємо тільки локальні сторінки в /pages
+        const allowed = new Set([
+            "app.html",
+            "weekly.html",
+            "habits.html",
+            "settings.html",
+            "choose-plan.html",
+        ]);
+        return allowed.has(v) ? v : "";
+    };
+
+    const qs = new URLSearchParams(location.search);
+    const next = safeNext(qs.get("next"));
 
     const isLocal = location.hostname === "localhost" || location.hostname === "127.0.0.1";
     const isServedByBackend = isLocal && location.port === "8080";
 
     const API_BASE_URL = isServedByBackend
-        ? "" // same-origin (коли відкриваєш через localhost:8080)
+        ? ""
         : (isLocal ? "http://localhost:8080" : "https://selfio-backend.onrender.com");
 
     const post = (path, body) =>
@@ -46,17 +68,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            // 1) register
+            // 1) register (ok або 409 — норм)
             const reg = await post("/auth/register", { email, password });
-
-            // якщо реєстрація НЕ ок і НЕ 409 → показуємо помилку
             if (!(reg.ok || reg.status === 409)) {
                 const data = await readBody(reg);
                 alert(data.error || data.message || `Register failed: ${reg.status}`);
                 return;
             }
 
-            // 2) login (завжди)
+            // 2) login
             const login = await post("/auth/login", { email, password });
             const data = await readBody(login);
 
@@ -65,11 +85,19 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            localStorage.setItem("selfio_token", data.token); // або data.accessToken — як у тебе
-            localStorage.setItem("selfio_email", email);
+            localStorage.setItem(TOKEN_KEY, data.token); // якщо у тебе інша назва — заміниш тут
+            localStorage.setItem(EMAIL_KEY, email);
 
-            // pages/signin.html -> pages/community.html
-            window.location.href = "app.html";
+            const plan = normalizePlan(localStorage.getItem(PLAN_KEY));
+
+            // якщо план ще не вибраний — ведемо на choose-plan
+            if (!plan) {
+                window.location.href = "choose-plan.html";
+                return;
+            }
+
+            // якщо є next — туди, інакше в Today
+            window.location.href = next || "app.html";
         } catch (err) {
             console.error(err);
             alert("Backend is not reachable");
