@@ -6,7 +6,8 @@
     // guard: треба бути залогіненим
     const token = localStorage.getItem(TOKEN_KEY);
     if (!token) {
-        location.href = "signin.html?next=choose-plan.html";
+        const nextHere = encodeURIComponent(`choose-plan.html${location.search}`);
+        location.href = `signin.html?next=${nextHere}`;
         return;
     }
 
