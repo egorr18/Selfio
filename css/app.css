@@ -490,3 +490,10 @@
     margin-top: 12px;
 }
 
+.app__top p { opacity: 0.75; }
+.app__meta { opacity: 0.55; font-size: 12px; }
+
+@media (max-width: 600px) {
+    .app__meta { display: none; }
+}
+

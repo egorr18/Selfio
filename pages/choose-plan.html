@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Choose plan — Selfio</title>
+    <meta name="description" content="Pick your plan to start using Selfio." />
+
+    <link rel="stylesheet" href="../css/reset.css">
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/app.css">
+</head>
+
+<body data-app data-page="choose-plan">
+
+<header class="header">
+    <div class="container header__inner">
+        <a href="../index.html" class="logo">Selfio</a>
+
+        <nav class="nav">
+            <a href="app.html">Today</a>
+            <a href="weekly.html">Weekly</a>
+            <a href="habits.html">Habits</a>
+            <a href="settings.html">Settings</a>
+        </nav>
+
+        <div class="header__actions">
+            <span class="link" data-app-meta>—</span>
+            <button class="btn btn--secondary" type="button" data-logout>Logout</button>
+        </div>
+    </div>
+</header>
+
+<section class="app">
+    <div class="container">
+        <div class="app__top">
+            <div class="app__title">
+                <h1>Choose your plan</h1>
+                <p>Pick one now — you can change it later in Settings.</p>
+            </div>
+            <div class="app__meta">Takes 5 seconds</div>
+        </div>
+
+        <div class="app__grid" style="grid-template-columns: 1fr;">
+            <div class="card">
+                <h2 style="margin-bottom: 10px;">Plans</h2>
+                <p class="mini" style="margin-bottom: 14px;">
+                    Free is great to start. Pro unlocks planning ahead. Premium adds templates + monthly insights.
+                </p>
+
+                <div class="row" style="grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px;">
+                    <button class="card" type="button" data-plan="free" style="text-align:left; cursor:pointer;">
+                        <h3 style="margin-bottom:6px;">Free</h3>
+                        <div class="mini">Daily check-in + tasks + habits</div>
+                        <div class="mini" style="margin-top:8px;">• Up to 5 tasks/day</div>
+                        <div class="mini">• No planning ahead</div>
+                    </button>
+
+                    <button class="card" type="button" data-plan="pro" style="text-align:left; cursor:pointer;">
+                        <h3 style="margin-bottom:6px;">Pro</h3>
+                        <div class="mini">Week plan + push goals to Today</div>
+                        <div class="mini" style="margin-top:8px;">• This week + next 2 weeks</div>
+                        <div class="mini">• Up to 10 tasks/day</div>
+                    </button>
+
+                    <button class="card" type="button" data-plan="premium" style="text-align:left; cursor:pointer;">
+                        <h3 style="margin-bottom:6px;">Premium</h3>
+                        <div class="mini">Templates + month insights</div>
+                        <div class="mini" style="margin-top:8px;">• Up to 8 weeks ahead</div>
+                        <div class="mini">• Up to 15 tasks/day</div>
+                    </button>
+                </div>
+
+                <div class="actions" style="margin-top:16px;">
+                    <button class="btn btn--primary" type="button" data-continue disabled>Continue</button>
+                    <a class="btn btn--ghost" href="../pricing.html">See pricing</a>
+                </div>
+
+                <div class="mini" data-plan-toast style="display:none; margin-top:10px;"></div>
+            </div>
+        </div>
+    </div>
+</section>
+    <script src="../js/app.js" defer></script>
+    <script src="../js/choose-plan.js" defer></script>
+</body>
+</html>
