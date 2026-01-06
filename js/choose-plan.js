@@ -3,62 +3,22 @@
     const EMAIL_KEY = "selfio_email";
     const PLAN_KEY = "selfio_plan";
 
-    const VALID_PLANS = new Set(["free", "pro", "premium"]);
-
-    function norm(s) {
-        return String(s || "").trim();
-    }
-
-    function normalizePlan(p) {
-        const v = norm(p).toLowerCase();
-        return VALID_PLANS.has(v) ? v : "";
-    }
-
-    // --- auth guard ---
+    // guard: треба бути залогіненим
     const token = localStorage.getItem(TOKEN_KEY);
     if (!token) {
         location.href = "signin.html?next=choose-plan.html";
         return;
     }
 
-    // --- tiny style (без правок твоїх CSS-файлів) ---
-    (function injectStyle() {
-        if (document.getElementById("choose-plan-style")) return;
-        const st = document.createElement("style");
-        st.id = "choose-plan-style";
-        st.textContent = `
-      [data-plan] { cursor: pointer; transition: transform .15s ease, box-shadow .15s ease, outline-color .15s ease; }
-      [data-plan].plan--active { outline: 2px solid var(--brand); box-shadow: 0 10px 28px rgba(0,0,0,.10); transform: translateY(-2px); }
-      [data-plan].plan--inactive { outline: 1px solid rgba(0,0,0,.08); }
-      @media (prefers-reduced-motion: reduce) {
-        [data-plan] { transition: none; }
-      }
-    `;
-        document.head.appendChild(st);
-    })();
+    const email = (localStorage.getItem(EMAIL_KEY) || "").trim().toLowerCase();
+    const planKey = `${PLAN_KEY}:${email || "anon"}`;
 
-    // --- header meta (навіть якщо app.js не підключений) ---
-    const meta = document.querySelector("[data-app-meta]");
-    if (meta) {
-        const email = localStorage.getItem(EMAIL_KEY) || "Signed user";
-        const plan = (normalizePlan(localStorage.getItem(PLAN_KEY)) || "—").toUpperCase();
-        meta.textContent = `${email} • ${plan}`;
-    }
-
-    // --- logout ---
-    document.querySelectorAll("[data-logout]").forEach((btn) => {
-        btn.addEventListener("click", () => {
-            localStorage.removeItem(TOKEN_KEY);
-            location.href = "../index.html";
-        });
-    });
-
-    // --- UI ---
     const cards = Array.from(document.querySelectorAll("[data-plan]"));
     const btnContinue = document.querySelector("[data-continue]");
+    const btnPricing = document.querySelector("[data-pricing]");
     const toastEl = document.querySelector("[data-plan-toast]");
 
-    let selected = normalizePlan(localStorage.getItem(PLAN_KEY)) || "";
+    let selected = (localStorage.getItem(planKey) || "").trim().toLowerCase();
 
     function toast(msg) {
         if (!toastEl) return;
@@ -69,53 +29,44 @@
 
     function paint() {
         cards.forEach((c) => {
-            const p = normalizePlan(c.getAttribute("data-plan"));
-            const on = p && p === selected;
-
-            c.classList.toggle("plan--active", on);
-            c.classList.toggle("plan--inactive", !on);
-
-            // keyboard focus helper
-            c.setAttribute("tabindex", "0");
-            c.setAttribute("role", "button");
-            c.setAttribute("aria-pressed", on ? "true" : "false");
+            const on = c.getAttribute("data-plan") === selected;
+            c.style.outline = on ? "2px solid var(--brand)" : "1px solid rgba(0,0,0,.06)";
+            c.style.boxShadow = on ? "0 10px 28px rgba(0,0,0,.10)" : "";
+            c.style.transform = on ? "translateY(-2px)" : "";
         });
 
         if (btnContinue) btnContinue.disabled = !selected;
     }
 
-    function selectPlan(p) {
-        const v = normalizePlan(p);
-        if (!v) return;
-        selected = v;
-        paint();
-    }
-
     cards.forEach((c) => {
-        c.addEventListener("click", () => selectPlan(c.getAttribute("data-plan")));
-
-        c.addEventListener("keydown", (e) => {
-            if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                selectPlan(c.getAttribute("data-plan"));
-            }
+        c.addEventListener("click", () => {
+            selected = c.getAttribute("data-plan");
+            paint();
         });
     });
+
+    if (btnPricing) {
+        btnPricing.addEventListener("click", () => {
+            location.href = "pricing.html";
+        });
+    }
 
     if (btnContinue) {
         btnContinue.addEventListener("click", () => {
             if (!selected) return;
 
+            // зберігаємо для цього email
+            localStorage.setItem(planKey, selected);
+
+            // і синхронізуємо “поточний” для хедера
             localStorage.setItem(PLAN_KEY, selected);
 
-            // update meta instantly
-            if (meta) {
-                const email = localStorage.getItem(EMAIL_KEY) || "Signed user";
-                meta.textContent = `${email} • ${selected.toUpperCase()}`;
-            }
+            toast("Saved ");
 
-            toast("Saved ✅");
-            setTimeout(() => (location.href = "app.html"), 250);
+            const next = new URLSearchParams(location.search).get("next");
+            setTimeout(() => {
+                location.href = next ? next : "app.html";
+            }, 200);
         });
     }
 

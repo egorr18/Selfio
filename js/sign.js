@@ -5,34 +5,25 @@ document.addEventListener("DOMContentLoaded", () => {
     const TOKEN_KEY = "selfio_token";
     const EMAIL_KEY = "selfio_email";
     const PLAN_KEY = "selfio_plan";
-    const VALID_PLANS = new Set(["free", "pro", "premium"]);
 
-    const normalizePlan = (p) => {
-        const v = String(p || "").trim().toLowerCase();
-        return VALID_PLANS.has(v) ? v : "";
-    };
-
-    const safeNext = (next) => {
-        const v = String(next || "").trim();
-        // дозволяємо тільки локальні сторінки в /pages
-        const allowed = new Set([
-            "app.html",
-            "weekly.html",
-            "habits.html",
-            "settings.html",
-            "choose-plan.html",
-        ]);
-        return allowed.has(v) ? v : "";
-    };
-
+    // next: куди йти після логіну (але якщо план не вибраний — все одно на choose-plan)
     const qs = new URLSearchParams(location.search);
-    const next = safeNext(qs.get("next"));
+    const rawNext = qs.get("next") || "app.html";
+
+    const ALLOWED_NEXT = new Set([
+        "app.html",
+        "weekly.html",
+        "habits.html",
+        "settings.html",
+        "choose-plan.html",
+    ]);
+    const next = ALLOWED_NEXT.has(rawNext) ? rawNext : "app.html";
 
     const isLocal = location.hostname === "localhost" || location.hostname === "127.0.0.1";
     const isServedByBackend = isLocal && location.port === "8080";
 
     const API_BASE_URL = isServedByBackend
-        ? ""
+        ? "" // same-origin (localhost:8080)
         : (isLocal ? "http://localhost:8080" : "https://selfio-backend.onrender.com");
 
     const post = (path, body) =>
@@ -47,6 +38,16 @@ document.addEventListener("DOMContentLoaded", () => {
         if (ct.includes("application/json")) return res.json();
         const text = await res.text();
         return text ? { message: text } : {};
+    };
+
+    const normalizePlan = (p) => {
+        p = String(p || "").trim().toLowerCase();
+        return p === "free" || p === "pro" || p === "premium" ? p : "";
+    };
+
+    const planKeyForEmail = (email) => {
+        const e = String(email || "").trim().toLowerCase();
+        return `selfio_plan:${e || "anon"}`;
     };
 
     let submitting = false;
@@ -68,8 +69,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            // 1) register (ok або 409 — норм)
+            // IMPORTANT: більше НІКОЛИ не ставимо план із URL на signin
+            // і чистимо “поточний” план, щоб не тягнувся з минулого акаунта
+            localStorage.removeItem(PLAN_KEY);
+
+            // 1) register (ok або 409 якщо вже існує)
             const reg = await post("/auth/register", { email, password });
+
             if (!(reg.ok || reg.status === 409)) {
                 const data = await readBody(reg);
                 alert(data.error || data.message || `Register failed: ${reg.status}`);
@@ -85,19 +91,21 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            localStorage.setItem(TOKEN_KEY, data.token); // якщо у тебе інша назва — заміниш тут
+            localStorage.setItem(TOKEN_KEY, data.token); // якщо в тебе інше поле — підстав
             localStorage.setItem(EMAIL_KEY, email);
 
-            const plan = normalizePlan(localStorage.getItem(PLAN_KEY));
+            // 3) підтягуємо план саме для ЦЬОГО email
+            const savedPlan = normalizePlan(localStorage.getItem(planKeyForEmail(email)));
+            if (savedPlan) localStorage.setItem(PLAN_KEY, savedPlan);
 
-            // якщо план ще не вибраний — ведемо на choose-plan
-            if (!plan) {
-                window.location.href = "choose-plan.html";
+            // 4) якщо плану нема — onboarding choose-plan
+            if (!savedPlan) {
+                window.location.href = `choose-plan.html?next=${encodeURIComponent(next)}`;
                 return;
             }
 
-            // якщо є next — туди, інакше в Today
-            window.location.href = next || "app.html";
+            // 5) інакше — одразу в app
+            window.location.href = next;
         } catch (err) {
             console.error(err);
             alert("Backend is not reachable");

@@ -62,7 +62,7 @@
         return ymd(dt);
     }
 
-    // ===== plan guard helpers =====
+    // ===== plan per email helpers =====
     const VALID_PLANS = new Set(["free", "pro", "premium"]);
 
     function normalizePlan(p) {
@@ -70,23 +70,34 @@
         return VALID_PLANS.has(v) ? v : "";
     }
 
-    function getStoredPlan() {
-        return normalizePlan(localStorage.getItem(PLAN_KEY));
+    function currentEmail() {
+        return normLower(localStorage.getItem(EMAIL_KEY));
     }
 
-    function requirePlan() {
-        // якщо план ще не вибраний — кидаємо на choose-plan
-        if (!getStoredPlan()) {
-            location.href = "choose-plan.html";
-            return false;
-        }
-        return true;
+    function planKeyForEmail(email) {
+        return `${PLAN_KEY}:${email || "anon"}`;
     }
+
+    function getPlanSelectedForCurrentUser() {
+        const email = currentEmail();
+
+        // 1) головне джерело правди — план, прив’язаний до email
+        const perUser = normalizePlan(localStorage.getItem(planKeyForEmail(email)));
+        if (perUser) {
+            // синхронізуємо для відображення в хедері
+            localStorage.setItem(PLAN_KEY, perUser);
+            return perUser;
+        }
+
+        // 2) якщо немає — значить план НЕ вибрано
+        return "";
+    }
+
 
     // ===== plans =====
     function getPlan() {
-        // якщо в storage криве/пусте — вважаємо free (але guard окремо не пустить в app без вибору)
-        return getStoredPlan() || "free";
+        // для лімітів: якщо план ще не вибрано — вважаємо free
+        return getPlanSelectedForCurrentUser() || "free";
     }
 
     function isPremium() {
@@ -340,10 +351,18 @@
         localStorage.setItem(appStorageKey(), JSON.stringify(state));
     }
 
+    function pageFileFromDataPage(page) {
+        if (page === "today") return "app.html";
+        if (page === "choose-plan") return "choose-plan.html";
+        return `${page}.html`;
+    }
+
     function requireAuth() {
         const token = localStorage.getItem(TOKEN_KEY);
         if (!token) {
-            location.href = "signin.html";
+            const page = document.body.getAttribute("data-page") || "today";
+            const next = encodeURIComponent(pageFileFromDataPage(page));
+            location.href = `signin.html?next=${next}`;
             return false;
         }
         return true;
@@ -351,7 +370,7 @@
 
     function setHeaderMeta() {
         const email = localStorage.getItem(EMAIL_KEY) || "Signed user";
-        const plan = (getStoredPlan() || "free").toUpperCase();
+        const plan = (getPlanSelectedForCurrentUser() || "—").toUpperCase();
         const el = document.querySelector("[data-app-meta]");
         if (el) el.textContent = `${email} • ${plan}`;
     }
@@ -359,7 +378,10 @@
     function bindLogout() {
         document.querySelectorAll("[data-logout]").forEach((btn) => {
             btn.addEventListener("click", () => {
+                // важливо: прибираємо і email+plan, щоб не “липли” між акаунтами
                 localStorage.removeItem(TOKEN_KEY);
+                localStorage.removeItem(EMAIL_KEY);
+                localStorage.removeItem(PLAN_KEY);
                 location.href = "../index.html";
             });
         });
@@ -1629,8 +1651,18 @@
     const isAppPage = document.body.hasAttribute("data-app");
     if (!isAppPage) return;
 
+    const page = document.body.getAttribute("data-page") || "today";
+
     if (!requireAuth()) return;
-    if (!requireAuth()) return;
+
+    // якщо план не вибрано — пускаємо тільки на choose-plan
+    const selected = getPlanSelectedForCurrentUser();
+    if (!selected && page !== "choose-plan") {
+        const next = encodeURIComponent(pageFileFromDataPage(page));
+        location.href = `choose-plan.html?next=${next}`;
+        return;
+    }
+
     setHeaderMeta();
     bindLogout();
 
@@ -1638,4 +1670,5 @@
     weeklyPage();
     habitsPage();
     settingsPage();
+
 })();
