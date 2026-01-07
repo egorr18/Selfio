@@ -27,6 +27,8 @@ type authRequest struct {
 
 type authResponse struct {
 	Token string `json:"token"`
+	Email string `json:"email"`
+	Plan  string `json:"plan"`
 }
 
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
@@ -52,7 +54,11 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusCreated, authResponse{Token: token})
+	writeJSON(w, http.StatusCreated, authResponse{
+		Token: token,
+		Email: user.Email,
+		Plan:  user.Plan,
+	})
 }
 
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
@@ -78,7 +84,11 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusOK, authResponse{Token: token})
+	writeJSON(w, http.StatusOK, authResponse{
+		Token: token,
+		Email: user.Email,
+		Plan:  user.Plan,
+	})
 }
 
 func writeJSON(w http.ResponseWriter, status int, data any) {

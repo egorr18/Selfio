@@ -11,13 +11,20 @@ import (
 
 var ErrUserNotFound = errors.New("user not found")
 
-// 🔹 INTERFACE (ключ до тестів)
+// INTERFACE (ключ до тестів)
 type UserRepository interface {
 	Create(ctx context.Context, email, passwordHash string) (*models.User, error)
 	GetByEmail(ctx context.Context, email string) (*models.User, error)
+
+	// для профілю/плану
+	GetByID(ctx context.Context, id int64) (*models.User, error)
+	UpdatePlan(ctx context.Context, id int64, plan string) (string, error)
+
+	// для адмінки
+	List(ctx context.Context, includeHash bool) ([]AdminUser, error)
 }
 
-// 🔹 POSTGRES IMPLEMENTATION
+// POSTGRES IMPLEMENTATION
 type PostgresUserRepository struct {
 	db *sql.DB
 }
@@ -35,7 +42,7 @@ func (r *PostgresUserRepository) Create(
 	query := `
 		INSERT INTO users (email, password_hash)
 		VALUES ($1, $2)
-		RETURNING id, email, password_hash, created_at
+		RETURNING id, email, plan, password_hash, created_at
 	`
 
 	var user models.User
@@ -48,6 +55,7 @@ func (r *PostgresUserRepository) Create(
 	).Scan(
 		&user.ID,
 		&user.Email,
+		&user.Plan,
 		&user.PasswordHash,
 		&user.CreatedAt,
 	)
@@ -65,7 +73,7 @@ func (r *PostgresUserRepository) GetByEmail(
 ) (*models.User, error) {
 
 	query := `
-		SELECT id, email, password_hash, created_at
+		SELECT id, email, plan, password_hash, created_at
 		FROM users
 		WHERE email = $1
 	`
@@ -79,6 +87,7 @@ func (r *PostgresUserRepository) GetByEmail(
 	).Scan(
 		&user.ID,
 		&user.Email,
+		&user.Plan,
 		&user.PasswordHash,
 		&user.CreatedAt,
 	)
@@ -93,10 +102,67 @@ func (r *PostgresUserRepository) GetByEmail(
 	return &user, nil
 }
 
-// ✅ DTO для адмінки
+func (r *PostgresUserRepository) GetByID(
+	ctx context.Context,
+	id int64,
+) (*models.User, error) {
+
+	query := `
+		SELECT id, email, plan, password_hash, created_at
+		FROM users
+		WHERE id = $1
+	`
+
+	var user models.User
+
+	err := r.db.QueryRowContext(ctx, query, id).Scan(
+		&user.ID,
+		&user.Email,
+		&user.Plan,
+		&user.PasswordHash,
+		&user.CreatedAt,
+	)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrUserNotFound
+		}
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func (r *PostgresUserRepository) UpdatePlan(
+	ctx context.Context,
+	id int64,
+	plan string,
+) (string, error) {
+
+	query := `
+		UPDATE users
+		SET plan = $1
+		WHERE id = $2
+		RETURNING plan
+	`
+
+	var updated string
+	err := r.db.QueryRowContext(ctx, query, plan, id).Scan(&updated)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", ErrUserNotFound
+		}
+		return "", err
+	}
+
+	return updated, nil
+}
+
+// DTO для адмінки
 type AdminUser struct {
 	ID           int64     `json:"id"`
 	Email        string    `json:"email"`
+	Plan         string    `json:"plan"`
 	CreatedAt    time.Time `json:"created_at"`
 	PasswordHash string    `json:"password_hash,omitempty"`
 }
@@ -109,9 +175,9 @@ func (r *PostgresUserRepository) List(
 
 	var query string
 	if includeHash {
-		query = `SELECT id, email, created_at, password_hash FROM users ORDER BY created_at DESC`
+		query = `SELECT id, email, plan, created_at, password_hash FROM users ORDER BY created_at DESC`
 	} else {
-		query = `SELECT id, email, created_at FROM users ORDER BY created_at DESC`
+		query = `SELECT id, email, plan, created_at FROM users ORDER BY created_at DESC`
 	}
 
 	rows, err := r.db.QueryContext(ctx, query)
@@ -126,11 +192,11 @@ func (r *PostgresUserRepository) List(
 		var u AdminUser
 
 		if includeHash {
-			if err := rows.Scan(&u.ID, &u.Email, &u.CreatedAt, &u.PasswordHash); err != nil {
+			if err := rows.Scan(&u.ID, &u.Email, &u.Plan, &u.CreatedAt, &u.PasswordHash); err != nil {
 				return nil, err
 			}
 		} else {
-			if err := rows.Scan(&u.ID, &u.Email, &u.CreatedAt); err != nil {
+			if err := rows.Scan(&u.ID, &u.Email, &u.Plan, &u.CreatedAt); err != nil {
 				return nil, err
 			}
 		}
