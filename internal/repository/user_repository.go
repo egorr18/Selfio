@@ -11,17 +11,14 @@ import (
 
 var ErrUserNotFound = errors.New("user not found")
 
-// INTERFACE (ключ до тестів)
+// INTERFACE
 type UserRepository interface {
 	Create(ctx context.Context, email, passwordHash string) (*models.User, error)
 	GetByEmail(ctx context.Context, email string) (*models.User, error)
 
-	// для профілю/плану
+	// потрібно для /me та вибору плану
 	GetByID(ctx context.Context, id int64) (*models.User, error)
-	UpdatePlan(ctx context.Context, id int64, plan string) (string, error)
-
-	// для адмінки
-	List(ctx context.Context, includeHash bool) ([]AdminUser, error)
+	SetPlan(ctx context.Context, id int64, plan string) error
 }
 
 // POSTGRES IMPLEMENTATION
@@ -33,32 +30,17 @@ func NewUserRepository(db *sql.DB) UserRepository {
 	return &PostgresUserRepository{db: db}
 }
 
-func (r *PostgresUserRepository) Create(
-	ctx context.Context,
-	email string,
-	passwordHash string,
-) (*models.User, error) {
-
+func (r *PostgresUserRepository) Create(ctx context.Context, email string, passwordHash string) (*models.User, error) {
 	query := `
 		INSERT INTO users (email, password_hash)
 		VALUES ($1, $2)
-		RETURNING id, email, plan, password_hash, created_at
+		RETURNING id, email, COALESCE(plan, ''), password_hash, created_at
 	`
 
 	var user models.User
 
-	err := r.db.QueryRowContext(
-		ctx,
-		query,
-		email,
-		passwordHash,
-	).Scan(
-		&user.ID,
-		&user.Email,
-		&user.Plan,
-		&user.PasswordHash,
-		&user.CreatedAt,
-	)
+	err := r.db.QueryRowContext(ctx, query, email, passwordHash).
+		Scan(&user.ID, &user.Email, &user.Plan, &user.PasswordHash, &user.CreatedAt)
 
 	if err != nil {
 		return nil, err
@@ -67,30 +49,16 @@ func (r *PostgresUserRepository) Create(
 	return &user, nil
 }
 
-func (r *PostgresUserRepository) GetByEmail(
-	ctx context.Context,
-	email string,
-) (*models.User, error) {
-
+func (r *PostgresUserRepository) GetByEmail(ctx context.Context, email string) (*models.User, error) {
 	query := `
-		SELECT id, email, plan, password_hash, created_at
+		SELECT id, email, COALESCE(plan, ''), password_hash, created_at
 		FROM users
 		WHERE email = $1
 	`
 
 	var user models.User
-
-	err := r.db.QueryRowContext(
-		ctx,
-		query,
-		email,
-	).Scan(
-		&user.ID,
-		&user.Email,
-		&user.Plan,
-		&user.PasswordHash,
-		&user.CreatedAt,
-	)
+	err := r.db.QueryRowContext(ctx, query, email).
+		Scan(&user.ID, &user.Email, &user.Plan, &user.PasswordHash, &user.CreatedAt)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -102,26 +70,16 @@ func (r *PostgresUserRepository) GetByEmail(
 	return &user, nil
 }
 
-func (r *PostgresUserRepository) GetByID(
-	ctx context.Context,
-	id int64,
-) (*models.User, error) {
-
+func (r *PostgresUserRepository) GetByID(ctx context.Context, id int64) (*models.User, error) {
 	query := `
-		SELECT id, email, plan, password_hash, created_at
+		SELECT id, email, COALESCE(plan, ''), password_hash, created_at
 		FROM users
 		WHERE id = $1
 	`
 
 	var user models.User
-
-	err := r.db.QueryRowContext(ctx, query, id).Scan(
-		&user.ID,
-		&user.Email,
-		&user.Plan,
-		&user.PasswordHash,
-		&user.CreatedAt,
-	)
+	err := r.db.QueryRowContext(ctx, query, id).
+		Scan(&user.ID, &user.Email, &user.Plan, &user.PasswordHash, &user.CreatedAt)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -133,51 +91,36 @@ func (r *PostgresUserRepository) GetByID(
 	return &user, nil
 }
 
-func (r *PostgresUserRepository) UpdatePlan(
-	ctx context.Context,
-	id int64,
-	plan string,
-) (string, error) {
-
-	query := `
-		UPDATE users
-		SET plan = $1
-		WHERE id = $2
-		RETURNING plan
-	`
-
-	var updated string
-	err := r.db.QueryRowContext(ctx, query, plan, id).Scan(&updated)
+func (r *PostgresUserRepository) SetPlan(ctx context.Context, id int64, plan string) error {
+	// план перевіряємо в handler (тут просто апдейт)
+	query := `UPDATE users SET plan = $1 WHERE id = $2`
+	res, err := r.db.ExecContext(ctx, query, plan, id)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return "", ErrUserNotFound
-		}
-		return "", err
+		return err
 	}
 
-	return updated, nil
+	n, err := res.RowsAffected()
+	if err == nil && n == 0 {
+		return ErrUserNotFound
+	}
+
+	return nil
 }
 
 // DTO для адмінки
 type AdminUser struct {
 	ID           int64     `json:"id"`
 	Email        string    `json:"email"`
-	Plan         string    `json:"plan"`
 	CreatedAt    time.Time `json:"created_at"`
 	PasswordHash string    `json:"password_hash,omitempty"`
 }
 
-// Для /admin/users
-func (r *PostgresUserRepository) List(
-	ctx context.Context,
-	includeHash bool,
-) ([]AdminUser, error) {
-
+func (r *PostgresUserRepository) List(ctx context.Context, includeHash bool) ([]AdminUser, error) {
 	var query string
 	if includeHash {
-		query = `SELECT id, email, plan, created_at, password_hash FROM users ORDER BY created_at DESC`
+		query = `SELECT id, email, created_at, password_hash FROM users ORDER BY created_at DESC`
 	} else {
-		query = `SELECT id, email, plan, created_at FROM users ORDER BY created_at DESC`
+		query = `SELECT id, email, created_at FROM users ORDER BY created_at DESC`
 	}
 
 	rows, err := r.db.QueryContext(ctx, query)
@@ -192,11 +135,11 @@ func (r *PostgresUserRepository) List(
 		var u AdminUser
 
 		if includeHash {
-			if err := rows.Scan(&u.ID, &u.Email, &u.Plan, &u.CreatedAt, &u.PasswordHash); err != nil {
+			if err := rows.Scan(&u.ID, &u.Email, &u.CreatedAt, &u.PasswordHash); err != nil {
 				return nil, err
 			}
 		} else {
-			if err := rows.Scan(&u.ID, &u.Email, &u.Plan, &u.CreatedAt); err != nil {
+			if err := rows.Scan(&u.ID, &u.Email, &u.CreatedAt); err != nil {
 				return nil, err
 			}
 		}

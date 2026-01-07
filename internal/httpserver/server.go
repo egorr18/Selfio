@@ -13,10 +13,8 @@ import (
 )
 
 func Run() {
-	// --- config ---
 	cfg := config.Load()
 
-	// --- database ---
 	var db *database.Postgres
 	var err error
 
@@ -44,49 +42,41 @@ func Run() {
 	if err != nil {
 		log.Fatal("DB connection failed after retries:", err)
 	}
-
 	defer db.DB.Close()
 
-	// --- repositories ---
+	// repositories
 	userRepo := repository.NewUserRepository(db.DB)
-
-	// ⚠️ admin handler needs PostgresUserRepository
 	pgUserRepo, ok := userRepo.(*repository.PostgresUserRepository)
 	if !ok {
 		log.Fatal("user repository type assertion failed")
 	}
 
-	// --- services ---
+	// services
 	authService := services.NewAuthService(userRepo)
 	jwtService := services.NewJWTService(
 		cfg.JWT.Secret,
 		time.Duration(cfg.JWT.TTLMinutes)*time.Minute,
 	)
 
-	// --- handlers ---
+	// handlers
 	authHandler := handlers.NewAuthHandler(authService, jwtService)
-	meHandler := handlers.NewMeHandler(userRepo) // NEW
+	meHandler := handlers.NewMeHandler(userRepo)
 	adminHandler := handlers.NewAdminHandler(pgUserRepo, cfg.AdminKey)
 
-	// --- router ---
+	// router
 	mux := http.NewServeMux()
 
-	// API routes (UPDATED signature)
 	registerRoutes(mux, authHandler, meHandler, jwtService)
 	mux.HandleFunc("/admin/users", adminHandler.Users)
 
-	// FRONTEND (HTML / CSS / JS)
-	// index.html, /css, /js, /pages
 	fs := http.FileServer(http.Dir("./"))
 	mux.Handle("/", fs)
 
-	// --- middleware ---
 	handler := loggingMiddleware(corsMiddleware(mux))
 
 	addr := ":" + cfg.Port
 	log.Printf("HTTP server running on %s", addr)
 
-	// --- server ---
 	if err := http.ListenAndServe(addr, handler); err != nil {
 		log.Fatal(err)
 	}
