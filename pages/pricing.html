@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <title>Pricing — Selfio</title>
-  <meta name="description" content="Choose the plan that fits your emotional growth journey with Selfio." />
+  <meta name="description" content="Choose the plan that fits your journaling journey with Selfio." />
 
   <link rel="stylesheet" href="../css/reset.css">
   <link rel="stylesheet" href="../css/variables.css">
@@ -49,15 +49,22 @@
       </div>
 
       <span class="toggle-label" data-period="yearly">
-            Yearly <small>(-20%)</small>
-        </span>
+        Yearly <small>(-20%)</small>
+      </span>
     </div>
-
 
     <p>
       Start for free. Upgrade when you’re ready
       to go deeper into self-reflection.
     </p>
+
+    <!-- Back button (pricing.js заповнить href, якщо mode=view або back=...) -->
+    <div style="margin-top:14px;">
+      <a class="btn btn--ghost" data-back href="../index.html" style="
+
+
+display:none;">Back</a>
+    </div>
   </div>
 </section>
 
@@ -66,14 +73,11 @@
 
     <div class="pricing-grid">
 
-      <div class="pricing-card">
+      <!-- додаємо data-pricing-plan -->
+      <div class="pricing-card" data-pricing-plan="free">
         <h3>Free</h3>
 
-        <div class="price"
-             data-monthly="0"
-             data-yearly="0">
-          $0
-        </div>
+        <div class="price" data-monthly="0" data-yearly="0">$0</div>
 
         <ul>
           <li>Weekly planner (1 week)</li>
@@ -82,18 +86,17 @@
           <li>History: 7 days</li>
         </ul>
 
-        <a href="choose-plan.html?pref=free&next=app.html" class="btn btn--primary">Start Free</a>
-
+        <!-- Важливо: тепер лінк веде на pricing через режим -->
+        <a class="btn btn--primary"
+           href="pricing.html?mode=change&pref=free&back=app.html">
+          Choose Free
+        </a>
       </div>
 
-      <div class="pricing-card pricing-card--featured">
+      <div class="pricing-card pricing-card--featured" data-pricing-plan="pro">
         <h3>Pro</h3>
 
-        <div class="price"
-             data-monthly="9"
-             data-yearly="86">
-          $9
-        </div>
+        <div class="price" data-monthly="9" data-yearly="86">$5</div>
 
         <ul>
           <li>Unlimited weeks</li>
@@ -102,18 +105,16 @@
           <li>Templates + streaks</li>
         </ul>
 
-        <a href="choose-plan.html?pref=pro&next=app.html" class="btn btn--primary">Get Pro</a>
-
+        <a class="btn btn--primary"
+           href="pricing.html?mode=change&pref=pro&back=app.html">
+          Choose Pro
+        </a>
       </div>
 
-      <div class="pricing-card">
+      <div class="pricing-card" data-pricing-plan="premium">
         <h3>Premium</h3>
 
-        <div class="price"
-             data-monthly="19"
-             data-yearly="182">
-          $19
-        </div>
+        <div class="price" data-monthly="19" data-yearly="182">$10</div>
 
         <ul>
           <li>Everything in Pro</li>
@@ -122,8 +123,10 @@
           <li>Priority support</li>
         </ul>
 
-        <a href="choose-plan.html?pref=premium&next=app.html" class="btn btn--primary">Get Premium</a>
-
+        <a class="btn btn--primary"
+           href="pricing.html?mode=change&pref=premium&back=app.html">
+          Choose Premium
+        </a>
       </div>
 
     </div>
@@ -146,5 +149,7 @@
 
 <script src="../js/nav.js"></script>
 <script src="../js/main.js"></script>
+<script src="../js/pricing.js" defer></script>
+
 </body>
 </html>
