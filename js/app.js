@@ -1530,39 +1530,48 @@
 
         const email = localStorage.getItem(EMAIL_KEY) || "—";
 
-        // UI: якщо план не вибрано — показуємо "—" (а не FREE)
-        const selected = getPlanSelectedForCurrentUser(); // "" | "free" | "pro" | "premium"
-        const planLabel = (selected || "—").toUpperCase();
+        // Для UI: якщо не вибрано — показуємо "—", а не FREE
+        const selected = getPlanSelectedForCurrentUser(); // "", "free", "pro", "premium"
+        const planLabel = selected ? selected.toUpperCase() : "—";
 
         const emailEl = document.querySelector("[data-email]");
         const planEl = document.querySelector("[data-plan]");
         if (emailEl) emailEl.textContent = email;
         if (planEl) planEl.textContent = planLabel;
 
+        // Прибрати кнопку "Change / Upgrade" на My Plan (якщо вона є в HTML)
+        const changeBtn =
+            document.querySelector("[data-myplan-change]") ||
+            document.querySelector("[data-change-upgrade]") ||
+            document.querySelector("[data-change-plan]");
+        if (changeBtn) changeBtn.style.display = "none";
+
         const perks = document.querySelector("[data-myplan-perks]");
         if (!perks) return;
 
-        // Логіка: тут ок використовувати getPlan() (fallback free для лімітів)
-        const p = getPlan();
+        // Для логіки/лімітів: якщо не вибрано — вважаємо free
+        const p = getPlan(); // "free" | "pro" | "premium"
 
         if (p === "free") {
             perks.innerHTML =
                 `Free includes:<br>` +
                 `• Daily check-in + tasks + habits<br>` +
-                `• No planning ahead<br>` +
-                `• Basic limits`;
+                `• Up to 5 tasks/day<br>` +
+                `• No planning ahead`;
         } else if (p === "pro") {
             perks.innerHTML =
                 `Pro includes:<br>` +
                 `• Week plan (this + next 2 weeks)<br>` +
                 `• Copy goals forward<br>` +
-                `• Push goals to Today`;
+                `• Push goals to Today<br>` +
+                `• Up to 10 tasks/day`;
         } else {
             perks.innerHTML =
                 `Premium includes:<br>` +
                 `• Templates<br>` +
                 `• Plan up to 8 weeks ahead<br>` +
-                `• Month insights + trends`;
+                `• Month insights + trends<br>` +
+                `• Up to 15 tasks/day`;
         }
     }
 
@@ -1573,9 +1582,8 @@
 
         const email = localStorage.getItem(EMAIL_KEY) || "—";
 
-        // UI: якщо не вибрано — "—"
         const selected = getPlanSelectedForCurrentUser();
-        const planLabel = (selected || "—").toUpperCase();
+        const planLabel = selected ? selected.toUpperCase() : "—";
 
         const emailEl = document.querySelector("[data-email]");
         const planEl = document.querySelector("[data-plan]");
@@ -1589,11 +1597,11 @@
         if (p === "free") {
             perks.innerHTML =
                 `Free: daily check-in + habits.<br>` +
-                `PRO: week plan (this + next 2 weeks) + copy + push goals to Today.<br>` +
+                `Pro: week plan (this + next 2 weeks) + copy + push goals to Today.<br>` +
                 `Premium: templates + up to 8 weeks + Month insights.`;
         } else if (p === "pro") {
             perks.innerHTML =
-                `PRO active: plan goals for this week + next 2 weeks.<br>` +
+                `Proactive: plan goals for this week + next 2 weeks.<br>` +
                 `Push goals to Today (plan → tasks).<br>` +
                 `Upgrade to Premium for templates + 8 weeks + Month insights.`;
         } else {
@@ -1602,6 +1610,62 @@
                 `Month insights + trends.<br>` +
                 `Push goals to Today (plan → tasks).`;
         }
+    }
+
+
+    function choosePlanPage() {
+        const page = document.body.getAttribute("data-page");
+        if (page !== "choose-plan") return;
+
+        const params = new URLSearchParams(location.search);
+        const next = params.get("next") || "app.html";
+
+        const backBtn = document.querySelector("[data-plan-back]");
+        const contBtn = document.querySelector("[data-plan-continue]");
+        const cards = Array.from(document.querySelectorAll("[data-plan-option]"));
+
+        let chosen = getPlanSelectedForCurrentUser(); // якщо вже є план — підсвітимо
+
+        function paint() {
+            cards.forEach((c) => {
+                const v = normalizePlan(c.getAttribute("data-plan-option"));
+                c.classList.toggle("is-selected", v && v === chosen);
+            });
+            if (contBtn) contBtn.disabled = !chosen;
+        }
+
+        cards.forEach((c) => {
+            c.addEventListener("click", () => {
+                const v = normalizePlan(c.getAttribute("data-plan-option"));
+                if (!v) return;
+                chosen = v;
+                paint();
+            });
+        });
+
+        if (contBtn) {
+            contBtn.addEventListener("click", () => {
+                if (!chosen) return;
+
+                const email = currentEmail();
+                localStorage.setItem(planKeyForEmail(email), chosen);
+                localStorage.setItem(PLAN_KEY, chosen);
+
+                location.href = next;
+            });
+        }
+
+        if (backBtn) {
+            backBtn.addEventListener("click", () => {
+                if (history.length > 1) return history.back();
+
+                // якщо план ще не вибраний — йдемо на лендинг, щоб не зациклити
+                if (!getPlanSelectedForCurrentUser()) location.href = "../index.html";
+                else location.href = next;
+            });
+        }
+
+        paint();
     }
 
     // ===== Habits page =====
@@ -1719,7 +1783,8 @@
     todayPage();
     weeklyPage();
     habitsPage();
-    settingsPage();
+    choosePlanPage();
     myPlanPage();
+    settingsPage();
 
 })();
