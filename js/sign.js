@@ -15,6 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
         "habits.html",
         "settings.html",
         "choose-plan.html",
+        "my-plan.html",
     ]);
 
     function sanitizeNext(raw) {
@@ -119,7 +120,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // 4) якщо плану нема — йдемо на choose-plan
             if (!savedPlan) {
-                // якщо next вже є choose-plan з pref=..., не обгортай ще раз
                 if (String(next).startsWith("choose-plan.html")) {
                     window.location.href = next;
                 } else {

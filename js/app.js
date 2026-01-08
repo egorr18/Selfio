@@ -385,12 +385,6 @@
                 localStorage.removeItem(EMAIL_KEY);
                 localStorage.removeItem(PLAN_KEY);
 
-                // “забути” вибір плану для цього email (щоб наступний логін знову кидав на choose-plan)
-                localStorage.removeItem(perEmailPlanKey);
-
-                // (опціонально) якщо хочеш також стерти дані Today/Weekly цього юзера:
-                // localStorage.removeItem(`${APP_KEY}:${(email || "anon").replace(/\s+/g, "")}`);
-
                 location.href = "../index.html";
             });
         });
@@ -1530,37 +1524,83 @@
         renderForOffset(0);
     }
 
+    function myPlanPage() {
+        const page = document.body.getAttribute("data-page");
+        if (page !== "my-plan") return;
+
+        const email = localStorage.getItem(EMAIL_KEY) || "—";
+
+        // UI: якщо план не вибрано — показуємо "—" (а не FREE)
+        const selected = getPlanSelectedForCurrentUser(); // "" | "free" | "pro" | "premium"
+        const planLabel = (selected || "—").toUpperCase();
+
+        const emailEl = document.querySelector("[data-email]");
+        const planEl = document.querySelector("[data-plan]");
+        if (emailEl) emailEl.textContent = email;
+        if (planEl) planEl.textContent = planLabel;
+
+        const perks = document.querySelector("[data-myplan-perks]");
+        if (!perks) return;
+
+        // Логіка: тут ок використовувати getPlan() (fallback free для лімітів)
+        const p = getPlan();
+
+        if (p === "free") {
+            perks.innerHTML =
+                `Free includes:<br>` +
+                `• Daily check-in + tasks + habits<br>` +
+                `• No planning ahead<br>` +
+                `• Basic limits`;
+        } else if (p === "pro") {
+            perks.innerHTML =
+                `Pro includes:<br>` +
+                `• Week plan (this + next 2 weeks)<br>` +
+                `• Copy goals forward<br>` +
+                `• Push goals to Today`;
+        } else {
+            perks.innerHTML =
+                `Premium includes:<br>` +
+                `• Templates<br>` +
+                `• Plan up to 8 weeks ahead<br>` +
+                `• Month insights + trends`;
+        }
+    }
+
     // ===== Settings page =====
     function settingsPage() {
         const page = document.body.getAttribute("data-page");
         if (page !== "settings") return;
 
         const email = localStorage.getItem(EMAIL_KEY) || "—";
-        const plan = localStorage.getItem(PLAN_KEY) || "free";
+
+        // UI: якщо не вибрано — "—"
+        const selected = getPlanSelectedForCurrentUser();
+        const planLabel = (selected || "—").toUpperCase();
+
         const emailEl = document.querySelector("[data-email]");
         const planEl = document.querySelector("[data-plan]");
         if (emailEl) emailEl.textContent = email;
-        if (planEl) planEl.textContent = plan.toUpperCase();
+        if (planEl) planEl.textContent = planLabel;
 
         const perks = document.querySelector("[data-plan-perks]");
-        if (perks) {
-            const p = getPlan();
-            if (p === "free") {
-                perks.innerHTML =
-                    `Free: daily check-in + habits.<br>` +
-                    `PRO: week plan (this + next 2 weeks) + copy + push goals to Today.<br>` +
-                    `Premium: templates + up to 8 weeks + Month insights.`;
-            } else if (p === "pro") {
-                perks.innerHTML =
-                    `PRO active: plan goals for this week + next 2 weeks.<br>` +
-                    `Push goals to Today (plan → tasks).<br>` +
-                    `Upgrade to Premium for templates + 8 weeks + Month insights.`;
-            } else {
-                perks.innerHTML =
-                    `Premium active: templates + plan up to 8 weeks ahead.<br>` +
-                    `Month insights + trends.<br>` +
-                    `Push goals to Today (plan → tasks).`;
-            }
+        if (!perks) return;
+
+        const p = getPlan();
+        if (p === "free") {
+            perks.innerHTML =
+                `Free: daily check-in + habits.<br>` +
+                `PRO: week plan (this + next 2 weeks) + copy + push goals to Today.<br>` +
+                `Premium: templates + up to 8 weeks + Month insights.`;
+        } else if (p === "pro") {
+            perks.innerHTML =
+                `PRO active: plan goals for this week + next 2 weeks.<br>` +
+                `Push goals to Today (plan → tasks).<br>` +
+                `Upgrade to Premium for templates + 8 weeks + Month insights.`;
+        } else {
+            perks.innerHTML =
+                `Premium active: templates + plan up to 8 weeks ahead.<br>` +
+                `Month insights + trends.<br>` +
+                `Push goals to Today (plan → tasks).`;
         }
     }
 
@@ -1680,5 +1720,6 @@
     weeklyPage();
     habitsPage();
     settingsPage();
+    myPlanPage();
 
 })();
