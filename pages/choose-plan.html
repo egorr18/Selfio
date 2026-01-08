@@ -74,8 +74,21 @@
 
                 <div class="actions" style="margin-top:16px;">
                     <button class="btn btn--primary" type="button" data-continue disabled>Continue</button>
-                    <a class="btn btn--ghost" href="pricing.html?mode=change&back=choose-plan.html">See pricing</a>
+                    <button class="btn btn--ghost" type="button" data-back>Back</button>
                 </div>
+
+                <div class="mini" data-plan-toast style="display:none; margin-top:10px;"></div>
+
+                <!-- простий "фейк-пеймент" -->
+                <div class="card" data-paywall style="display:none; margin-top:12px;">
+                    <h2 style="margin-bottom:10px;">Payment</h2>
+                    <p class="mini" data-paywall-text style="margin-bottom:12px;">—</p>
+                    <div class="actions">
+                        <button class="btn btn--primary" type="button" data-pay>Pay</button>
+                        <button class="btn btn--secondary" type="button" data-cancel-pay>Cancel</button>
+                    </div>
+                </div>
+
 
                 <div class="mini" data-plan-toast style="display:none; margin-top:10px;"></div>
             </div>

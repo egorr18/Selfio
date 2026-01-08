@@ -160,6 +160,11 @@
     color: #0E2A23;
 }
 
+button.card[disabled]{
+    opacity: .55;
+    cursor: not-allowed;
+}
+
 .week {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
