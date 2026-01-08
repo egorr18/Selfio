@@ -374,6 +374,7 @@
         const el = document.querySelector("[data-app-meta]");
         if (el) el.textContent = `${email} • ${plan}`;
     }
+
     function bindLogout() {
         document.querySelectorAll("[data-logout]").forEach((btn) => {
             if (btn.dataset.bound === "1") return;
@@ -383,17 +384,28 @@
                 e.preventDefault();
                 e.stopPropagation();
 
+                // end session
                 localStorage.removeItem(TOKEN_KEY);
                 localStorage.removeItem(EMAIL_KEY);
                 localStorage.removeItem(PLAN_KEY);
 
-                // важнее replace, чтобы "Back" не возвращал в app
+                // не залишаємо app-page в history
                 location.replace("../index.html");
             });
         });
+
+        // якщо браузер повернув сторінку з BFCache (Back) — перевіряємо auth ще раз
+        if (window.__selfio_pageshow_bound) return;
+        window.__selfio_pageshow_bound = true;
+
+        window.addEventListener("pageshow", () => {
+            if (!localStorage.getItem(TOKEN_KEY)) {
+                const page = document.body.getAttribute("data-page") || "today";
+                const next = encodeURIComponent(pageFileFromDataPage(page));
+                location.replace(`signin.html?next=${next}`);
+            }
+        });
     }
-
-
 
     // ===== state normalize / migration =====
     function initState() {

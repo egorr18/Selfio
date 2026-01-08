@@ -24,12 +24,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // захист від зовнішніх редіректів
         const low = v.toLowerCase();
-        if (low.startsWith("http:") || low.startsWith("https:") || low.startsWith("//") || low.startsWith("javascript:")) {
+        if (
+            low.startsWith("http:") ||
+            low.startsWith("https:") ||
+            low.startsWith("//") ||
+            low.startsWith("javascript:")
+        ) {
             return "app.html";
         }
 
         // якщо раптом прийшло double-encoded
-        try { v = decodeURIComponent(v); } catch {}
+        try {
+            v = decodeURIComponent(v);
+        } catch {}
 
         // перевіряємо базову сторінку (до ? або #)
         const base = v.split(/[?#]/)[0];
@@ -71,6 +78,22 @@ document.addEventListener("DOMContentLoaded", () => {
         return `selfio_plan:${e || "anon"}`;
     };
 
+    // NEW: register -> if 409 then login; in any case try login and return its result
+    async function registerOrLogin(email, password) {
+        const reg = await post("/auth/register", { email, password });
+
+        // якщо register не ok і не 409 — це реальна помилка
+        if (!(reg.ok || reg.status === 409)) {
+            const data = await readBody(reg);
+            return { ok: false, status: reg.status, data, stage: "register" };
+        }
+
+        // 409 або ok -> пробуємо login
+        const login = await post("/auth/login", { email, password });
+        const data = await readBody(login);
+        return { ok: login.ok, status: login.status, data, stage: "login" };
+    }
+
     let submitting = false;
 
     form.addEventListener("submit", async (e) => {
@@ -93,25 +116,28 @@ document.addEventListener("DOMContentLoaded", () => {
             // не тягнемо “поточний” план з минулого акаунта
             localStorage.removeItem(PLAN_KEY);
 
-            // 1) register (ok або 409 якщо вже існує)
-            const reg = await post("/auth/register", { email, password });
+            // use helper
+            const result = await registerOrLogin(email, password);
 
-            if (!(reg.ok || reg.status === 409)) {
-                const data = await readBody(reg);
-                alert(data.error || data.message || `Register failed: ${reg.status}`);
+            if (!result.ok) {
+                // якщо впало на register — покажемо register error
+                // якщо впало на login — покажемо login error
+                const msg =
+                    result.data?.error ||
+                    result.data?.message ||
+                    `${result.stage === "register" ? "Register" : "Login"} failed: ${result.status}`;
+                alert(msg);
                 return;
             }
 
-            // 2) login
-            const login = await post("/auth/login", { email, password });
-            const data = await readBody(login);
-
-            if (!login.ok) {
-                alert(data.error || data.message || `Login failed: ${login.status}`);
+            // IMPORTANT: поле токена. якщо в бекенді інша назва — заміни тут
+            const token = result.data?.token;
+            if (!token) {
+                alert("Login succeeded but token is missing in response");
                 return;
             }
 
-            localStorage.setItem(TOKEN_KEY, data.token); // якщо інше поле — підстав
+            localStorage.setItem(TOKEN_KEY, token);
             localStorage.setItem(EMAIL_KEY, email);
 
             // 3) підтягуємо план саме для ЦЬОГО email
@@ -128,7 +154,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            // 5) інакше — одразу туди, куди просили (включно з choose-plan?pref=premium...)
+            // 5) інакше — одразу туди, куди просили
             window.location.href = next;
         } catch (err) {
             console.error(err);
