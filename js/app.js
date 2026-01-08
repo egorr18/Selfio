@@ -376,19 +376,23 @@
     }
     function bindLogout() {
         document.querySelectorAll("[data-logout]").forEach((btn) => {
-            btn.addEventListener("click", () => {
-                const email = (localStorage.getItem(EMAIL_KEY) || "").trim().toLowerCase();
-                const perEmailPlanKey = `${PLAN_KEY}:${email || "anon"}`;
+            if (btn.dataset.bound === "1") return;
+            btn.dataset.bound = "1";
 
-                // закінчили сесію
+            btn.addEventListener("click", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
                 localStorage.removeItem(TOKEN_KEY);
                 localStorage.removeItem(EMAIL_KEY);
                 localStorage.removeItem(PLAN_KEY);
 
-                location.href = "../index.html";
+                // важнее replace, чтобы "Back" не возвращал в app
+                location.replace("../index.html");
             });
         });
     }
+
 
 
     // ===== state normalize / migration =====
@@ -1526,52 +1530,90 @@
 
     function myPlanPage() {
         const page = document.body.getAttribute("data-page");
-        if (page !== "my-plan") return;
+        if (page !== "my-plan" && page !== "plan") return; // на всякий случай
+
+        // UI элементы на my-plan.html
+        const badgeEl = document.querySelector("[data-plan-badge]");
+        const nameEl = document.querySelector("[data-plan-name]");
+        const priceEl = document.querySelector("[data-plan-price]");
+        const descEl = document.querySelector("[data-plan-desc]");
+        const listEl = document.querySelector("[data-plan-features]");
+
+        // Если вдруг на какой-то версии страницы остались старые элементы
+        const emailElLegacy = document.querySelector("[data-email]");
+        const planElLegacy = document.querySelector("[data-plan]");
+        const perksLegacy = document.querySelector("[data-myplan-perks]");
+
+        // Удаляем/прячем кнопку Change/Upgrade если она осталась в HTML
+        const changeBtn = document.querySelector("[data-change]");
+        if (changeBtn) changeBtn.remove(); // именно удалить, не прятать
 
         const email = localStorage.getItem(EMAIL_KEY) || "—";
 
-        // Для UI: якщо не вибрано — показуємо "—", а не FREE
+        // Для бейджа: показываем выбранный план (а если нет — "—")
         const selected = getPlanSelectedForCurrentUser(); // "", "free", "pro", "premium"
         const planLabel = selected ? selected.toUpperCase() : "—";
 
-        const emailEl = document.querySelector("[data-email]");
-        const planEl = document.querySelector("[data-plan]");
-        if (emailEl) emailEl.textContent = email;
-        if (planEl) planEl.textContent = planLabel;
-
-        // Прибрати кнопку "Change / Upgrade" на My Plan (якщо вона є в HTML)
-        const changeBtn =
-            document.querySelector("[data-myplan-change]") ||
-            document.querySelector("[data-change-upgrade]") ||
-            document.querySelector("[data-change-plan]");
-        if (changeBtn) changeBtn.style.display = "none";
-
-        const perks = document.querySelector("[data-myplan-perks]");
-        if (!perks) return;
-
-        // Для логіки/лімітів: якщо не вибрано — вважаємо free
+        // Для логики/лимитов: если не выбрано — считаем free
         const p = getPlan(); // "free" | "pro" | "premium"
 
-        if (p === "free") {
-            perks.innerHTML =
-                `Free includes:<br>` +
-                `• Daily check-in + tasks + habits<br>` +
-                `• Up to 5 tasks/day<br>` +
-                `• No planning ahead`;
-        } else if (p === "pro") {
-            perks.innerHTML =
-                `Pro includes:<br>` +
-                `• Week plan (this + next 2 weeks)<br>` +
-                `• Copy goals forward<br>` +
-                `• Push goals to Today<br>` +
-                `• Up to 10 tasks/day`;
-        } else {
-            perks.innerHTML =
-                `Premium includes:<br>` +
-                `• Templates<br>` +
-                `• Plan up to 8 weeks ahead<br>` +
-                `• Month insights + trends<br>` +
-                `• Up to 15 tasks/day`;
+        const PLAN_UI = {
+            free: {
+                name: "Free",
+                price: "",
+                desc: "Daily check-in + tasks + habits. Great to start.",
+                features: [
+                    "Up to 5 tasks/day",
+                    "Habits tracking",
+                    "No planning ahead (future days locked)",
+                ],
+            },
+            pro: {
+                name: "Pro",
+                price: "",
+                desc: "Planning ahead + weekly goals. Best for consistency.",
+                features: [
+                    "Week plan (this + next 2 weeks)",
+                    "Copy goals forward",
+                    "Push goals to Today",
+                    "Up to 10 tasks/day",
+                ],
+            },
+            premium: {
+                name: "Premium",
+                price: "",
+                desc: "Templates + deeper insights. Max flexibility.",
+                features: [
+                    "Templates for weekly plans",
+                    "Plan up to 8 weeks ahead",
+                    "Month insights + trends",
+                    "Up to 15 tasks/day",
+                ],
+            },
+        };
+
+        const ui = PLAN_UI[p] || PLAN_UI.free;
+
+        // Заполняем новую страницу my-plan.html
+        if (badgeEl) badgeEl.textContent = planLabel;
+        if (nameEl) nameEl.textContent = ui.name;
+        if (priceEl) priceEl.textContent = ui.price;
+        if (descEl) descEl.textContent = ui.desc;
+
+        if (listEl) {
+            listEl.innerHTML = "";
+            ui.features.forEach((t) => {
+                const li = document.createElement("li");
+                li.textContent = t;
+                listEl.appendChild(li);
+            });
+        }
+
+        // Если где-то используется старый layout — тоже поддержим
+        if (emailElLegacy) emailElLegacy.textContent = email;
+        if (planElLegacy) planElLegacy.textContent = planLabel;
+        if (perksLegacy) {
+            perksLegacy.innerHTML = ui.features.map((x) => `• ${x}`).join("<br>");
         }
     }
 
