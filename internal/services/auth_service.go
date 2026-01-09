@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"backend/internal/models"
 	"backend/internal/repository"
@@ -23,11 +24,8 @@ func NewAuthService(repo repository.UserRepository) *AuthService {
 	return &AuthService{repo: repo}
 }
 
-func (s *AuthService) Register(
-	ctx context.Context,
-	email string,
-	password string,
-) (*models.User, error) {
+func (s *AuthService) Register(ctx context.Context, email string, password string) (*models.User, error) {
+	email = strings.TrimSpace(strings.ToLower(email))
 
 	hash, err := HashPassword(password)
 	if err != nil {
@@ -36,18 +34,18 @@ func (s *AuthService) Register(
 
 	user, err := s.repo.Create(ctx, email, hash)
 	if err != nil {
-		// 👉 у PostgreSQL це буде unique violation
-		return nil, ErrUserAlreadyExists
+		// ВАЖЛИВО: не будь-яку помилку трактувати як "exists"
+		if isUniqueViolation(err) {
+			return nil, ErrUserAlreadyExists
+		}
+		return nil, err
 	}
 
 	return user, nil
 }
 
-func (s *AuthService) Login(
-	ctx context.Context,
-	email string,
-	password string,
-) (*models.User, error) {
+func (s *AuthService) Login(ctx context.Context, email string, password string) (*models.User, error) {
+	email = strings.TrimSpace(strings.ToLower(email))
 
 	user, err := s.repo.GetByEmail(ctx, email)
 	if err != nil {
@@ -73,4 +71,15 @@ func HashPassword(password string) (string, error) {
 
 func CheckPassword(password, hash string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+}
+
+// Без додаткових залежностей: перевіряємо типові ознаки unique violation
+func isUniqueViolation(err error) bool {
+	if err == nil {
+		return false
+	}
+	s := strings.ToLower(err.Error())
+	return strings.Contains(s, "duplicate key") ||
+		strings.Contains(s, "unique constraint") ||
+		strings.Contains(s, "sqlstate 23505")
 }
