@@ -153,17 +153,25 @@ img {
   box-shadow: 0 8px 20px rgba(0,0,0,0.08);
 }
 
-section.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-section.animate {
+/* SECTION REVEAL (safe for layout) */
+section.animate > .container {
+  opacity: 0;
   transform: translateY(30px);
   transition: opacity 0.6s ease, transform 0.6s ease;
 }
 
-section.animate.visible {
+section.animate.visible > .container {
   opacity: 1;
   transform: translateY(0);
 }
+
+/* якщо людина не хоче анімацій */
+@media (prefers-reduced-motion: reduce) {
+  section.animate > .container,
+  section.animate.visible > .container {
+    transition: none;
+    transform: none;
+    opacity: 1;
+  }
+}
+
