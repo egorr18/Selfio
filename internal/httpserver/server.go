@@ -8,6 +8,7 @@ import (
 	"backend/internal/config"
 	"backend/internal/database"
 	"backend/internal/handlers"
+	"backend/internal/middleware"
 	"backend/internal/repository"
 	"backend/internal/services"
 )
@@ -67,7 +68,8 @@ func Run() {
 	mux := http.NewServeMux()
 
 	registerRoutes(mux, authHandler, meHandler, jwtService)
-	mux.HandleFunc("/admin/users", adminHandler.Users)
+	adminLimiter := middleware.RateLimitPerIP(0.2, 2) // ~1 req/5 sec, burst 2 (приклад)
+	mux.Handle("/admin/users", adminLimiter(http.HandlerFunc(adminHandler.Users)))
 
 	fs := http.FileServer(http.Dir("./"))
 	mux.Handle("/", fs)
