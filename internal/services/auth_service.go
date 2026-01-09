@@ -17,16 +17,27 @@ var (
 )
 
 type AuthService struct {
-	repo repository.UserRepository
+	repo repository.UserRepository // НЕ *repository.UserRepository
 }
 
-func NewAuthService(repo repository.UserRepository) *AuthService {
+func NewAuthService(repo repository.UserRepository) *AuthService { // НЕ *repository.UserRepository
 	return &AuthService{repo: repo}
 }
 
-func (s *AuthService) Register(ctx context.Context, email string, password string) (*models.User, error) {
+func (s *AuthService) Register(ctx context.Context, email, password string) (*models.User, error) {
 	email = strings.TrimSpace(strings.ToLower(email))
 
+	// 1) Перевірка чи існує
+	_, err := s.repo.GetByEmail(ctx, email)
+	if err == nil {
+		return nil, ErrUserAlreadyExists
+	}
+	if err != nil && !errors.Is(err, repository.ErrUserNotFound) {
+		// реальна помилка БД (міграції/схема/конект) — НЕ маскуємо
+		return nil, err
+	}
+
+	// 2) Створюємо
 	hash, err := HashPassword(password)
 	if err != nil {
 		return nil, err
@@ -34,17 +45,14 @@ func (s *AuthService) Register(ctx context.Context, email string, password strin
 
 	user, err := s.repo.Create(ctx, email, hash)
 	if err != nil {
-		// ВАЖЛИВО: не будь-яку помилку трактувати як "exists"
-		if isUniqueViolation(err) {
-			return nil, ErrUserAlreadyExists
-		}
+		// тут може бути race-condition (дуже рідко), але хоча б не маскуємо все під 409
 		return nil, err
 	}
 
 	return user, nil
 }
 
-func (s *AuthService) Login(ctx context.Context, email string, password string) (*models.User, error) {
+func (s *AuthService) Login(ctx context.Context, email, password string) (*models.User, error) {
 	email = strings.TrimSpace(strings.ToLower(email))
 
 	user, err := s.repo.GetByEmail(ctx, email)
@@ -62,7 +70,7 @@ func (s *AuthService) Login(ctx context.Context, email string, password string) 
 	return user, nil
 }
 
-// ---- helpers ----
+// helpers
 
 func HashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -71,15 +79,4 @@ func HashPassword(password string) (string, error) {
 
 func CheckPassword(password, hash string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-}
-
-// Без додаткових залежностей: перевіряємо типові ознаки unique violation
-func isUniqueViolation(err error) bool {
-	if err == nil {
-		return false
-	}
-	s := strings.ToLower(err.Error())
-	return strings.Contains(s, "duplicate key") ||
-		strings.Contains(s, "unique constraint") ||
-		strings.Contains(s, "sqlstate 23505")
 }
