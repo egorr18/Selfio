@@ -19,8 +19,8 @@ func registerRoutes(
 	// public
 	mux.HandleFunc("/health", healthHandler)
 
-	loginLimiter := middleware.RateLimitPerIP(1, 5) // ~1 req/sec, burst 5
-	regLimiter := middleware.RateLimitPerIP(0.3, 3) // ~1 req/3 sec, burst 3
+	loginLimiter := middleware.RateLimitPerIP(1, 5, nil)
+	regLimiter := middleware.RateLimitPerIP(0.3, 3, nil)
 
 	mux.Handle("/auth/login", loginLimiter(http.HandlerFunc(authHandler.Login)))
 	mux.Handle("/auth/register", regLimiter(http.HandlerFunc(authHandler.Register)))
