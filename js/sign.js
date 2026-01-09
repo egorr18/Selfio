@@ -47,12 +47,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const next = sanitizeNext(qs.get("next"));
 
-    const isLocal = location.hostname === "localhost" || location.hostname === "127.0.0.1";
-    const isServedByBackend = isLocal && location.port === "8080";
+    const isGitHubPages = location.hostname.endsWith("github.io");
+    const isLocalhost =
+        location.hostname === "localhost" || location.hostname === "127.0.0.1";
 
-    const API_BASE_URL = isServedByBackend
-        ? "" // same-origin (localhost:8080)
-        : (isLocal ? "http://localhost:8080" : "https://selfio-backend.onrender.com");
+    const API_BASE_URL = isGitHubPages
+        ? "https://selfio-backend.onrender.com"
+        : isLocalhost
+            ? "http://localhost:8080"
+            : "https://selfio-backend.onrender.com";
 
     const post = (path, body) =>
         fetch(`${API_BASE_URL}${path}`, {
@@ -78,7 +81,35 @@ document.addEventListener("DOMContentLoaded", () => {
         return `selfio_plan:${e || "anon"}`;
     };
 
-    // NEW: register -> if 409 then login; in any case try login and return its result
+    // --- NEW: ping backend health (wake up Render) + retries ---
+    async function pingBackendOnce() {
+        try {
+            const res = await fetch(`${API_BASE_URL}/health`, {
+                method: "GET",
+                cache: "no-store",
+            });
+            return res.ok;
+        } catch {
+            return false;
+        }
+    }
+
+    async function wait(ms) {
+        return new Promise((r) => setTimeout(r, ms));
+    }
+
+    // 4 attempts: 0s, 1s, 2s, 4s (total ~7s)
+    async function ensureBackendReady() {
+        const delays = [0, 1000, 2000, 4000];
+        for (let i = 0; i < delays.length; i++) {
+            if (delays[i]) await wait(delays[i]);
+            const ok = await pingBackendOnce();
+            if (ok) return true;
+        }
+        return false;
+    }
+
+    // register -> if 409 then login; in any case try login and return its result
     async function registerOrLogin(email, password) {
         const reg = await post("/auth/register", { email, password });
 
@@ -102,7 +133,11 @@ document.addEventListener("DOMContentLoaded", () => {
         submitting = true;
 
         const btn = form.querySelector("button[type='submit']");
-        if (btn) btn.disabled = true;
+        const originalBtnText = btn ? btn.textContent : "";
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = "Connecting...";
+        }
 
         const email = form.querySelector("input[type='email']")?.value.trim() || "";
         const password = form.querySelector("input[type='password']")?.value || "";
@@ -116,16 +151,27 @@ document.addEventListener("DOMContentLoaded", () => {
             // не тягнемо “поточний” план з минулого акаунта
             localStorage.removeItem(PLAN_KEY);
 
+            // NEW: wake up / check backend first
+            const ready = await ensureBackendReady();
+            if (!ready) {
+                alert(
+                    "Server is not reachable right now (it may be waking up). Try again in 10–20 seconds."
+                );
+                return;
+            }
+
+            if (btn) btn.textContent = "Signing in...";
+
             // use helper
             const result = await registerOrLogin(email, password);
 
             if (!result.ok) {
-                // якщо впало на register — покажемо register error
-                // якщо впало на login — покажемо login error
                 const msg =
                     result.data?.error ||
                     result.data?.message ||
-                    `${result.stage === "register" ? "Register" : "Login"} failed: ${result.status}`;
+                    `${
+                        result.stage === "register" ? "Register" : "Login"
+                    } failed: ${result.status}`;
                 alert(msg);
                 return;
             }
@@ -140,11 +186,11 @@ document.addEventListener("DOMContentLoaded", () => {
             localStorage.setItem(TOKEN_KEY, token);
             localStorage.setItem(EMAIL_KEY, email);
 
-            // 3) підтягуємо план саме для ЦЬОГО email
+            // підтягуємо план саме для ЦЬОГО email
             const savedPlan = normalizePlan(localStorage.getItem(planKeyForEmail(email)));
             if (savedPlan) localStorage.setItem(PLAN_KEY, savedPlan);
 
-            // 4) якщо плану нема — йдемо на choose-plan
+            // якщо плану нема — йдемо на choose-plan
             if (!savedPlan) {
                 if (String(next).startsWith("choose-plan.html")) {
                     window.location.href = next;
@@ -154,14 +200,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            // 5) інакше — одразу туди, куди просили
+            // інакше — одразу туди, куди просили
             window.location.href = next;
         } catch (err) {
             console.error(err);
             alert("Backend is not reachable");
         } finally {
             submitting = false;
-            if (btn) btn.disabled = false;
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = originalBtnText || "Continue";
+            }
         }
     });
 });
