@@ -8,7 +8,6 @@ import (
 	"backend/internal/config"
 	"backend/internal/database"
 	"backend/internal/handlers"
-	"backend/internal/middleware"
 	"backend/internal/repository"
 	"backend/internal/services"
 )
@@ -68,12 +67,12 @@ func Run() {
 	mux := http.NewServeMux()
 
 	registerRoutes(mux, authHandler, meHandler, jwtService)
-	adminLimiter := middleware.RateLimitPerIP(0.2, 2) // ~1 req/5 sec, burst 2 (приклад)
-	mux.Handle("/admin/users", adminLimiter(http.HandlerFunc(adminHandler.Users)))
+	mux.HandleFunc("/admin/users", adminHandler.Users)
 
 	fs := http.FileServer(http.Dir("./"))
 	mux.Handle("/", fs)
 
+	// без глобального rate limit
 	handler := loggingMiddleware(corsMiddleware(mux))
 
 	addr := ":" + cfg.Port
