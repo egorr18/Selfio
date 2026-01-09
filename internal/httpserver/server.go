@@ -44,6 +44,12 @@ func Run() {
 	}
 	defer db.DB.Close()
 
+	// RUN MIGRATIONS (тут!)
+	if err := database.RunMigrations(db.DB, "./migrations"); err != nil {
+		log.Fatal("migrations failed:", err)
+	}
+	log.Println("Migrations applied")
+
 	// repositories
 	userRepo := repository.NewUserRepository(db.DB)
 	pgUserRepo, ok := userRepo.(*repository.PostgresUserRepository)
