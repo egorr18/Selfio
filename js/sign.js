@@ -4,9 +4,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const TOKEN_KEY = "selfio_token";
     const EMAIL_KEY = "selfio_email";
-    const PLAN_KEY  = "selfio_plan";
+    const PLAN_KEY = "selfio_plan";
 
     const qs = new URLSearchParams(location.search);
+    const defaultMode = (qs.get("mode") || "login").trim().toLowerCase(); // login | register
 
     const ALLOWED_BASE = new Set([
         "app.html",
@@ -22,18 +23,13 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!v) return "app.html";
 
         const low = v.toLowerCase();
-        if (
-            low.startsWith("http:") ||
-            low.startsWith("https:") ||
-            low.startsWith("//") ||
-            low.startsWith("javascript:")
-        ) return "app.html";
+        if (low.startsWith("http:") || low.startsWith("https:") || low.startsWith("//") || low.startsWith("javascript:")) {
+            return "app.html";
+        }
 
         try { v = decodeURIComponent(v); } catch {}
-
         const base = v.split(/[?#]/)[0];
         if (!ALLOWED_BASE.has(base)) return "app.html";
-
         return v;
     }
 
@@ -46,11 +42,21 @@ document.addEventListener("DOMContentLoaded", () => {
         ? "https://selfio-backend.onrender.com"
         : (isLocalhost ? "http://localhost:8080" : "https://selfio-backend.onrender.com");
 
-    const post = (path, body) =>
+    const post = (path, body, token) =>
         fetch(`${API_BASE_URL}${path}`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+                "Content-Type": "application/json",
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
             body: JSON.stringify(body),
+        });
+
+    const get = (path, token) =>
+        fetch(`${API_BASE_URL}${path}`, {
+            method: "GET",
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+            cache: "no-store",
         });
 
     const readBody = async (res) => {
@@ -60,8 +66,12 @@ document.addEventListener("DOMContentLoaded", () => {
         return text ? { message: text } : {};
     };
 
-    // --- Render wake-up ---
-    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    const normalizePlan = (p) => {
+        p = String(p || "").trim().toLowerCase();
+        return p === "free" || p === "pro" || p === "premium" ? p : "";
+    };
+
+    const planKeyForEmail = (email) => `selfio_plan:${String(email || "anon").trim().toLowerCase()}`;
 
     async function pingBackendOnce() {
         try {
@@ -72,8 +82,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
     async function ensureBackendReady() {
-        const delays = [0, 1000, 2000, 4000]; // ~7s total
+        const delays = [0, 1000, 2000, 4000];
         for (const d of delays) {
             if (d) await wait(d);
             if (await pingBackendOnce()) return true;
@@ -81,18 +93,16 @@ document.addEventListener("DOMContentLoaded", () => {
         return false;
     }
 
-    const normalizePlan = (p) => {
-        p = String(p || "").trim().toLowerCase();
-        return p === "free" || p === "pro" || p === "premium" ? p : "";
-    };
-
-    const planKeyForEmail = (email) => {
-        const e = String(email || "").trim().toLowerCase();
-        return `selfio_plan:${e || "anon"}`;
-    };
-
-    const btnLogin = form.querySelector("[data-auth='login']");
-    const btnRegister = form.querySelector("[data-auth='register']");
+    async function fetchPlanFromServer(token) {
+        try {
+            const res = await get("/me", token);
+            if (!res.ok) return "";
+            const data = await res.json();
+            return normalizePlan(data?.plan);
+        } catch {
+            return "";
+        }
+    }
 
     let submitting = false;
 
@@ -101,15 +111,16 @@ document.addEventListener("DOMContentLoaded", () => {
         if (submitting) return;
         submitting = true;
 
-        // визначаємо, яка кнопка реально сабмітнула форму
-        const submitter = e.submitter || document.activeElement;
-        const mode = submitter?.getAttribute?.("data-auth") === "register" ? "register" : "login";
+        const submitter = e.submitter; // кнопка, яку натиснули
+        const mode = (submitter?.dataset?.auth || defaultMode || "login").toLowerCase(); // login | register
+
+        const btnLogin = form.querySelector("[data-auth='login']");
+        const btnRegister = form.querySelector("[data-auth='register']");
+        if (btnLogin) btnLogin.disabled = true;
+        if (btnRegister) btnRegister.disabled = true;
 
         const email = form.querySelector("input[type='email']")?.value.trim() || "";
         const password = form.querySelector("input[type='password']")?.value || "";
-
-        if (btnLogin) btnLogin.disabled = true;
-        if (btnRegister) btnRegister.disabled = true;
 
         try {
             if (!email || !password) {
@@ -125,21 +136,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            // 1) або login, або register
-            let res = await post(mode === "register" ? "/auth/register" : "/auth/login", { email, password });
-
-            // 2) якщо Register, але акаунт існує — робимо Login (щоб не стопорити юзера)
-            if (mode === "register" && res.status === 409) {
-                res = await post("/auth/login", { email, password });
-            }
-
+            const path = mode === "register" ? "/auth/register" : "/auth/login";
+            const res = await post(path, { email, password });
             const data = await readBody(res);
 
             if (!res.ok) {
-                if (res.status === 401) {
+                if (mode === "register" && res.status === 409) {
+                    alert("Account already exists. Click Sign in.");
+                } else if (mode === "login" && res.status === 401) {
                     alert("Invalid email or password.");
-                } else if (res.status === 409) {
-                    alert("Account already exists. Use Sign in.");
                 } else {
                     alert(data.error || data.message || `${mode} failed: ${res.status}`);
                 }
@@ -155,24 +160,18 @@ document.addEventListener("DOMContentLoaded", () => {
             localStorage.setItem(TOKEN_KEY, token);
             localStorage.setItem(EMAIL_KEY, email);
 
-            // план: якщо бек повернув — добре; якщо ні — беремо localStorage per email
-            const serverPlan = normalizePlan(data?.plan);
-            const perEmailPlan = normalizePlan(localStorage.getItem(planKeyForEmail(email)));
-            const finalPlan = serverPlan || perEmailPlan;
+            // беремо план з сервера (це важливо, щоб не було плутанини)
+            let plan = await fetchPlanFromServer(token);
 
-            if (finalPlan) {
-                localStorage.setItem(PLAN_KEY, finalPlan);
-                localStorage.setItem(planKeyForEmail(email), finalPlan);
+            // fallback: якщо /me не дав план — беремо localStorage per-email
+            if (!plan) plan = normalizePlan(localStorage.getItem(planKeyForEmail(email)));
+
+            if (plan) {
+                localStorage.setItem(PLAN_KEY, plan);
+                localStorage.setItem(planKeyForEmail(email), plan);
             }
 
-            // після реєстрації — одразу на вибір плану (логічно для онбордингу)
-            if (mode === "register") {
-                window.location.href = `choose-plan.html?next=${encodeURIComponent(next)}`;
-                return;
-            }
-
-            // якщо плану нема — теж на choose-plan
-            if (!finalPlan) {
+            if (!plan) {
                 window.location.href = `choose-plan.html?next=${encodeURIComponent(next)}`;
                 return;
             }
