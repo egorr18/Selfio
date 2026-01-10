@@ -4,9 +4,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const TOKEN_KEY = "selfio_token";
     const EMAIL_KEY = "selfio_email";
-    const PLAN_KEY = "selfio_plan";
+    const PLAN_KEY  = "selfio_plan";
 
-    // next: куди йти після логіну
     const qs = new URLSearchParams(location.search);
 
     const ALLOWED_BASE = new Set([
@@ -22,40 +21,30 @@ document.addEventListener("DOMContentLoaded", () => {
         let v = String(raw || "").trim();
         if (!v) return "app.html";
 
-        // захист від зовнішніх редіректів
         const low = v.toLowerCase();
         if (
             low.startsWith("http:") ||
             low.startsWith("https:") ||
             low.startsWith("//") ||
             low.startsWith("javascript:")
-        ) {
-            return "app.html";
-        }
+        ) return "app.html";
 
-        // якщо раптом прийшло double-encoded
-        try {
-            v = decodeURIComponent(v);
-        } catch {}
+        try { v = decodeURIComponent(v); } catch {}
 
-        // перевіряємо базову сторінку (до ? або #)
         const base = v.split(/[?#]/)[0];
         if (!ALLOWED_BASE.has(base)) return "app.html";
 
-        return v; // повертаємо ПОВНИЙ next з query (?pref=...)
+        return v;
     }
 
     const next = sanitizeNext(qs.get("next"));
 
     const isGitHubPages = location.hostname.endsWith("github.io");
-    const isLocalhost =
-        location.hostname === "localhost" || location.hostname === "127.0.0.1";
+    const isLocalhost = location.hostname === "localhost" || location.hostname === "127.0.0.1";
 
     const API_BASE_URL = isGitHubPages
         ? "https://selfio-backend.onrender.com"
-        : isLocalhost
-            ? "http://localhost:8080"
-            : "https://selfio-backend.onrender.com";
+        : (isLocalhost ? "http://localhost:8080" : "https://selfio-backend.onrender.com");
 
     const post = (path, body) =>
         fetch(`${API_BASE_URL}${path}`, {
@@ -71,6 +60,27 @@ document.addEventListener("DOMContentLoaded", () => {
         return text ? { message: text } : {};
     };
 
+    // --- Render wake-up ---
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+    async function pingBackendOnce() {
+        try {
+            const res = await fetch(`${API_BASE_URL}/health`, { method: "GET", cache: "no-store" });
+            return res.ok;
+        } catch {
+            return false;
+        }
+    }
+
+    async function ensureBackendReady() {
+        const delays = [0, 1000, 2000, 4000]; // ~7s total
+        for (const d of delays) {
+            if (d) await wait(d);
+            if (await pingBackendOnce()) return true;
+        }
+        return false;
+    }
+
     const normalizePlan = (p) => {
         p = String(p || "").trim().toLowerCase();
         return p === "free" || p === "pro" || p === "premium" ? p : "";
@@ -81,49 +91,8 @@ document.addEventListener("DOMContentLoaded", () => {
         return `selfio_plan:${e || "anon"}`;
     };
 
-    // --- NEW: ping backend health (wake up Render) + retries ---
-    async function pingBackendOnce() {
-        try {
-            const res = await fetch(`${API_BASE_URL}/health`, {
-                method: "GET",
-                cache: "no-store",
-            });
-            return res.ok;
-        } catch {
-            return false;
-        }
-    }
-
-    async function wait(ms) {
-        return new Promise((r) => setTimeout(r, ms));
-    }
-
-    // 4 attempts: 0s, 1s, 2s, 4s (total ~7s)
-    async function ensureBackendReady() {
-        const delays = [0, 1000, 2000, 4000];
-        for (let i = 0; i < delays.length; i++) {
-            if (delays[i]) await wait(delays[i]);
-            const ok = await pingBackendOnce();
-            if (ok) return true;
-        }
-        return false;
-    }
-
-    // register -> if 409 then login; in any case try login and return its result
-    async function registerOrLogin(email, password) {
-        const reg = await post("/auth/register", { email, password });
-
-        // якщо register не ok і не 409 — це реальна помилка
-        if (!(reg.ok || reg.status === 409)) {
-            const data = await readBody(reg);
-            return { ok: false, status: reg.status, data, stage: "register" };
-        }
-
-        // 409 або ok -> пробуємо login
-        const login = await post("/auth/login", { email, password });
-        const data = await readBody(login);
-        return { ok: login.ok, status: login.status, data, stage: "login" };
-    }
+    const btnLogin = form.querySelector("[data-auth='login']");
+    const btnRegister = form.querySelector("[data-auth='register']");
 
     let submitting = false;
 
@@ -132,15 +101,15 @@ document.addEventListener("DOMContentLoaded", () => {
         if (submitting) return;
         submitting = true;
 
-        const btn = form.querySelector("button[type='submit']");
-        const originalBtnText = btn ? btn.textContent : "";
-        if (btn) {
-            btn.disabled = true;
-            btn.textContent = "Connecting...";
-        }
+        // визначаємо, яка кнопка реально сабмітнула форму
+        const submitter = e.submitter || document.activeElement;
+        const mode = submitter?.getAttribute?.("data-auth") === "register" ? "register" : "login";
 
         const email = form.querySelector("input[type='email']")?.value.trim() || "";
         const password = form.querySelector("input[type='password']")?.value || "";
+
+        if (btnLogin) btnLogin.disabled = true;
+        if (btnRegister) btnRegister.disabled = true;
 
         try {
             if (!email || !password) {
@@ -148,69 +117,74 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            // не тягнемо “поточний” план з минулого акаунта
             localStorage.removeItem(PLAN_KEY);
 
-            // NEW: wake up / check backend first
             const ready = await ensureBackendReady();
             if (!ready) {
-                alert(
-                    "Server is not reachable right now (it may be waking up). Try again in 10–20 seconds."
-                );
+                alert("Server is not reachable right now (it may be waking up). Try again in 10–20 seconds.");
                 return;
             }
 
-            if (btn) btn.textContent = "Signing in...";
+            // 1) або login, або register
+            let res = await post(mode === "register" ? "/auth/register" : "/auth/login", { email, password });
 
-            // use helper
-            const result = await registerOrLogin(email, password);
+            // 2) якщо Register, але акаунт існує — робимо Login (щоб не стопорити юзера)
+            if (mode === "register" && res.status === 409) {
+                res = await post("/auth/login", { email, password });
+            }
 
-            if (!result.ok) {
-                const msg =
-                    result.data?.error ||
-                    result.data?.message ||
-                    `${
-                        result.stage === "register" ? "Register" : "Login"
-                    } failed: ${result.status}`;
-                alert(msg);
+            const data = await readBody(res);
+
+            if (!res.ok) {
+                if (res.status === 401) {
+                    alert("Invalid email or password.");
+                } else if (res.status === 409) {
+                    alert("Account already exists. Use Sign in.");
+                } else {
+                    alert(data.error || data.message || `${mode} failed: ${res.status}`);
+                }
                 return;
             }
 
-            // IMPORTANT: поле токена. якщо в бекенді інша назва — заміни тут
-            const token = result.data?.token;
+            const token = data?.token;
             if (!token) {
-                alert("Login succeeded but token is missing in response");
+                alert("Success, but token is missing in response");
                 return;
             }
 
             localStorage.setItem(TOKEN_KEY, token);
             localStorage.setItem(EMAIL_KEY, email);
 
-            // підтягуємо план саме для ЦЬОГО email
-            const savedPlan = normalizePlan(localStorage.getItem(planKeyForEmail(email)));
-            if (savedPlan) localStorage.setItem(PLAN_KEY, savedPlan);
+            // план: якщо бек повернув — добре; якщо ні — беремо localStorage per email
+            const serverPlan = normalizePlan(data?.plan);
+            const perEmailPlan = normalizePlan(localStorage.getItem(planKeyForEmail(email)));
+            const finalPlan = serverPlan || perEmailPlan;
 
-            // якщо плану нема — йдемо на choose-plan
-            if (!savedPlan) {
-                if (String(next).startsWith("choose-plan.html")) {
-                    window.location.href = next;
-                } else {
-                    window.location.href = `choose-plan.html?next=${encodeURIComponent(next)}`;
-                }
+            if (finalPlan) {
+                localStorage.setItem(PLAN_KEY, finalPlan);
+                localStorage.setItem(planKeyForEmail(email), finalPlan);
+            }
+
+            // після реєстрації — одразу на вибір плану (логічно для онбордингу)
+            if (mode === "register") {
+                window.location.href = `choose-plan.html?next=${encodeURIComponent(next)}`;
                 return;
             }
 
-            // інакше — одразу туди, куди просили
+            // якщо плану нема — теж на choose-plan
+            if (!finalPlan) {
+                window.location.href = `choose-plan.html?next=${encodeURIComponent(next)}`;
+                return;
+            }
+
             window.location.href = next;
         } catch (err) {
             console.error(err);
             alert("Backend is not reachable");
         } finally {
             submitting = false;
-            if (btn) {
-                btn.disabled = false;
-                btn.textContent = originalBtnText || "Continue";
-            }
+            if (btnLogin) btnLogin.disabled = false;
+            if (btnRegister) btnRegister.disabled = false;
         }
     });
 });

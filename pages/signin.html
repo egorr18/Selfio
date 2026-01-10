@@ -39,7 +39,7 @@
     <h1>Welcome back</h1>
 
     <p class="auth__text">
-      Sign in to continue your journaling journey.
+      Sign in or create an account to continue your journaling journey.
     </p>
 
     <form class="auth__form">
@@ -59,10 +59,20 @@
               required
       />
 
-      <button type="submit" class="btn btn--primary">Continue</button>
+      <div class="actions" style="display:flex; gap:12px; margin-top:12px;">
+        <button type="submit" class="btn btn--primary" data-auth="Login">
+          Sign in
+        </button>
+
+        <button type="submit" class="btn btn--secondary" data-auth="Register">
+          Create account
+        </button>
+      </div>
     </form>
 
-    <p class="auth__note">No account yet? Just enter email + password — we’ll create it automatically.</p>
+    <p class="auth__note">
+      New here? Click <b>Create account</b>. Already have an account? Click <b>Sign in</b>.
+    </p>
 
   </div>
 </section>
