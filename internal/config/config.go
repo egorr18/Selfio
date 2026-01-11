@@ -12,6 +12,7 @@ type Config struct {
 	DB       DBConfig
 	JWT      JWTConfig
 	AdminKey string
+	AppEnv   string
 }
 
 type DBConfig struct {

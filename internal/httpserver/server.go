@@ -71,20 +71,46 @@ func Run() {
 
 	// router
 	mux := http.NewServeMux()
-
 	registerRoutes(mux, authHandler, meHandler, jwtService)
 	mux.HandleFunc("/admin/users", adminHandler.Users)
 
 	fs := http.FileServer(http.Dir("./"))
 	mux.Handle("/", fs)
 
-	// без глобального rate limit
-	handler := loggingMiddleware(corsMiddleware(mux))
+	// ---- NEW: strict CORS allowlist ----
+	allowedOrigins := []string{
+		"https://egorr18.github.io",
+		"http://localhost:5500",
+		"http://127.0.0.1:5500",
+	}
+
+	// ---- NEW: rate limits ----
+	rl := RateLimitConfig{
+		GlobalRPS:   10,
+		GlobalBurst: 20,
+		AuthRPS:     2,
+		AuthBurst:   5,
+	}
+
+	// ---- middleware chain ----
+	base := http.Handler(mux)
+
+	// production HTTPS enforce behind proxy (Render)
+	base = enforceHTTPSMiddleware(cfg.AppEnv)(base)
+
+	// rate limit (per IP)
+	base = rateLimitMiddleware(rl)(base)
+
+	// strict CORS
+	base = corsMiddleware(allowedOrigins)(base)
+
+	// logs
+	base = loggingMiddleware(base)
 
 	addr := ":" + cfg.Port
 	log.Printf("HTTP server running on %s", addr)
 
-	if err := http.ListenAndServe(addr, handler); err != nil {
+	if err := http.ListenAndServe(addr, base); err != nil {
 		log.Fatal(err)
 	}
 }

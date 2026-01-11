@@ -4,7 +4,7 @@ import (
 	"net/http"
 )
 
-func corsMiddleware(next http.Handler) http.Handler {
+func CorsMiddleware(next http.Handler) http.Handler {
 	allowedOrigins := map[string]bool{
 		"http://localhost:8080":     true,
 		"http://127.0.0.1:8080":     true,
