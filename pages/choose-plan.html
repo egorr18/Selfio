@@ -39,7 +39,11 @@
                 <h1>Choose your plan</h1>
                 <p>Pick one now — you can change it later in Settings.</p>
             </div>
-            <div class="app__meta">Takes 5 seconds</div>
+
+            <div class="chooseplan__topright">
+                <button class="btn btn--ghost" type="button" data-back>Back</button>
+                <div class="app__meta">Takes 5 seconds</div>
+            </div>
         </div>
 
         <div class="app__grid" style="grid-template-columns: 1fr;">
@@ -72,16 +76,10 @@
                     </button>
                 </div>
 
-                <div class="actions" style="margin-top:16px;">
-                    <button class="btn btn--primary" type="button" data-continue disabled>Continue</button>
-                    <button class="btn btn--ghost" type="button" data-back>Back</button>
-                </div>
-
                 <div class="mini" data-plan-toast style="display:none; margin-top:10px;"></div>
 
-                <!-- простий "фейк-пеймент" -->
                 <div class="card" data-paywall style="display:none; margin-top:12px;">
-                    <h2 style="margin-bottom:10px;">Payment</h2>
+                    <h2 style="margin-bottom:10px;">Pay</h2>
                     <p class="mini" data-paywall-text style="margin-bottom:12px;">—</p>
                     <div class="actions">
                         <button class="btn btn--primary" type="button" data-pay>Pay</button>
@@ -89,13 +87,12 @@
                     </div>
                 </div>
 
-
-                <div class="mini" data-plan-toast style="display:none; margin-top:10px;"></div>
             </div>
         </div>
     </div>
 </section>
-    <script src="../js/app.js" defer></script>
-    <script src="../js/choose-plan.js" defer></script>
+
+<script src="../js/app.js" defer></script>
+<script src="../js/choose-plan.js" defer></script>
 </body>
 </html>
