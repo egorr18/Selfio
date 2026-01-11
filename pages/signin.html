@@ -38,9 +38,15 @@
 
     <h1>Welcome back</h1>
 
-    <p class="auth__text">
+    <p class="auth__text" data-auth-text>
       Sign in or create an account to continue your journaling journey.
     </p>
+
+    <!-- Перемикач режиму (НЕ submit) -->
+    <div class="auth__switch">
+      <button type="button" class="auth__switch-btn" data-mode="login">Sign in</button>
+      <button type="button" class="auth__switch-btn" data-mode="register">Create account</button>
+    </div>
 
     <form class="auth__form">
       <input
@@ -54,24 +60,18 @@
       <input
               type="password"
               name="password"
-              autocomplete="current-password"
               placeholder="Password"
               required
       />
 
-      <div class="actions" style="display:flex; gap:12px; margin-top:12px;">
-        <button type="submit" class="btn btn--primary" data-auth="Login">
-          Sign in
-        </button>
-
-        <button type="submit" class="btn btn--secondary" data-auth="Register">
-          Create account
-        </button>
-      </div>
+      <!-- ОДНА submit кнопка -->
+      <button type="submit" class="btn btn--primary" data-submit>
+        Sign in
+      </button>
     </form>
 
-    <p class="auth__note">
-      New here? Click <b>Create account</b>. Already have an account? Click <b>Sign in</b>.
+    <p class="auth__note" data-auth-note>
+      New here? Select <b>Create account</b>.
     </p>
 
   </div>

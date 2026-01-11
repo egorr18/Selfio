@@ -7,7 +7,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const PLAN_KEY = "selfio_plan";
 
     const qs = new URLSearchParams(location.search);
-    const defaultMode = (qs.get("mode") || "login").trim().toLowerCase(); // login | register
 
     const ALLOWED_BASE = new Set([
         "app.html",
@@ -28,6 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         try { v = decodeURIComponent(v); } catch {}
+
         const base = v.split(/[?#]/)[0];
         if (!ALLOWED_BASE.has(base)) return "app.html";
         return v;
@@ -42,21 +42,11 @@ document.addEventListener("DOMContentLoaded", () => {
         ? "https://selfio-backend.onrender.com"
         : (isLocalhost ? "http://localhost:8080" : "https://selfio-backend.onrender.com");
 
-    const post = (path, body, token) =>
+    const post = (path, body) =>
         fetch(`${API_BASE_URL}${path}`, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(body),
-        });
-
-    const get = (path, token) =>
-        fetch(`${API_BASE_URL}${path}`, {
-            method: "GET",
-            headers: token ? { Authorization: `Bearer ${token}` } : {},
-            cache: "no-store",
         });
 
     const readBody = async (res) => {
@@ -71,39 +61,55 @@ document.addEventListener("DOMContentLoaded", () => {
         return p === "free" || p === "pro" || p === "premium" ? p : "";
     };
 
-    const planKeyForEmail = (email) => `selfio_plan:${String(email || "anon").trim().toLowerCase()}`;
+    const authText = document.querySelector("[data-auth-text]");
+    const authNote = document.querySelector("[data-auth-note]");
+    const submitBtn = document.querySelector("[data-submit]");
+    const modeBtns = Array.from(document.querySelectorAll("[data-mode]"));
 
-    async function pingBackendOnce() {
-        try {
-            const res = await fetch(`${API_BASE_URL}/health`, { method: "GET", cache: "no-store" });
-            return res.ok;
-        } catch {
-            return false;
-        }
+    const emailInput = form.querySelector("input[type='email']");
+    const passInput = form.querySelector("input[type='password']");
+
+    // --- MODE ---
+    function getInitialMode() {
+        const m = (qs.get("mode") || "login").trim().toLowerCase();
+        return m === "register" ? "register" : "login";
     }
 
-    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    let mode = getInitialMode(); // "login" | "register"
 
-    async function ensureBackendReady() {
-        const delays = [0, 1000, 2000, 4000];
-        for (const d of delays) {
-            if (d) await wait(d);
-            if (await pingBackendOnce()) return true;
+    function paintMode() {
+        modeBtns.forEach((b) => {
+            const m = b.getAttribute("data-mode");
+            b.classList.toggle("is-active", m === mode);
+        });
+
+        if (mode === "register") {
+            if (submitBtn) submitBtn.textContent = "Create account";
+            if (authText) authText.textContent = "Create your Selfio account.";
+            if (authNote) authNote.innerHTML = `Already have an account? Select <b>Sign in</b>.`;
+            if (passInput) passInput.autocomplete = "new-password";
+        } else {
+            if (submitBtn) submitBtn.textContent = "Sign in";
+            if (authText) authText.textContent = "Sign in to continue your journaling journey.";
+            if (authNote) authNote.innerHTML = `New here? Select <b>Create account</b>.`;
+            if (passInput) passInput.autocomplete = "current-password";
         }
-        return false;
+
+        // зберігаємо mode в URL, щоб refresh не скидав
+        qs.set("mode", mode);
+        history.replaceState(null, "", `${location.pathname}?${qs.toString()}`);
     }
 
-    async function fetchPlanFromServer(token) {
-        try {
-            const res = await get("/me", token);
-            if (!res.ok) return "";
-            const data = await res.json();
-            return normalizePlan(data?.plan);
-        } catch {
-            return "";
-        }
-    }
+    modeBtns.forEach((b) => {
+        b.addEventListener("click", () => {
+            mode = b.getAttribute("data-mode") === "register" ? "register" : "login";
+            paintMode();
+        });
+    });
 
+    paintMode();
+
+    // --- SUBMIT ---
     let submitting = false;
 
     form.addEventListener("submit", async (e) => {
@@ -111,16 +117,10 @@ document.addEventListener("DOMContentLoaded", () => {
         if (submitting) return;
         submitting = true;
 
-        const submitter = e.submitter; // кнопка, яку натиснули
-        const mode = (submitter?.dataset?.auth || defaultMode || "login").toLowerCase(); // login | register
+        const email = (emailInput?.value || "").trim();
+        const password = passInput?.value || "";
 
-        const btnLogin = form.querySelector("[data-auth='login']");
-        const btnRegister = form.querySelector("[data-auth='register']");
-        if (btnLogin) btnLogin.disabled = true;
-        if (btnRegister) btnRegister.disabled = true;
-
-        const email = form.querySelector("input[type='email']")?.value.trim() || "";
-        const password = form.querySelector("input[type='password']")?.value || "";
+        if (submitBtn) submitBtn.disabled = true;
 
         try {
             if (!email || !password) {
@@ -128,26 +128,29 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
+            // щоб не тягнути старе UI значення
             localStorage.removeItem(PLAN_KEY);
-
-            const ready = await ensureBackendReady();
-            if (!ready) {
-                alert("Server is not reachable right now (it may be waking up). Try again in 10–20 seconds.");
-                return;
-            }
 
             const path = mode === "register" ? "/auth/register" : "/auth/login";
             const res = await post(path, { email, password });
             const data = await readBody(res);
 
             if (!res.ok) {
+                // Ключова логіка: register НЕ логінить автоматично
                 if (mode === "register" && res.status === 409) {
-                    alert("Account already exists. Click Sign in.");
-                } else if (mode === "login" && res.status === 401) {
-                    alert("Invalid email or password.");
-                } else {
-                    alert(data.error || data.message || `${mode} failed: ${res.status}`);
+                    alert("Account already exists. Switch to Sign in.");
+                    // можна автоматично переключити в login (але НЕ логінити)
+                    mode = "login";
+                    paintMode();
+                    return;
                 }
+
+                if (mode === "login" && res.status === 401) {
+                    alert("Invalid email or password.");
+                    return;
+                }
+
+                alert(data?.error || data?.message || `${mode} failed: ${res.status}`);
                 return;
             }
 
@@ -160,30 +163,25 @@ document.addEventListener("DOMContentLoaded", () => {
             localStorage.setItem(TOKEN_KEY, token);
             localStorage.setItem(EMAIL_KEY, email);
 
-            // беремо план з сервера (це важливо, щоб не було плутанини)
-            let plan = await fetchPlanFromServer(token);
+            // якщо бек повертає plan — збережемо для UI
+            const plan = normalizePlan(data?.plan);
+            if (plan) localStorage.setItem(PLAN_KEY, plan);
 
-            // fallback: якщо /me не дав план — беремо localStorage per-email
-            if (!plan) plan = normalizePlan(localStorage.getItem(planKeyForEmail(email)));
-
-            if (plan) {
-                localStorage.setItem(PLAN_KEY, plan);
-                localStorage.setItem(planKeyForEmail(email), plan);
-            }
-
+            // якщо план порожній (у тебе може бути так в майбутньому) → onboarding
             if (!plan) {
-                window.location.href = `choose-plan.html?next=${encodeURIComponent(next)}`;
+                window.location.href = `choose-plan.html?mode=onboarding&next=${encodeURIComponent(next)}`;
                 return;
             }
 
+            // інакше просто вперед
             window.location.href = next;
+
         } catch (err) {
             console.error(err);
             alert("Backend is not reachable");
         } finally {
             submitting = false;
-            if (btnLogin) btnLogin.disabled = false;
-            if (btnRegister) btnRegister.disabled = false;
+            if (submitBtn) submitBtn.disabled = false;
         }
     });
 });
