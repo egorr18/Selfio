@@ -1,88 +1,94 @@
 package httpserver
 
 import (
-	"encoding/json"
+	"log"
 	"net"
 	"net/http"
 	"strings"
 	"sync"
 	"time"
-
-	"golang.org/x/time/rate"
 )
 
-type RateLimitConfig struct {
-	GlobalRPS   float64
-	GlobalBurst int
-	AuthRPS     float64
-	AuthBurst   int
+type rlCounter struct {
+	windowStart time.Time
+	count       int
+	lastSeen    time.Time
 }
 
-type visitor struct {
-	limiter  *rate.Limiter
-	lastSeen time.Time
+type rateLimiter struct {
+	mu          sync.Mutex
+	clients     map[string]*rlCounter
+	lastCleanup time.Time
 }
 
-type rateLimiterStore struct {
-	mu    sync.Mutex
-	store map[string]*visitor
-
-	globalRPS   rate.Limit
-	globalBurst int
-	authRPS     rate.Limit
-	authBurst   int
-}
-
-func newRateLimiterStore(cfg RateLimitConfig) *rateLimiterStore {
-	s := &rateLimiterStore{
-		store:       make(map[string]*visitor),
-		globalRPS:   rate.Limit(cfg.GlobalRPS),
-		globalBurst: cfg.GlobalBurst,
-		authRPS:     rate.Limit(cfg.AuthRPS),
-		authBurst:   cfg.AuthBurst,
+func newRateLimiter() *rateLimiter {
+	return &rateLimiter{
+		clients:     make(map[string]*rlCounter),
+		lastCleanup: time.Now(),
 	}
+}
 
-	// cleanup старих IP (щоб мапа не росла)
-	go func() {
-		ticker := time.NewTicker(2 * time.Minute)
-		defer ticker.Stop()
-		for range ticker.C {
-			s.mu.Lock()
-			for ip, v := range s.store {
-				if time.Since(v.lastSeen) > 10*time.Minute {
-					delete(s.store, ip)
-				}
+// обмеження (можеш підкрутити)
+const (
+	windowGeneral = time.Minute
+	limitGeneral  = 240 // ~4 req/sec в середньому
+
+	windowAuth = time.Minute
+	limitAuth  = 20 // логін/реєстрація — більш жорстко
+
+	cleanupEvery   = 5 * time.Minute
+	forgetClientIn = 15 * time.Minute
+)
+
+func (rl *rateLimiter) allow(key string, window time.Duration, limit int) (allowed bool, retryAfterSec int) {
+	now := time.Now()
+
+	rl.mu.Lock()
+	defer rl.mu.Unlock()
+
+	// cleanup інколи
+	if now.Sub(rl.lastCleanup) > cleanupEvery {
+		for k, v := range rl.clients {
+			if now.Sub(v.lastSeen) > forgetClientIn {
+				delete(rl.clients, k)
 			}
-			s.mu.Unlock()
 		}
-	}()
-
-	return s
-}
-
-func (s *rateLimiterStore) getLimiter(ip string, auth bool) *rate.Limiter {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	v, ok := s.store[ip]
-	if !ok {
-		var lim *rate.Limiter
-		if auth {
-			lim = rate.NewLimiter(s.authRPS, s.authBurst)
-		} else {
-			lim = rate.NewLimiter(s.globalRPS, s.globalBurst)
-		}
-		s.store[ip] = &visitor{limiter: lim, lastSeen: time.Now()}
-		return lim
+		rl.lastCleanup = now
 	}
 
-	v.lastSeen = time.Now()
-	return v.limiter
+	c, ok := rl.clients[key]
+	if !ok {
+		rl.clients[key] = &rlCounter{windowStart: now, count: 1, lastSeen: now}
+		return true, 0
+	}
+
+	c.lastSeen = now
+
+	// нове вікно
+	if now.Sub(c.windowStart) >= window {
+		c.windowStart = now
+		c.count = 1
+		return true, 0
+	}
+
+	// в межах вікна
+	if c.count >= limit {
+		remaining := window - now.Sub(c.windowStart)
+		sec := int(remaining.Seconds())
+		if sec < 1 {
+			sec = 1
+		}
+		return false, sec
+	}
+
+	c.count++
+	return true, 0
 }
 
-func getClientIP(r *http.Request) string {
-	// Render/проксі часто ставить X-Forwarded-For
-	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
+func clientIP(r *http.Request) string {
+	// Render/Proxy часто ставить X-Forwarded-For
+	xff := r.Header.Get("X-Forwarded-For")
+	if xff != "" {
 		parts := strings.Split(xff, ",")
 		if len(parts) > 0 {
 			ip := strings.TrimSpace(parts[0])
@@ -91,6 +97,7 @@ func getClientIP(r *http.Request) string {
 			}
 		}
 	}
+
 	host, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err == nil && host != "" {
 		return host
@@ -98,32 +105,56 @@ func getClientIP(r *http.Request) string {
 	return r.RemoteAddr
 }
 
-func rateLimitMiddleware(cfg RateLimitConfig) func(http.Handler) http.Handler {
-	store := newRateLimiterStore(cfg)
+func isAuthPath(path string) bool {
+	return strings.HasPrefix(path, "/auth/login") || strings.HasPrefix(path, "/auth/register")
+}
 
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// не лімітуємо preflight і health
-			if r.Method == http.MethodOptions || r.URL.Path == "/health" {
-				next.ServeHTTP(w, r)
-				return
-			}
+func RateLimitMiddleware(next http.Handler) http.Handler {
+	rl := newRateLimiter()
 
-			ip := getClientIP(r)
-			isAuth := r.URL.Path == "/auth/login" || r.URL.Path == "/auth/register"
-
-			lim := store.getLimiter(ip, isAuth)
-			if !lim.Allow() {
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(http.StatusTooManyRequests)
-				_ = json.NewEncoder(w).Encode(map[string]any{
-					"error":   "rate_limited",
-					"message": "Too many requests. Please slow down.",
-				})
-				return
-			}
-
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// не лімітуємо preflight і health
+		if r.Method == http.MethodOptions || r.URL.Path == "/health" {
 			next.ServeHTTP(w, r)
-		})
+			return
+		}
+
+		ip := clientIP(r)
+
+		window := windowGeneral
+		limit := limitGeneral
+		if isAuthPath(r.URL.Path) {
+			window = windowAuth
+			limit = limitAuth
+		}
+
+		ok, retryAfter := rl.allow(ip, window, limit)
+		if !ok {
+			w.Header().Set("Retry-After", strconvItoaSafe(retryAfter))
+			w.WriteHeader(http.StatusTooManyRequests)
+			_, _ = w.Write([]byte("rate_limited"))
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+// щоб не тягнути strconv заради 1 функції
+func strconvItoaSafe(n int) string {
+	if n <= 0 {
+		return "1"
 	}
+	// дуже простий itoa
+	buf := make([]byte, 0, 12)
+	for n > 0 {
+		d := n % 10
+		buf = append([]byte{byte('0' + d)}, buf...)
+		n /= 10
+	}
+	return string(buf)
+}
+
+func init() {
+	log.Println("RateLimitMiddleware loaded")
 }

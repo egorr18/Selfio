@@ -5,24 +5,29 @@ import (
 	"strings"
 )
 
-func enforceHTTPSMiddleware(appEnv string) func(http.Handler) http.Handler {
-	env := strings.ToLower(strings.TrimSpace(appEnv))
-
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// Локально не чіпаємо
-			if env != "production" {
-				next.ServeHTTP(w, r)
-				return
-			}
-
-			// На Render TLS термінація на проксі, тому дивимось на X-Forwarded-Proto
-			if proto := strings.ToLower(r.Header.Get("X-Forwarded-Proto")); proto != "" && proto != "https" {
-				http.Error(w, "HTTPS required", http.StatusUpgradeRequired)
-				return
-			}
-
+// Render термінує TLS на edge і прокидує X-Forwarded-Proto=https
+func HTTPSOnlyMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// health хай проходить завжди, щоб не зламати перевірки
+		if r.URL.Path == "/health" {
 			next.ServeHTTP(w, r)
-		})
-	}
+			return
+		}
+
+		// local dev — ok по http
+		if strings.HasPrefix(r.Host, "localhost") || strings.HasPrefix(r.Host, "127.0.0.1") {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		xfp := strings.ToLower(strings.TrimSpace(r.Header.Get("X-Forwarded-Proto")))
+		if xfp == "https" || r.TLS != nil {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		// якщо прийшло без https — редіректимо
+		target := "https://" + r.Host + r.URL.RequestURI()
+		http.Redirect(w, r, target, http.StatusPermanentRedirect)
+	})
 }
