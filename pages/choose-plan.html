@@ -45,32 +45,65 @@
             </div>
         </div>
 
-        <div class="app__grid" style="grid-template-columns: 1fr;">
+        <div class="app__grid chooseplan__grid">
             <div class="card">
-                <h2 style="margin-bottom: 10px;">Plans</h2>
-                <p class="mini" style="margin-bottom: 14px;">
+                <h2 class="chooseplan__heading">Plans</h2>
+                <p class="mini chooseplan__subtitle">
                     Free is great to start. Pro unlocks planning ahead. Premium adds templates + monthly insights.
                 </p>
 
-                <div class="row" style="grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px;">
-                    <button class="card" type="button" data-plan="free" style="text-align:left; cursor:pointer;">
-                        <h3 style="margin-bottom:6px;">Free</h3>
-                        <div class="mini">Daily check-in + tasks + habits</div>
-                        <div class="mini" style="margin-top:8px;">• Up to 5 tasks/day</div>
+                <div class="row chooseplan__plans">
+                    <!-- FREE -->
+                    <button class="card chooseplan__plan" type="button" data-plan="free">
+                        <div class="chooseplan__planTop">
+                            <div class="chooseplan__planInfo">
+                                <h3 class="chooseplan__planTitle">Free</h3>
+                                <div class="mini">Daily check-in + tasks + habits</div>
+                            </div>
+
+                            <div class="chooseplan__price">
+                                <div class="chooseplan__priceValue">$0</div>
+                                <div class="mini chooseplan__priceUnit">/month</div>
+                            </div>
+                        </div>
+
+                        <div class="mini chooseplan__bullet">• Up to 5 tasks/day</div>
                         <div class="mini">• No planning ahead</div>
                     </button>
 
-                    <button class="card" type="button" data-plan="pro" style="text-align:left; cursor:pointer;">
-                        <h3 style="margin-bottom:6px;">Pro</h3>
-                        <div class="mini">Week plan + push goals to Today</div>
-                        <div class="mini" style="margin-top:8px;">• This week + next 2 weeks</div>
+                    <!-- PRO -->
+                    <button class="card chooseplan__plan" type="button" data-plan="pro">
+                        <div class="chooseplan__planTop">
+                            <div class="chooseplan__planInfo">
+                                <h3 class="chooseplan__planTitle">Pro</h3>
+                                <div class="mini">Week plan + push goals to Today</div>
+                            </div>
+
+                            <div class="chooseplan__price">
+                                <div class="chooseplan__priceValue">$4.99</div>
+                                <div class="mini chooseplan__priceUnit">/month</div>
+                            </div>
+                        </div>
+
+                        <div class="mini chooseplan__bullet">• This week + next 2 weeks</div>
                         <div class="mini">• Up to 10 tasks/day</div>
                     </button>
 
-                    <button class="card" type="button" data-plan="premium" style="text-align:left; cursor:pointer;">
-                        <h3 style="margin-bottom:6px;">Premium</h3>
-                        <div class="mini">Templates + month insights</div>
-                        <div class="mini" style="margin-top:8px;">• Up to 8 weeks ahead</div>
+                    <!-- PREMIUM -->
+                    <button class="card chooseplan__plan" type="button" data-plan="premium">
+                        <div class="chooseplan__planTop">
+                            <div class="chooseplan__planInfo">
+                                <h3 class="chooseplan__planTitle">Premium</h3>
+                                <div class="mini">Templates + month insights</div>
+                            </div>
+
+                            <div class="chooseplan__price">
+                                <div class="chooseplan__priceValue">$9.99</div>
+                                <div class="mini chooseplan__priceUnit">/month</div>
+                            </div>
+                        </div>
+
+                        <div class="mini chooseplan__bullet">• Up to 8 weeks ahead</div>
                         <div class="mini">• Up to 15 tasks/day</div>
                     </button>
                 </div>

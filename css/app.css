@@ -494,6 +494,58 @@ button.card[disabled]{
     gap: 10px;
     margin-top: 12px;
 }
+/* --- Choose plan layout --- */
+.chooseplan__grid {
+    grid-template-columns: 1fr;
+}
+
+.chooseplan__heading {
+    margin-bottom: 10px;
+}
+
+.chooseplan__subtitle {
+    margin-bottom: 14px;
+}
+
+.chooseplan__plans {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+/* plan button card */
+.chooseplan__plan {
+    text-align: left;
+    cursor: pointer;
+}
+
+.chooseplan__planTop {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.chooseplan__planTitle {
+    margin-bottom: 6px;
+}
+
+.chooseplan__price {
+    text-align: right;
+}
+
+.chooseplan__priceValue {
+    font-weight: 700;
+    font-size: 18px;
+    line-height: 1.1;
+}
+
+.chooseplan__priceUnit {
+    opacity: 0.85;
+}
+
+.chooseplan__bullet {
+    margin-top: 10px;
+}
 
 .chooseplan__topright{
     display:flex;
@@ -501,6 +553,15 @@ button.card[disabled]{
     justify-content:flex-end;
     gap:12px;
     text-align:right;
+}
+
+@media (max-width: 900px) {
+    .chooseplan__plans {
+        grid-template-columns: 1fr;
+    }
+    .chooseplan__priceValue {
+        font-size: 16px;
+    }
 }
 
 .app__top p { opacity: 0.75; }
