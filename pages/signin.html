@@ -6,6 +6,7 @@
 
   <title>Sign in — Selfio</title>
   <meta name="description" content="Sign in to your Selfio account." />
+
   <script>
     if (location.hostname.endsWith("github.io") && location.protocol !== "https:") {
       location.replace("https://" + location.host + location.pathname + location.search + location.hash);
@@ -44,8 +45,8 @@
 
     <!-- Перемикач режиму (НЕ submit) -->
     <div class="auth__switch">
-      <button type="submit" class="btn btn--primary" data-auth="login">Sign in</button>
-      <button type="submit" class="btn btn--secondary" data-auth="register">Create account</button>
+      <button type="button" class="btn btn--secondary is-active" data-mode="login">Sign in</button>
+      <button type="button" class="btn btn--secondary" data-mode="register">Create account</button>
     </div>
 
     <form class="auth__form">
@@ -60,11 +61,12 @@
       <input
               type="password"
               name="password"
+              autocomplete="current-password"
               placeholder="Password"
               required
       />
 
-      <!-- ОДНА submit кнопка -->
+      <!-- ===ОДНА submit кнопка -->
       <button type="submit" class="btn btn--primary" data-submit>
         Sign in
       </button>

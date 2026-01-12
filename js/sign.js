@@ -4,9 +4,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const TOKEN_KEY = "selfio_token";
     const EMAIL_KEY = "selfio_email";
-    const PLAN_KEY = "selfio_plan";
+    const PLAN_KEY  = "selfio_plan";
 
     const qs = new URLSearchParams(location.search);
+
+    const authText = document.querySelector("[data-auth-text]");
+    const authNote = document.querySelector("[data-auth-note]");
+    const btnModeLogin = document.querySelector("[data-mode='login']");
+    const btnModeReg   = document.querySelector("[data-mode='register']");
+    const submitBtn    = document.querySelector("[data-submit]");
 
     const ALLOWED_BASE = new Set([
         "app.html",
@@ -27,6 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         try { v = decodeURIComponent(v); } catch {}
+
         const base = v.split(/[?#]/)[0];
         if (!ALLOWED_BASE.has(base)) return "app.html";
         return v;
@@ -89,6 +96,43 @@ document.addEventListener("DOMContentLoaded", () => {
         return false;
     }
 
+    // ------------------ MODE SWITCH ------------------
+    const modeParam = (qs.get("mode") || "login").trim().toLowerCase();
+    let authMode = modeParam === "register" ? "register" : "login";
+
+    function setMode(mode) {
+        authMode = mode === "register" ? "register" : "login";
+
+        btnModeLogin?.classList.toggle("is-active", authMode === "login");
+        btnModeReg?.classList.toggle("is-active", authMode === "register");
+
+        if (submitBtn) submitBtn.textContent = authMode === "register" ? "Create account" : "Sign in";
+
+        if (authText) {
+            authText.textContent =
+                authMode === "register"
+                    ? "Create an account to start your journaling journey."
+                    : "Sign in to continue your journaling journey.";
+        }
+
+        if (authNote) {
+            authNote.innerHTML =
+                authMode === "register"
+                    ? 'Already have an account? Select <b>Sign in</b>.'
+                    : 'New here? Select <b>Create account</b>.';
+        }
+
+        // зберігаємо в URL
+        const url = new URL(location.href);
+        url.searchParams.set("mode", authMode);
+        history.replaceState({}, "", url.toString());
+    }
+
+    btnModeLogin?.addEventListener("click", () => setMode("login"));
+    btnModeReg?.addEventListener("click", () => setMode("register"));
+    setMode(authMode);
+
+    // ------------------ SUBMIT ------------------
     let submitting = false;
 
     form.addEventListener("submit", async (e) => {
@@ -96,16 +140,13 @@ document.addEventListener("DOMContentLoaded", () => {
         if (submitting) return;
         submitting = true;
 
-        const submitter = e.submitter; // яка кнопка натиснута
-        const mode = submitter?.dataset?.auth === "register" ? "register" : "login";
-
-        const btnLogin = form.querySelector("[data-auth='login']");
-        const btnRegister = form.querySelector("[data-auth='register']");
-        if (btnLogin) btnLogin.disabled = true;
-        if (btnRegister) btnRegister.disabled = true;
-
         const email = form.querySelector("input[type='email']")?.value.trim() || "";
         const password = form.querySelector("input[type='password']")?.value || "";
+
+        // disable UI
+        submitBtn && (submitBtn.disabled = true);
+        btnModeLogin && (btnModeLogin.disabled = true);
+        btnModeReg && (btnModeReg.disabled = true);
 
         try {
             if (!email || !password) {
@@ -113,7 +154,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            // чистимо UI-план (щоб не тягнути з іншого акаунта)
+            // не тягнемо plan з іншого акаунта
             localStorage.removeItem(PLAN_KEY);
 
             const ready = await ensureBackendReady();
@@ -122,30 +163,40 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            if (mode === "login") {
-                // ✅ ТІЛЬКИ LOGIN
+            if (authMode === "login") {
+                // ТІЛЬКИ LOGIN
                 const res = await post("/auth/login", { email, password });
                 const data = await readBody(res);
 
                 if (!res.ok) {
-                    // якщо ти зробиш бекенд-фікс (404 user_not_found) — буде ідеально
+                    // Ідеальний кейс (коли бекенд повертає 404 user_not_found)
                     if (res.status === 404 && data?.error === "user_not_found") {
-                        alert("You don’t have an account yet. Click “Create account”.");
-                    } else if (res.status === 401) {
-                        alert("Invalid email or password. If you don’t have an account yet, click “Create account”.");
-                    } else {
-                        alert(data.error || data.message || `Login failed: ${res.status}`);
+                        alert(`You don't have an account yet. Click "Create account".`);
+                        // можна автоматично переключити:
+                        setMode("register");
+                        return;
                     }
+
+                    // якщо бекенд ще не оновлений і повертає тільки 401
+                    if (res.status === 401) {
+                        alert(`Invalid email or password. If you don't have an account yet, click "Create account".`);
+                        return;
+                    }
+
+                    alert(data?.error || data?.message || `Login failed: ${res.status}`);
                     return;
                 }
 
                 const token = data?.token;
-                if (!token) { alert("Login ok, but token missing"); return; }
+                if (!token) {
+                    alert("Login ok, but token missing");
+                    return;
+                }
 
                 localStorage.setItem(TOKEN_KEY, token);
                 localStorage.setItem(EMAIL_KEY, email);
 
-                // підтягнемо план з /me якщо є
+                // підтягнемо plan з /me якщо є
                 try {
                     const meRes = await get("/me", token);
                     if (meRes.ok) {
@@ -158,7 +209,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 } catch {}
 
-                // якщо плану нема (або ще не вибирали) — choose-plan
                 const savedPlan = normalizePlan(localStorage.getItem(planKeyForEmail(email)));
                 if (!savedPlan) {
                     window.location.href = `choose-plan.html?next=${encodeURIComponent(next)}`;
@@ -169,17 +219,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            // mode === "register"
-            // ✅ ТІЛЬКИ REGISTER
+            // ТІЛЬКИ REGISTER
             const reg = await post("/auth/register", { email, password });
             const regData = await readBody(reg);
 
             if (!reg.ok) {
                 if (reg.status === 409) {
-                    alert("This account already exists. Click “Sign in”.");
-                } else {
-                    alert(regData.error || regData.message || `Register failed: ${reg.status}`);
+                    alert('This account already exists. Click "Sign in".');
+                    setMode("login");
+                    return;
                 }
+                alert(regData?.error || regData?.message || `Register failed: ${reg.status}`);
                 return;
             }
 
@@ -189,7 +239,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 const login = await post("/auth/login", { email, password });
                 const loginData = await readBody(login);
                 if (!login.ok || !loginData?.token) {
-                    alert("Registered, but can’t login automatically. Try Sign in.");
+                    alert("Registered, but can't login automatically. Try Sign in.");
+                    setMode("login");
                     return;
                 }
                 token = loginData.token;
@@ -198,15 +249,16 @@ document.addEventListener("DOMContentLoaded", () => {
             localStorage.setItem(TOKEN_KEY, token);
             localStorage.setItem(EMAIL_KEY, email);
 
-            // після реєстрації — завжди на choose-plan
+            // після реєстрації — завжди choose-plan
             window.location.href = `choose-plan.html?next=${encodeURIComponent(next)}`;
         } catch (err) {
             console.error(err);
             alert("Backend is not reachable");
         } finally {
             submitting = false;
-            if (btnLogin) btnLogin.disabled = false;
-            if (btnRegister) btnRegister.disabled = false;
+            submitBtn && (submitBtn.disabled = false);
+            btnModeLogin && (btnModeLogin.disabled = false);
+            btnModeReg && (btnModeReg.disabled = false);
         }
     });
 });
