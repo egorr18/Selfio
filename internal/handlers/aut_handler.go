@@ -95,13 +95,29 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.authService.Login(r.Context(), req.Email, req.Password)
 	if err != nil {
-		if errors.Is(err, services.ErrInvalidCredentials) {
-			writeJSON(w, http.StatusUnauthorized, apiError{Error: "invalid_credentials", Message: "invalid email or password"})
+		switch {
+		case errors.Is(err, services.ErrUserNotFound):
+			writeJSON(w, http.StatusNotFound, apiError{
+				Error:   "user_not_found",
+				Message: "user not found",
+			})
+			return
+
+		case errors.Is(err, services.ErrInvalidCredentials):
+			writeJSON(w, http.StatusUnauthorized, apiError{
+				Error:   "invalid_credentials",
+				Message: "invalid email or password",
+			})
+			return
+
+		default:
+			log.Printf("[auth/login] error: %v", err)
+			writeJSON(w, http.StatusInternalServerError, apiError{
+				Error:   "internal_error",
+				Message: "something went wrong",
+			})
 			return
 		}
-		log.Printf("[auth/login] error: %v", err)
-		writeJSON(w, http.StatusInternalServerError, apiError{Error: "internal_error"})
-		return
 	}
 
 	token, err := h.jwtService.Generate(user.ID)

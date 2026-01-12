@@ -12,8 +12,9 @@ import (
 )
 
 var (
-	ErrInvalidCredentials = errors.New("invalid credentials")
-	ErrUserAlreadyExists  = errors.New("user already exists")
+	ErrUserNotFound       = errors.New("user_not_found")
+	ErrInvalidCredentials = errors.New("invalid_credentials")
+	ErrUserAlreadyExists  = errors.New("user_already_exists")
 )
 
 type AuthService struct {
@@ -58,7 +59,7 @@ func (s *AuthService) Login(ctx context.Context, email, password string) (*model
 	user, err := s.repo.GetByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, repository.ErrUserNotFound) {
-			return nil, ErrInvalidCredentials
+			return nil, ErrUserNotFound
 		}
 		return nil, err
 	}
