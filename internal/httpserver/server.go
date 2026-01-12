@@ -1,13 +1,18 @@
 package httpserver
 
 import (
+	"context"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"backend/internal/config"
 	"backend/internal/database"
 	"backend/internal/handlers"
+	mw "backend/internal/middleware"
 	"backend/internal/repository"
 	"backend/internal/services"
 )
@@ -42,7 +47,6 @@ func Run() {
 	if err != nil {
 		log.Fatal("DB connection failed after retries:", err)
 	}
-	defer db.DB.Close()
 
 	// --- Run migrations ---
 	if err := database.RunMigrations(db.DB, "./migrations"); err != nil {
@@ -79,18 +83,47 @@ func Run() {
 	mux.Handle("/", fs)
 
 	// --- Middleware chain ---
-	handler := loggingMiddleware(
-		CorsMiddleware(
-			HTTPSOnlyMiddleware(
-				RateLimitMiddleware(mux),
+	handler := mw.RequestID(
+		loggingMiddleware(
+			CorsMiddleware(
+				HTTPSOnlyMiddleware(
+					RateLimitMiddleware(mux),
+				),
 			),
 		),
 	)
 
 	addr := ":" + cfg.Port
+	srv := &http.Server{
+		Addr:              addr,
+		Handler:           handler,
+		ReadHeaderTimeout: 10 * time.Second,
+		ReadTimeout:       30 * time.Second,
+		WriteTimeout:      30 * time.Second,
+		IdleTimeout:       60 * time.Second,
+	}
+
 	log.Printf("HTTP server running on %s", addr)
 
-	if err := http.ListenAndServe(addr, handler); err != nil {
-		log.Fatal(err)
-	}
+	// стартуємо сервер в окремій горутині
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatal(err)
+		}
+	}()
+
+	// graceful shutdown (Render теж шле SIGTERM)
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+	<-quit
+
+	log.Println("Shutting down...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	_ = srv.Shutdown(ctx)
+	_ = db.DB.Close()
+
+	log.Println("Server stopped")
 }
