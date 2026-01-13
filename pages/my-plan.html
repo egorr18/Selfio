@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Your plan — Selfio</title>
-  <meta name="description" content="Your current plan details." />
+  <title>My plan — Selfio</title>
 
   <link rel="stylesheet" href="../css/reset.css">
   <link rel="stylesheet" href="../css/variables.css">
@@ -34,34 +33,33 @@
 
 <section class="app">
   <div class="container">
+
     <div class="app__top">
       <div class="app__title">
         <h1>Your plan</h1>
-        <p class="mini">This page shows only the plan you’re currently using.</p>
+        <p>This page shows only the plan you’re currently using.</p>
       </div>
-      <div class="app__meta" data-plan-badge>—</div>
+
+      <div class="chooseplan__topright">
+        <button class="btn btn--ghost" type="button" data-back>Back</button>
+      </div>
     </div>
 
-    <div class="card">
-      <h2 style="margin-bottom:6px;">
-        <span data-plan-name>—</span>
-        <span class="mini" style="margin-left:8px;" data-plan-price></span>
-      </h2>
+    <div class="app__grid" style="grid-template-columns: 1fr;">
+      <div class="card">
+        <h2>Account</h2>
 
-      <div class="mini" style="margin-bottom:12px;" data-plan-desc>—</div>
+        <div class="mini">Email: <b data-my-email>—</b></div>
+        <div class="mini" style="margin-top:6px;">Plan: <b data-my-plan>—</b></div>
 
-      <ul data-plan-features style="margin: 0; padding-left: 18px;">
-        <!-- filled by JS -->
-      </ul>
-
-      <div class="actions" style="margin-top:14px;">
-        <a class="btn btn--ghost" data-back href="settings.html">Back</a>
+        <div class="mini" data-myplan-status style="display:none; margin-top:10px;"></div>
       </div>
-
     </div>
 
   </div>
 </section>
-<script src="../js/api.js" defer></script>
+
+<script src="../js/app.js" defer></script>
+<script src="../js/my-plan.js" defer></script>
 </body>
 </html>

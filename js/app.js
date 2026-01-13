@@ -1540,95 +1540,6 @@
         renderForOffset(0);
     }
 
-    function myPlanPage() {
-        const page = document.body.getAttribute("data-page");
-        if (page !== "my-plan" && page !== "plan") return; // на всякий случай
-
-        // UI элементы на my-plan.html
-        const badgeEl = document.querySelector("[data-plan-badge]");
-        const nameEl = document.querySelector("[data-plan-name]");
-        const priceEl = document.querySelector("[data-plan-price]");
-        const descEl = document.querySelector("[data-plan-desc]");
-        const listEl = document.querySelector("[data-plan-features]");
-
-        // Если вдруг на какой-то версии страницы остались старые элементы
-        const emailElLegacy = document.querySelector("[data-email]");
-        const planElLegacy = document.querySelector("[data-plan]");
-        const perksLegacy = document.querySelector("[data-myplan-perks]");
-
-        // Удаляем/прячем кнопку Change/Upgrade если она осталась в HTML
-        const changeBtn = document.querySelector("[data-change]");
-        if (changeBtn) changeBtn.remove(); // именно удалить, не прятать
-
-        const email = localStorage.getItem(EMAIL_KEY) || "—";
-
-        // Для бейджа: показываем выбранный план (а если нет — "—")
-        const selected = getPlanSelectedForCurrentUser(); // "", "free", "pro", "premium"
-        const planLabel = selected ? selected.toUpperCase() : "—";
-
-        // Для логики/лимитов: если не выбрано — считаем free
-        const p = getPlan(); // "free" | "pro" | "premium"
-
-        const PLAN_UI = {
-            free: {
-                name: "Free",
-                price: "",
-                desc: "Daily check-in + tasks + habits. Great to start.",
-                features: [
-                    "Up to 5 tasks/day",
-                    "Habits tracking",
-                    "No planning ahead (future days locked)",
-                ],
-            },
-            pro: {
-                name: "Pro",
-                price: "",
-                desc: "Planning ahead + weekly goals. Best for consistency.",
-                features: [
-                    "Week plan (this + next 2 weeks)",
-                    "Copy goals forward",
-                    "Push goals to Today",
-                    "Up to 10 tasks/day",
-                ],
-            },
-            premium: {
-                name: "Premium",
-                price: "",
-                desc: "Templates + deeper insights. Max flexibility.",
-                features: [
-                    "Templates for weekly plans",
-                    "Plan up to 8 weeks ahead",
-                    "Month insights + trends",
-                    "Up to 15 tasks/day",
-                ],
-            },
-        };
-
-        const ui = PLAN_UI[p] || PLAN_UI.free;
-
-        // Заполняем новую страницу my-plan.html
-        if (badgeEl) badgeEl.textContent = planLabel;
-        if (nameEl) nameEl.textContent = ui.name;
-        if (priceEl) priceEl.textContent = ui.price;
-        if (descEl) descEl.textContent = ui.desc;
-
-        if (listEl) {
-            listEl.innerHTML = "";
-            ui.features.forEach((t) => {
-                const li = document.createElement("li");
-                li.textContent = t;
-                listEl.appendChild(li);
-            });
-        }
-
-        // Если где-то используется старый layout — тоже поддержим
-        if (emailElLegacy) emailElLegacy.textContent = email;
-        if (planElLegacy) planElLegacy.textContent = planLabel;
-        if (perksLegacy) {
-            perksLegacy.innerHTML = ui.features.map((x) => `• ${x}`).join("<br>");
-        }
-    }
-
     // ===== Settings page =====
     function settingsPage() {
         const page = document.body.getAttribute("data-page");
@@ -1664,62 +1575,6 @@
                 `Month insights + trends.<br>` +
                 `Push goals to Today (plan → tasks).`;
         }
-    }
-
-
-    function choosePlanPage() {
-        const page = document.body.getAttribute("data-page");
-        if (page !== "choose-plan") return;
-
-        const params = new URLSearchParams(location.search);
-        const next = params.get("next") || "app.html";
-
-        const backBtn = document.querySelector("[data-plan-back]");
-        const contBtn = document.querySelector("[data-plan-continue]");
-        const cards = Array.from(document.querySelectorAll("[data-plan-option]"));
-
-        let chosen = getPlanSelectedForCurrentUser(); // якщо вже є план — підсвітимо
-
-        function paint() {
-            cards.forEach((c) => {
-                const v = normalizePlan(c.getAttribute("data-plan-option"));
-                c.classList.toggle("is-selected", v && v === chosen);
-            });
-            if (contBtn) contBtn.disabled = !chosen;
-        }
-
-        cards.forEach((c) => {
-            c.addEventListener("click", () => {
-                const v = normalizePlan(c.getAttribute("data-plan-option"));
-                if (!v) return;
-                chosen = v;
-                paint();
-            });
-        });
-
-        if (contBtn) {
-            contBtn.addEventListener("click", () => {
-                if (!chosen) return;
-
-                const email = currentEmail();
-                localStorage.setItem(planKeyForEmail(email), chosen);
-                localStorage.setItem(PLAN_KEY, chosen);
-
-                location.href = next;
-            });
-        }
-
-        if (backBtn) {
-            backBtn.addEventListener("click", () => {
-                if (history.length > 1) return history.back();
-
-                // якщо план ще не вибраний — йдемо на лендинг, щоб не зациклити
-                if (!getPlanSelectedForCurrentUser()) location.href = "../index.html";
-                else location.href = next;
-            });
-        }
-
-        paint();
     }
 
     // ===== Habits page =====
@@ -1837,8 +1692,6 @@
     todayPage();
     weeklyPage();
     habitsPage();
-    choosePlanPage();
-    myPlanPage();
     settingsPage();
 
 })();
