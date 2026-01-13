@@ -621,4 +621,55 @@ button.card[disabled]{
     }
 }
 
+/* ===== My plan card ===== */
+.myplan__grid{
+    max-width: 980px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 18px;
+}
+
+.myplan__card{
+    padding: 22px;
+}
+
+.myplan__badge{
+    display: inline-flex;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(0,0,0,.10);
+    font-size: 12px;
+    font-weight: 800;
+    margin-bottom: 12px;
+}
+
+.myplan__name{
+    margin: 0 0 8px;
+}
+
+.myplan__price{
+    font-size: 40px;
+    font-weight: 800;
+    margin: 4px 0 12px;
+}
+
+.myplan__desc{
+    margin: 0 0 14px;
+    opacity: .75;
+}
+
+.myplan__features{
+    margin: 0;
+    padding-left: 18px;
+    display: grid;
+    gap: 10px;
+    opacity: .85;
+}
+
+@media (max-width: 640px){
+    .myplan__price{ font-size: 32px; }
+}
+
+
 

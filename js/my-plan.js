@@ -1,93 +1,180 @@
-document.addEventListener("DOMContentLoaded", async () => {
+(() => {
     const TOKEN_KEY = "selfio_token";
     const EMAIL_KEY = "selfio_email";
     const PLAN_KEY = "selfio_plan";
 
-    const emailEl = document.querySelector("[data-my-email]");
-    const planEl = document.querySelector("[data-my-plan]");
-    const statusEl = document.querySelector("[data-myplan-status]");
-    const backBtn = document.querySelector("[data-back]");
+    const VALID_PLANS = new Set(["free", "pro", "premium"]);
 
-    const token = localStorage.getItem(TOKEN_KEY);
-
-    // якщо відкрили без логіну
-    if (!token) {
-        location.href = `signin.html?next=${encodeURIComponent("my-plan.html")}`;
-        return;
+    function norm(s) { return String(s || "").trim(); }
+    function normLower(s) { return norm(s).toLowerCase(); }
+    function normalizePlan(p) {
+        const v = normLower(p);
+        return VALID_PLANS.has(v) ? v : "";
     }
 
-    if (backBtn) {
-        backBtn.addEventListener("click", () => {
+    function currentEmail() {
+        return normLower(localStorage.getItem(EMAIL_KEY));
+    }
+
+    function planKeyForEmail(email) {
+        return `${PLAN_KEY}:${email || "anon"}`;
+    }
+
+    // 1) джерело правди — план, прив’язаний до email
+    function getPlanSelectedForCurrentUser() {
+        const email = currentEmail();
+        const perUser = normalizePlan(localStorage.getItem(planKeyForEmail(email)));
+        if (perUser) {
+            localStorage.setItem(PLAN_KEY, perUser); // синк для хедера
+            return perUser;
+        }
+        return "";
+    }
+
+    // для UI/логіки: якщо не вибрано — вважаємо free
+    function getPlan() {
+        return getPlanSelectedForCurrentUser() || "free";
+    }
+
+    function requireAuth() {
+        const token = localStorage.getItem(TOKEN_KEY);
+        if (!token) {
+            location.replace(`signin.html?next=${encodeURIComponent("my-plan.html")}`);
+            return false;
+        }
+        return true;
+    }
+
+    function requirePlanSelected() {
+        const selected = getPlanSelectedForCurrentUser();
+        if (!selected) {
+            location.replace(`choose-plan.html?next=${encodeURIComponent("my-plan.html")}`);
+            return false;
+        }
+        return true;
+    }
+
+    function setHeaderMeta() {
+        const email = localStorage.getItem(EMAIL_KEY) || "—";
+        const plan = (getPlanSelectedForCurrentUser() || "—").toUpperCase();
+        const el = document.querySelector("[data-app-meta]");
+        if (el) el.textContent = `${email} • ${plan}`;
+    }
+
+    function bindLogout() {
+        document.querySelectorAll("[data-logout]").forEach((btn) => {
+            if (btn.dataset.bound === "1") return;
+            btn.dataset.bound = "1";
+
+            btn.addEventListener("click", (e) => {
+                e.preventDefault();
+                localStorage.removeItem(TOKEN_KEY);
+                localStorage.removeItem(EMAIL_KEY);
+                localStorage.removeItem(PLAN_KEY);
+                location.replace("../index.html");
+            });
+        });
+    }
+
+    function bindBack() {
+        const btn = document.querySelector("[data-back]");
+        if (!btn || btn.dataset.bound === "1") return;
+        btn.dataset.bound = "1";
+
+        btn.addEventListener("click", () => {
             if (history.length > 1) history.back();
-            else location.href = "settings.html";
+            else location.href = "app.html";
         });
     }
 
-    const isGitHubPages = location.hostname.endsWith("github.io");
-    const isLocalhost = location.hostname === "localhost" || location.hostname === "127.0.0.1";
+    function renderAccount() {
+        const email = localStorage.getItem(EMAIL_KEY) || "—";
+        const selected = getPlanSelectedForCurrentUser();
+        const planLabel = selected ? selected.toUpperCase() : "—";
 
-    const API_BASE_URL = isGitHubPages
-        ? "https://selfio-backend.onrender.com"
-        : (isLocalhost ? "http://localhost:8080" : "https://selfio-backend.onrender.com");
-
-    const normalizePlan = (p) => {
-        p = String(p || "").trim().toLowerCase();
-        return p === "free" || p === "pro" || p === "premium" ? p : "";
-    };
-
-    const planKeyForEmail = (email) => `selfio_plan:${String(email || "").trim().toLowerCase() || "anon"}`;
-
-    function showStatus(msg, type = "info") {
-        if (!statusEl) return;
-        statusEl.textContent = msg;
-        statusEl.style.display = "";
-        statusEl.style.opacity = "0.85";
-        if (type === "error") statusEl.style.color = "rgb(160, 40, 40)";
-        else statusEl.style.color = "";
+        const emailEl = document.querySelector("[data-my-email]");
+        const planEl = document.querySelector("[data-my-plan]");
+        if (emailEl) emailEl.textContent = email;
+        if (planEl) planEl.textContent = planLabel;
     }
 
-    try {
-        showStatus("Loading…");
+    function renderPlanCard() {
+        const p = getPlan(); // free|pro|premium
 
-        const res = await fetch(`${API_BASE_URL}/me`, {
-            method: "GET",
-            headers: { Authorization: `Bearer ${token}` },
-            cache: "no-store",
-        });
+        // ✅ Можеш 1-в-1 зробити як у pricing
+        const PLAN_UI = {
+            free: {
+                badge: "FREE",
+                name: "Free",
+                price: "$0",
+                desc: "Good to start and build the habit.",
+                features: [
+                    "Weekly planner (1 week)",
+                    "Up to 3 habits",
+                    "Up to 10 tasks / week",
+                    "History: 7 days",
+                ],
+            },
+            pro: {
+                badge: "PRO",
+                name: "Pro",
+                price: "$5",
+                desc: "For consistency and planning ahead.",
+                features: [
+                    "Unlimited weeks",
+                    "History: 90 days",
+                    "Up to 15 habits",
+                    "Templates + streaks",
+                ],
+            },
+            premium: {
+                badge: "PREMIUM",
+                name: "Premium",
+                price: "$10",
+                desc: "All features + deeper insights.",
+                features: [
+                    "Everything in Pro",
+                    "Insights (patterns & progress)",
+                    "Export (PDF/CSV)",
+                    "Priority support",
+                ],
+            },
+        };
 
-        if (res.status === 401) {
-            // токен протух / невалідний
-            localStorage.removeItem(TOKEN_KEY);
-            localStorage.removeItem(EMAIL_KEY);
-            localStorage.removeItem(PLAN_KEY);
-            location.href = `signin.html?next=${encodeURIComponent("my-plan.html")}`;
-            return;
+        const ui = PLAN_UI[p] || PLAN_UI.free;
+
+        const badgeEl = document.querySelector("[data-plan-badge]");
+        const nameEl = document.querySelector("[data-plan-name]");
+        const priceEl = document.querySelector("[data-plan-price]");
+        const descEl = document.querySelector("[data-plan-desc]");
+        const listEl = document.querySelector("[data-plan-features]");
+
+        if (badgeEl) badgeEl.textContent = ui.badge;
+        if (nameEl) nameEl.textContent = ui.name;
+        if (priceEl) priceEl.textContent = ui.price;
+        if (descEl) descEl.textContent = ui.desc;
+
+        if (listEl) {
+            listEl.innerHTML = "";
+            ui.features.forEach((t) => {
+                const li = document.createElement("li");
+                li.textContent = t;
+                listEl.appendChild(li);
+            });
         }
-
-        if (!res.ok) {
-            const text = await res.text().catch(() => "");
-            showStatus(`Failed to load /me (${res.status}) ${text}`, "error");
-            return;
-        }
-
-        const me = await res.json();
-        const email = String(me?.email || "").trim().toLowerCase();
-        const plan = normalizePlan(me?.plan);
-
-        if (emailEl) emailEl.textContent = email || "—";
-        if (planEl) planEl.textContent = plan ? plan.toUpperCase() : "—";
-
-        // синхронізуємо localStorage
-        if (email) localStorage.setItem(EMAIL_KEY, email);
-        if (plan) {
-            localStorage.setItem(PLAN_KEY, plan);
-            if (email) localStorage.setItem(planKeyForEmail(email), plan);
-        }
-
-        showStatus(""); // прибираємо loading
-        if (statusEl) statusEl.style.display = "none";
-    } catch (e) {
-        console.error(e);
-        showStatus("Backend is not reachable. Try again.", "error");
     }
-});
+
+    // ===== init =====
+    const page = document.body.getAttribute("data-page");
+    if (page !== "my-plan") return;
+
+    if (!requireAuth()) return;
+    if (!requirePlanSelected()) return;
+
+    setHeaderMeta();
+    bindLogout();
+    bindBack();
+
+    renderAccount();
+    renderPlanCard();
+})();

@@ -45,21 +45,30 @@
       </div>
     </div>
 
-    <div class="app__grid" style="grid-template-columns: 1fr;">
+    <div class="myplan__grid">
+      <!-- ACCOUNT -->
       <div class="card">
         <h2>Account</h2>
-
         <div class="mini">Email: <b data-my-email>—</b></div>
         <div class="mini" style="margin-top:6px;">Plan: <b data-my-plan>—</b></div>
+      </div>
 
-        <div class="mini" data-myplan-status style="display:none; margin-top:10px;"></div>
+      <!-- PLAN CARD (як на pricing) -->
+      <div class="card myplan__card">
+        <div class="myplan__badge" data-plan-badge>—</div>
+
+        <h2 class="myplan__name" data-plan-name>—</h2>
+        <div class="myplan__price" data-plan-price>—</div>
+
+        <p class="myplan__desc" data-plan-desc>—</p>
+
+        <ul class="myplan__features" data-plan-features></ul>
       </div>
     </div>
 
   </div>
 </section>
 
-<script src="../js/app.js" defer></script>
 <script src="../js/my-plan.js" defer></script>
 </body>
 </html>
