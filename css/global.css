@@ -165,6 +165,32 @@ section.animate.visible > .container {
   transform: translateY(0);
 }
 
+.selfio-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  max-width: min(520px, calc(100vw - 24px));
+  padding: 10px 12px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.12);
+  background: rgba(20, 20, 20, .92);
+  color: #fff;
+  font-size: 14px;
+  z-index: 9999;
+  transition: opacity .18s ease, transform .18s ease;
+  opacity: 1;
+}
+
+.selfio-toast--hidden {
+  opacity: 0;
+  transform: translateX(-50%) translateY(8px);
+  pointer-events: none;
+}
+
+.selfio-toast[data-type="error"] { background: rgba(180, 40, 40, .92); }
+.selfio-toast[data-type="success"] { background: rgba(30, 120, 70, .92); }
+
 /* якщо людина не хоче анімацій */
 @media (prefers-reduced-motion: reduce) {
   section.animate > .container,
