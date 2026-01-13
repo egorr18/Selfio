@@ -20,6 +20,22 @@
         return `${PLAN_KEY}:${email || "anon"}`;
     }
 
+    // маскування пошти (щоб не світилась на My Plan)
+    function maskEmail(email) {
+        const s = String(email || "").trim();
+        if (!s.includes("@")) return s || "—";
+
+        const [name, domain] = s.split("@");
+        if (!domain) return s;
+
+        const safeName =
+            name.length <= 2
+                ? ((name[0] || "*") + "*")
+                : (name.slice(0, 2) + "***");
+
+        return `${safeName}@${domain}`;
+    }
+
     // 1) джерело правди — план, прив’язаний до email
     function getPlanSelectedForCurrentUser() {
         const email = currentEmail();
@@ -58,7 +74,7 @@
         const email = localStorage.getItem(EMAIL_KEY) || "—";
         const plan = (getPlanSelectedForCurrentUser() || "—").toUpperCase();
         const el = document.querySelector("[data-app-meta]");
-        if (el) el.textContent = `${email} • ${plan}`;
+        if (el) el.textContent = `${maskEmail(email)} • ${plan}`;
     }
 
     function bindLogout() {
@@ -94,14 +110,15 @@
 
         const emailEl = document.querySelector("[data-my-email]");
         const planEl = document.querySelector("[data-my-plan]");
-        if (emailEl) emailEl.textContent = email;
+
+        // тут маскуємо email
+        if (emailEl) emailEl.textContent = maskEmail(email);
         if (planEl) planEl.textContent = planLabel;
     }
 
     function renderPlanCard() {
         const p = getPlan(); // free|pro|premium
 
-        // ✅ Можеш 1-в-1 зробити як у pricing
         const PLAN_UI = {
             free: {
                 badge: "FREE",

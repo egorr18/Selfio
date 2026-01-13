@@ -640,3 +640,24 @@
   }
 }
 
+/* Responsive: Pages (marketing) */
+
+@media (max-width: 768px){
+  /* plan cards spacing on mobile */
+  .pricing-card{
+    padding: 28px 20px;
+  }
+
+  /* Forms: max-width + comfy paddings */
+  .auth__form{
+    max-width: 520px;
+    width: 100%;
+    padding: 0 8px;
+  }
+
+  .start-trial__form{
+    max-width: 520px;
+    width: 100%;
+    padding: 0 8px;
+  }
+}

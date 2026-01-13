@@ -257,3 +257,60 @@ section.animate.visible > .container {
   }
 }
 
+/* Responsive: Global / Header / Nav */
+
+/* Safety: media never overflow */
+img, video, svg, canvas { max-width: 100%; height: auto; }
+
+/* OPTIONAL burger button (won't affect layout if you don't add it in HTML) */
+.nav-toggle{
+  display:none;
+  width:44px;
+  height:44px;
+  border:0;
+  background:transparent;
+  cursor:pointer;
+  border-radius:12px;
+}
+.nav-toggle span,
+.nav-toggle span::before,
+.nav-toggle span::after{
+  display:block;
+  width:22px;
+  height:2px;
+  background: currentColor;
+  border-radius:2px;
+  position:relative;
+  margin:0 auto;
+  content:"";
+}
+.nav-toggle span::before{ position:absolute; top:-7px; left:0; }
+.nav-toggle span::after { position:absolute; top: 7px; left:0; }
+
+@media (max-width: 768px){
+  /* header can wrap */
+  .header__inner{
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  /* NAV: stack on mobile (works without burger) */
+  .nav{
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    margin-top:10px;
+  }
+  .nav a{
+    padding:10px 12px;
+    border-radius:12px;
+  }
+
+  /* If you want burger: add class "nav--collapsible" to .nav */
+  .nav--collapsible{ display:none; }
+  .nav-open .nav--collapsible{ display:flex; }
+
+  /* Show burger only if you added it in HTML */
+  .nav-toggle{ display:inline-flex; align-items:center; justify-content:center; }
+}

@@ -671,5 +671,41 @@ button.card[disabled]{
     .myplan__price{ font-size: 32px; }
 }
 
+/* =========================
+   Responsive: App (after login)
+   ========================= */
+
+/* universal horizontal scroll helper */
+.scroll-x{
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* My plan: prevent long text (email) from breaking layout */
+[data-page="my-plan"] .card{
+    min-width: 0;
+}
+[data-page="my-plan"] .card *{
+    min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+/* Optional privacy: hide/mask email when user is on My Plan
+   Add data-hide-email="1" on <body> to enable */
+body[data-hide-email="1"][data-page="my-plan"] .card{
+    /* nothing here; just a hook */
+}
+
+/* If you can mark email span with class="account__email" OR data-user-email */
+body[data-hide-email="1"][data-page="my-plan"] .account__email,
+body[data-hide-email="1"][data-page="my-plan"] [data-user-email]{
+    filter: blur(6px);
+    user-select: none;
+}
+body[data-hide-email="1"][data-page="my-plan"] .account__email:hover,
+body[data-hide-email="1"][data-page="my-plan"] [data-user-email]:hover{
+    filter: none;
+}
 
 
