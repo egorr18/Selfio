@@ -196,9 +196,6 @@
   margin-bottom: 32px;
 }
 
-
-
-
 @media (max-width: 900px) {
   .story__grid,
   .product__grid {
@@ -251,15 +248,93 @@
     }
   }
 
-  @media (max-width: 768px) {
-    .hero {
-      padding-left: 20px;
-      padding-right: 20px;
-    }
-
-    .hero__content {
-      max-width: 100%;
-      padding: 32px;
-    }
+/* Home: mobile polish (less "huge cards") */
+@media (max-width: 768px){
+  .hero{
+    min-height: 70vh;
   }
+  .hero__content{
+    margin: 0 16px;
+    padding: 20px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.86);
+    backdrop-filter: blur(6px);
+    max-width: 560px;
+  }
+  .hero__content h1{
+    font-size: clamp(40px, 10vw, 58px);
+    line-height: 1.05;
+  }
+
+  /* STEPS */
+  .steps{
+    padding: 64px 0;
+  }
+  .steps__top{
+    display: block;
+  }
+  .steps__heading h2{
+    font-size: clamp(28px, 7vw, 40px);
+    line-height: 1.12;
+  }
+  .steps__text{
+    font-size: 16px;
+    max-width: 100%;
+  }
+  .steps__grid{
+    gap: 16px;
+  }
+  .step{
+    padding: 20px;
+    padding-top: 72px; /* було дуже багато */
+  }
+  .step__number{
+    font-size: 78px;   /* менше, щоб не “роздувало” картку */
+    top: -12px;
+    left: 16px;
+  }
+  .step__image{
+    margin-top: 16px;
+  }
+
+  /* STORY */
+  .story{
+    padding: 64px 0;
+  }
+  .story__grid{
+    gap: 16px;
+  }
+  .story__content{
+    padding: 28px 20px;
+    border-radius: 22px;
+  }
+  .story__content h2{
+    font-size: clamp(26px, 7vw, 38px);
+    line-height: 1.12;
+  }
+
+  /* PRODUCT */
+  .product{
+    padding: 64px 0;
+  }
+  .product__grid{
+    gap: 16px;
+  }
+  .product__content h2{
+    font-size: clamp(26px, 7vw, 38px);
+    line-height: 1.12;
+  }
+  .product__image{
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 5;   /* прибирає “гігантський” блок */
+    max-width: 560px;
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 420px){
+  .step__number{ font-size: 66px; }
+  .step{ padding-top: 64px; }
+}
 

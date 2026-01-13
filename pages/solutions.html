@@ -19,16 +19,26 @@
     <div class="container header__inner">
         <a href="../index.html" class="logo">Selfio</a>
 
-        <nav class="nav">
-            <a href="why-selfio.html">Why Selfio</a>
-            <a href="solutions.html" class="active">Solutions</a>
-            <a href="community.html">Community</a>
-            <a href="pricing.html">Pricing</a>
-        </nav>
+        <button class="nav-toggle" type="button"
+                aria-label="Open menu"
+                aria-expanded="false"
+                aria-controls="site-menu"
+                data-nav-toggle>
+            <span></span><span></span><span></span>
+        </button>
 
-        <div class="header__actions">
-            <a class="btn" href="signin.html?mode=login">Sign in</a>
-            <a class="btn" href="signin.html?mode=register">Create account</a>
+        <div class="header__drawer" id="site-menu" data-nav-drawer>
+            <nav class="nav nav--collapsible">
+                <a href="why-selfio.html">Why Selfio</a>
+                <a href="solutions.html">Solutions</a>
+                <a href="community.html">Community</a>
+                <a href="pricing.html">Pricing</a>
+            </nav>
+
+            <div class="header__actions">
+                <a class="btn" href="signin.html?mode=login">Sign in</a>
+                <a class="btn" href="signin.html?mode=register">Create account</a>
+            </div>
         </div>
     </div>
 </header>
@@ -105,7 +115,7 @@
         </nav>
     </div>
 </footer>
-<script src="../js/nav.js"></script>
-<script src="../js/main.js"></script>
+<script src="../js/nav.js" defer></script>
+<script src="../js/main.js" defer></script>
 </body>
 </html>
