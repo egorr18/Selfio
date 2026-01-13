@@ -571,3 +571,54 @@ button.card[disabled]{
     .app__meta { display: none; }
 }
 
+/* RESPONSIVE: APP ZONE */
+
+@media (max-width: 768px) {
+    .app__top {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .app__title h1 {
+        font-size: 34px;
+    }
+
+    .app__title p {
+        max-width: 100%;
+    }
+
+    /* choose-plan: back зверху — не ламаємо */
+    .chooseplan__topright {
+        width: 100%;
+        justify-content: flex-start;
+        text-align: left;
+    }
+}
+
+@media (max-width: 520px) {
+    .app {
+        padding: 24px 0 60px;
+    }
+
+    .card {
+        padding: 14px;
+    }
+
+    /* Today quickAddRow -> колонка */
+    [data-page="today"] .quickAddRow {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    [data-page="today"] .quickAddRow select,
+    [data-page="today"] .quickAddRow button {
+        width: 100%;
+    }
+
+    /* weekplan goals row -> перенос */
+    .weekplan__goal-row {
+        flex-wrap: wrap;
+    }
+}
+
+
