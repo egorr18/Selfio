@@ -480,46 +480,49 @@
   margin-bottom: 32px;
 }
 
-.auth__form {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  max-width: 360px;
-  margin: 0 auto 24px;
+/* --- AUTH ALIGN FIX (mobile + desktop) --- */
+.auth__content{
+  max-width: 520px;
+  margin: 0 auto;
+  text-align: center;
 }
 
-.auth__form input {
-  padding: 14px 16px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  font-size: 15px;
-}
-
-.auth__note {
-  font-size: 14px;
-  color: var(--text-muted);
-}
-
-.auth__note a {
-  color: var(--green-main);
-  font-weight: 500;
+.auth__switch,
+.auth__form{
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
 }
 
 .auth__switch{
-  display:flex;
-  gap:12px;
-  justify-content:center;
-  margin:18px 0 16px;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
 }
-.auth__switch-btn{
-  padding:12px 18px;
-  border-radius:12px;
-  border:1px solid rgba(0,0,0,.12);
-  background:#fff;
-  cursor:pointer;
+
+.auth__switch .btn{
+  flex: 1;
+  min-width: 0;
 }
-.auth__switch .btn.is-active{
-  box-shadow: 0 0 0 2px rgba(45,106,92,0.25) inset;
+
+.auth__form{
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.auth__form input,
+.auth__form button{
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* якщо на мобілці хочеш дві верхні кнопки в стовпчик */
+@media (max-width: 480px){
+  .auth__switch{
+    flex-direction: column;
+  }
 }
 
 

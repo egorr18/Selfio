@@ -5,22 +5,6 @@ body {
   line-height: 1.6;
 }
 
-/* Signin alignment fix */
-body[data-page="signin"] .card {
-  max-width: 560px;
-  margin: 0 auto;
-}
-
-body[data-page="signin"] .card button,
-body[data-page="signin"] .card .btn,
-body[data-page="signin"] .card input {
-  width: 100%;
-  display: block;
-  box-sizing: border-box;
-  margin-left: 0;
-  margin-right: 0;
-}
-
 a { text-decoration: none; color: inherit; }
 
 img { max-width: 100%; display: block; }
@@ -90,7 +74,7 @@ img { max-width: 100%; display: block; }
 /* Right side wrapper (nav + actions) */
 .header__drawer{
   margin-left: auto;
-  display: flex;              /* desktop: inline */
+  display: flex;              /* desktop */
   align-items: center;
   gap: 28px;
 }
@@ -130,7 +114,7 @@ img { max-width: 100%; display: block; }
 .header__actions .link { font-size: 15px; }
 
 /* ===== BURGER ===== */
-/* Твій HTML має 3 span: <span></span><span></span><span></span> */
+/* HTML: <span></span><span></span><span></span> */
 .nav-toggle {
   display: none; /* desktop hidden */
   width: 44px;
@@ -248,7 +232,7 @@ section.animate.visible > .container {
 
   .nav-toggle { display: inline-flex; }
 
-  /* drawer becomes dropdown panel */
+  /* drawer panel */
   .header__drawer{
     position: absolute;
     top: calc(100% + 10px);
@@ -289,17 +273,31 @@ section.animate.visible > .container {
   /* no underline inside drawer */
   .nav.nav--collapsible a::after{ display: none; }
 
-  .header__actions{
+  /* actions у drawer: по центру + нормальний колір */
+  .header__drawer .header__actions{
     width: 100%;
     display: flex;
     flex-direction: column;
     gap: 10px;
-    align-items: stretch;
+    align-items: center;
+    text-align: center;
   }
 
-  .header__actions .btn{
+  .header__drawer .header__actions .link{
+    color: rgba(255,255,255,0.85);
+  }
+
+  .header__drawer .header__actions .btn{
     width: 100%;
+    max-width: 320px;
     text-align: center;
+    color: #fff;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.18);
+  }
+
+  .header__drawer .header__actions .btn:hover{
+    background: rgba(255,255,255,0.12);
   }
 }
 
@@ -316,7 +314,7 @@ section.animate.visible > .container {
   min-width: 720px;
 }
 
-/* iOS Safari: прибрати системні стилі з кнопок */
+/* iOS Safari: прибрати системні шрифти/колір (НЕ ламаємо фон/бордер кнопок) */
 button, input, select, textarea {
   font: inherit;
   color: inherit;
@@ -325,7 +323,5 @@ button, input, select, textarea {
 button {
   -webkit-appearance: none;
   appearance: none;
-  background: none;
-  border: none;
-  -webkit-text-fill-color: currentColor; /* важливо для iOS */
+  -webkit-text-fill-color: currentColor;
 }
