@@ -5,6 +5,22 @@ body {
   line-height: 1.6;
 }
 
+/* Signin alignment fix */
+body[data-page="signin"] .card {
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+body[data-page="signin"] .card button,
+body[data-page="signin"] .card .btn,
+body[data-page="signin"] .card input {
+  width: 100%;
+  display: block;
+  box-sizing: border-box;
+  margin-left: 0;
+  margin-right: 0;
+}
+
 a { text-decoration: none; color: inherit; }
 
 img { max-width: 100%; display: block; }
