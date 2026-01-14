@@ -555,6 +555,12 @@ button.card[disabled]{
     text-align:right;
 }
 
+/* Щоб текст у plan-картках завжди був темний */
+.card.chooseplan__plan {
+    color: #0E2A23;                 /* або var(--text-dark), якщо він темний */
+    -webkit-text-fill-color: currentColor;
+}
+
 @media (max-width: 900px) {
     .chooseplan__plans {
         grid-template-columns: 1fr;

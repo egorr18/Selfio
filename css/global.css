@@ -299,3 +299,17 @@ section.animate.visible > .container {
 .scroll-x > table{
   min-width: 720px;
 }
+
+/* iOS Safari: прибрати системні стилі з кнопок */
+button, input, select, textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  -webkit-appearance: none;
+  appearance: none;
+  background: none;
+  border: none;
+  -webkit-text-fill-color: currentColor; /* важливо для iOS */
+}
