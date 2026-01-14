@@ -5,14 +5,55 @@ body {
   line-height: 1.6;
 }
 
-a { text-decoration: none; color: inherit; }
+a {
+  text-decoration: none;
+  color: inherit;
+  -webkit-text-fill-color: currentColor; /* iOS: не робити синім */
+}
 
-img { max-width: 100%; display: block; }
+img {
+  max-width: 100%;
+  display: block;
+}
 
-.story__video img {
+/* iOS / forms: забрати системні кольори */
+button, input, select, textarea {
+  font: inherit;
+  color: inherit;
+  -webkit-text-fill-color: currentColor;
+}
+
+button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* ===== SIGNIN (only this page) ===== */
+/* щоб 3 кнопки (2 зверху + submit) були по центру і ОДНАКОВІ по ширині */
+body[data-page="signin"] .auth__content {
+  max-width: 520px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+body[data-page="signin"] .auth__switch,
+body[data-page="signin"] .auth__form {
   width: 100%;
-  max-width: 740px;
-  border-radius: 8px;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+body[data-page="signin"] .auth__switch {
+  display: flex;
+  flex-direction: column; /* завжди в колонку => всі кнопки однакові */
+  gap: 12px;
+}
+
+body[data-page="signin"] .auth__switch .btn,
+body[data-page="signin"] .auth__form input,
+body[data-page="signin"] .auth__form button {
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* ===== CONTAINER ===== */
@@ -41,7 +82,9 @@ img { max-width: 100%; display: block; }
   color: var(--white);
 }
 
-.btn--primary:hover { background: var(--green-dark); }
+.btn--primary:hover {
+  background: var(--green-dark);
+}
 
 .btn--secondary {
   background: var(--white);
@@ -71,10 +114,10 @@ img { max-width: 100%; display: block; }
   line-height: 1;
 }
 
-/* Right side wrapper (nav + actions) */
-.header__drawer{
+/* Desktop: right side wrapper (nav + actions) */
+.header__drawer {
   margin-left: auto;
-  display: flex;              /* desktop */
+  display: flex;
   align-items: center;
   gap: 28px;
 }
@@ -111,10 +154,11 @@ img { max-width: 100%; display: block; }
   align-items: center;
 }
 
-.header__actions .link { font-size: 15px; }
+.header__actions .link {
+  font-size: 15px;
+}
 
 /* ===== BURGER ===== */
-/* HTML: <span></span><span></span><span></span> */
 .nav-toggle {
   display: none; /* desktop hidden */
   width: 44px;
@@ -130,7 +174,7 @@ img { max-width: 100%; display: block; }
   gap: 5px;
 }
 
-.nav-toggle span{
+.nav-toggle span {
   width: 22px;
   height: 2px;
   border-radius: 2px;
@@ -139,7 +183,7 @@ img { max-width: 100%; display: block; }
   transition: transform .2s ease, opacity .2s ease;
 }
 
-/* optional X animation */
+/* X animation */
 .nav-open .nav-toggle span:nth-child(1){ transform: translateY(7px) rotate(45deg); }
 .nav-open .nav-toggle span:nth-child(2){ opacity: 0; }
 .nav-open .nav-toggle span:nth-child(3){ transform: translateY(-7px) rotate(-45deg); }
@@ -169,7 +213,10 @@ img { max-width: 100%; display: block; }
   gap: 16px;
 }
 
-.footer__nav a { color: #fff; text-decoration: none; }
+.footer__nav a {
+  color: #fff;
+  text-decoration: none;
+}
 
 /* ===== SECTION REVEAL ===== */
 section.animate > .container {
@@ -220,7 +267,7 @@ section.animate.visible > .container {
 }
 
 /* =========================
-   MOBILE: Drawer menu only
+   MOBILE: Drawer menu
    ========================= */
 @media (max-width: 768px) {
   .container { padding: 0 16px; }
@@ -233,7 +280,7 @@ section.animate.visible > .container {
   .nav-toggle { display: inline-flex; }
 
   /* drawer panel */
-  .header__drawer{
+  .header__drawer {
     position: absolute;
     top: calc(100% + 10px);
     left: 16px;
@@ -251,52 +298,53 @@ section.animate.visible > .container {
     z-index: 50;
   }
 
-  .nav-open .header__drawer{ display: flex; }
+  .nav-open .header__drawer { display: flex; }
 
-  .nav.nav--collapsible{
+  .nav.nav--collapsible {
     flex-direction: column;
     align-items: stretch;
     gap: 8px;
   }
 
-  .nav.nav--collapsible a{
+  /* drawer items (menu links) */
+  .nav.nav--collapsible a {
     color: #fff;
     padding: 12px 14px;
     border-radius: 12px;
     background: rgba(255,255,255,0.06);
+    text-align: left;
   }
 
-  .nav.nav--collapsible a:hover{
+  .nav.nav--collapsible a:hover {
     background: rgba(255,255,255,0.12);
   }
 
-  /* no underline inside drawer */
-  .nav.nav--collapsible a::after{ display: none; }
+  .nav.nav--collapsible a::after { display: none; }
 
-  /* actions у drawer: по центру + нормальний колір */
-  .header__drawer .header__actions{
+  /* drawer actions (Sign in / Create account) -> SAME AS MENU ITEMS */
+  .header__actions {
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    align-items: center;
-    text-align: center;
+    gap: 8px;
+    align-items: stretch;
   }
 
-  .header__drawer .header__actions .link{
-    color: rgba(255,255,255,0.85);
-  }
-
-  .header__drawer .header__actions .btn{
+  .header__actions .btn {
     width: 100%;
-    max-width: 320px;
-    text-align: center;
-    color: #fff;
+    padding: 12px 14px;
+    border-radius: 12px;
+
     background: rgba(255,255,255,0.06);
     border: 1px solid rgba(255,255,255,0.18);
+    color: #fff;
+
+    text-align: center;
+    box-shadow: none;
+    transform: none;
   }
 
-  .header__drawer .header__actions .btn:hover{
+  .header__actions .btn:hover {
     background: rgba(255,255,255,0.12);
   }
 }
@@ -306,22 +354,10 @@ section.animate.visible > .container {
 }
 
 /* utility: horizontal scroll wrapper for tables */
-.scroll-x{
+.scroll-x {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
-.scroll-x > table{
+.scroll-x > table {
   min-width: 720px;
-}
-
-/* iOS Safari: прибрати системні шрифти/колір (НЕ ламаємо фон/бордер кнопок) */
-button, input, select, textarea {
-  font: inherit;
-  color: inherit;
-}
-
-button {
-  -webkit-appearance: none;
-  appearance: none;
-  -webkit-text-fill-color: currentColor;
 }
