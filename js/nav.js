@@ -1,11 +1,11 @@
 (() => {
   // ---- active link highlight ----
   const links = document.querySelectorAll(".nav a");
-  const currentPage = location.pathname.split("/").pop();
+  const currentPage = location.pathname.split("/").pop() || "index.html";
 
   links.forEach((link) => {
     const href = link.getAttribute("href") || "";
-    if (href.split("/").pop() === currentPage) {
+    if ((href.split("/").pop() || "") === currentPage) {
       link.classList.add("is-active");
     }
   });

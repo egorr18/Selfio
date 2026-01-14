@@ -2,8 +2,7 @@
 .hero {
   position: relative;
   min-height: 90vh;
-  padding-left: 80px;
-
+  padding: 0 80px;
   background-image: url("../images/hero.jpg");
   background-size: cover;
   background-position: center;
@@ -17,33 +16,35 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.25);
+  background: rgba(0, 0, 0, 0.18);
 }
 
 .hero__content {
   position: relative;
   z-index: 1;
-  max-width: 400px;
-  padding: 48px;
-  border-radius: 6px;
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  max-width: min(520px, 92vw);
 }
 
 .hero__content h1 {
-  font-size: 56px;
-  line-height: 1.1;
-  margin-bottom: 24px;
+  font-size: clamp(34px, 6.5vw, 56px);
+  line-height: 1.05;
+  margin-bottom: 14px;
   color: var(--green-main);
+  text-shadow: 0 10px 30px rgba(0,0,0,0.18);
 }
 
 .hero__content p {
-  font-size: 18px;
-  color: #202724;
-  margin-bottom: 32px;
+  font-size: clamp(15px, 2.4vw, 18px);
+  color: rgba(32, 39, 36, 0.95);
+  max-width: 44ch;
+  margin: 0;
 }
 
 
 /* ===== STEPS ===== */
-
 .steps {
   padding: 120px 0;
 }
@@ -237,34 +238,23 @@
   }
 }
 
+/* ===== Mobile hero ===== */
+@media (max-width: 900px) {
+  .hero { min-height: 80vh; }
+}
 
-  @media (max-width: 900px) {
-    .hero {
-      min-height: 80vh;
-    }
-
-    .hero__content h1 {
-      font-size: 42px;
-    }
+@media (max-width: 768px) {
+  .hero {
+    padding: 0 16px; /* щоб не врізалось в краї */
   }
 
-/* Home: mobile polish (less "huge cards") */
-@media (max-width: 768px){
-  .hero{
-    min-height: 70vh;
+  .hero__content {
+    max-width: min(560px, 92vw);
   }
-  .hero__content{
-    margin: 0 16px;
-    padding: 20px;
-    border-radius: 20px;
-    background: rgba(255,255,255,0.86);
-    backdrop-filter: blur(6px);
-    max-width: 560px;
-  }
-  .hero__content h1{
-    font-size: clamp(40px, 10vw, 58px);
-    line-height: 1.05;
-  }
+}
+
+@media (max-width: 480px) {
+  .hero { min-height: 72vh; }
 
   /* STEPS */
   .steps{
