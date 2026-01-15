@@ -261,7 +261,7 @@
   padding: 24px;
   border-radius: 16px;
   border: 1px solid transparent;
-  transition: 
+  transition:
     background 0.25s ease,
     border 0.25s ease,
     transform 0.25s ease;
@@ -523,6 +523,66 @@
   align-items: center;
   justify-content: center;
 }
+
+/* =========================================================
+   AUTH – FIX: inputs == buttons (same width/height everywhere)
+   Paste at the VERY END of pages.css
+   ========================================================= */
+
+.auth__content{
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 0 8px;           /* однаковий “внутрішній” відступ для ВСЬОГО */
+  text-align: center;
+}
+
+/* прибираємо різні paddings які робили input вужчим */
+.auth__switch,
+.auth__form{
+  width: 100%;
+  margin: 0;
+  padding: 0;              /* <-- ключовий фікс */
+  max-width: 100%;
+}
+
+.auth__switch{
+  display: flex;
+  flex-direction: column;  /* щоб 2 кнопки були 100% як submit */
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.auth__form{
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+/* inputs */
+.auth__form input{
+  width: 100%;
+  height: var(--ui-btn-h);     /* та сама висота що й кнопки */
+  padding: 0 18px;             /* такий самий горизонт padding */
+  border-radius: 4px;
+  border: 1px solid rgba(0,0,0,0.22);
+  background: #fff;
+  box-sizing: border-box;
+}
+
+/* buttons (both top switch + submit) */
+.auth .btn{
+  width: 100%;
+  height: var(--ui-btn-h);
+  padding: 0 18px;
+}
+
+/* iOS: щоб не зумило input при фокусі */
+@media (max-width: 480px){
+  .auth__form input{ font-size: 16px; }
+  .auth__content{ padding: 0 6px; }
+}
+
 
 /* якщо на мобілці хочеш дві верхні кнопки в стовпчик */
 @media (max-width: 480px){
