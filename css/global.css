@@ -362,3 +362,30 @@ button {
   appearance: none;
   -webkit-text-fill-color: currentColor;
 }
+
+/* ===== SAME SIZE BUTTONS (auth + drawer) ===== */
+:root{
+  --ui-btn-h: 56px;
+}
+
+/* щоб <a class="btn"> і <button class="btn"> були 1-в-1 */
+.header__drawer .btn,
+.auth .btn{
+  width: 100%;
+  min-height: var(--ui-btn-h);
+  padding: 0 18px;          /* замість різного vertical padding */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* drawer: кнопки по центру і однакова ширина */
+@media (max-width: 768px){
+  .header__actions{
+    align-items: center;
+  }
+
+  .header__actions .btn{
+    max-width: 520px;       /* як у формі */
+  }
+}

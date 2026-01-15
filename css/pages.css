@@ -469,24 +469,12 @@
   text-align: center;
 }
 
-.auth h1 {
-  font-size: 42px;
-  color: var(--green-main);
-  margin-bottom: 16px;
-}
-
-.auth__text {
-  color: var(--text-muted);
-  margin-bottom: 32px;
-}
-
-/* --- AUTH ALIGN FIX (mobile + desktop) --- */
 .auth__content{
   max-width: 520px;
   margin: 0 auto;
-  text-align: center;
 }
 
+/* switch + form однакова ширина */
 .auth__switch,
 .auth__form{
   width: 100%;
@@ -494,17 +482,15 @@
   margin: 0 auto;
 }
 
+/* щоб 2 верхні кнопки були такої ж ширини як submit */
 .auth__switch{
   display: flex;
+  flex-direction: column; /* важливо: тоді вони 100% як submit */
   gap: 12px;
-  justify-content: center;
+  margin-top: 18px;
 }
 
-.auth__switch .btn{
-  flex: 1;
-  min-width: 0;
-}
-
+/* поля теж робимо “по сітці”, щоб виглядало ідеально */
 .auth__form{
   display: flex;
   flex-direction: column;
@@ -512,10 +498,10 @@
   margin-top: 14px;
 }
 
-.auth__form input,
-.auth__form button{
+.auth__form input{
   width: 100%;
-  box-sizing: border-box;
+  min-height: var(--ui-btn-h);
+  padding: 0 16px;
 }
 
 /* якщо на мобілці хочеш дві верхні кнопки в стовпчик */
