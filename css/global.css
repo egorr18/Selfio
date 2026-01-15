@@ -270,7 +270,7 @@ section.animate.visible > .container {
     margin-left: auto;
   }
 
-  /* drawer becomes dropdown panel (ALIGN WITH CONTAINER EDGES) */
+  /*  drawer becomes dropdown panel (ALIGN WITH CONTAINER EDGES) */
   .header__drawer {
     position: absolute;
     top: calc(100% + 10px);
