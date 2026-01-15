@@ -1,9 +1,9 @@
-/* ===== GLOBAL BOX-SIZING (fix iOS overflow) ===== */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
+/* =========================
+   GLOBAL.CSS (fixed)
+   ========================= */
+
+/* важливо: щоб width:100% не “вилазив” через border/padding */
+*, *::before, *::after { box-sizing: border-box; }
 
 /* ===== BASE ===== */
 body {
@@ -12,15 +12,9 @@ body {
   line-height: 1.6;
 }
 
-a {
-  text-decoration: none;
-  color: inherit;
-}
+a { text-decoration: none; color: inherit; }
 
-img {
-  max-width: 100%;
-  display: block;
-}
+img { max-width: 100%; display: block; }
 
 .story__video img {
   width: 100%;
@@ -37,20 +31,15 @@ img {
 
 /* ===== BUTTONS ===== */
 .btn {
-  display: inline-flex;
+  display: inline-flex;              /* щоб і <a>, і <button> були однакові */
   align-items: center;
   justify-content: center;
-
   padding: 14px 28px;
   border-radius: 4px;
   font-weight: 500;
-  cursor: pointer;
-
-  border: 1px solid transparent;
-  background: transparent;
-  color: inherit;
-
+  text-align: center;
   transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease;
+  white-space: nowrap;
 }
 
 .btn:hover {
@@ -63,21 +52,12 @@ img {
   color: var(--white);
 }
 
-.btn--primary:hover {
-  background: var(--green-dark);
-}
+.btn--primary:hover { background: var(--green-dark); }
 
 .btn--secondary {
   background: var(--white);
   color: var(--green-main);
   border: 1px solid var(--green-main);
-}
-
-/* optional, if you use btn--ghost somewhere */
-.btn--ghost {
-  background: transparent;
-  color: var(--green-main);
-  border: 1px solid rgba(0,0,0,0.10);
 }
 
 /* ===== HEADER ===== */
@@ -92,7 +72,7 @@ img {
   justify-content: space-between;
   gap: 18px;
   height: 80px;
-  position: relative; /* for drawer on mobile */
+  position: relative; /* потрібно для drawer на мобілці */
 }
 
 .logo {
@@ -103,11 +83,12 @@ img {
 }
 
 /* Desktop: right side wrapper (nav + actions) */
-.header__drawer {
+.header__drawer{
   margin-left: auto;
   display: flex;
   align-items: center;
   gap: 28px;
+  min-width: 0;
 }
 
 .nav {
@@ -142,9 +123,7 @@ img {
   align-items: center;
 }
 
-.header__actions .link {
-  font-size: 15px;
-}
+.header__actions .link { font-size: 15px; }
 
 /* ===== BURGER ===== */
 .nav-toggle {
@@ -162,7 +141,7 @@ img {
   gap: 5px;
 }
 
-.nav-toggle span {
+.nav-toggle span{
   width: 22px;
   height: 2px;
   border-radius: 2px;
@@ -201,10 +180,7 @@ img {
   gap: 16px;
 }
 
-.footer__nav a {
-  color: #fff;
-  text-decoration: none;
-}
+.footer__nav a { color: #fff; text-decoration: none; }
 
 /* ===== SECTION REVEAL ===== */
 section.animate > .container {
@@ -265,19 +241,15 @@ section.animate.visible > .container {
     padding: 14px 0;
   }
 
-  .nav-toggle {
-    display: inline-flex;
-    margin-left: auto;
-  }
+  .nav-toggle { display: inline-flex; }
 
-  /*  drawer becomes dropdown panel (ALIGN WITH CONTAINER EDGES) */
-  .header__drawer {
+  /* ВАЖЛИВО: drawer як dropdown-панель */
+  .header__drawer{
     position: absolute;
     top: calc(100% + 10px);
-    left: 0;         /* IMPORTANT: no extra 16px (container already has padding) */
-    right: 0;
+    left: 16px;
+    right: 16px;
 
-    margin-left: 0;
     display: none;
     flex-direction: column;
     align-items: stretch;
@@ -288,75 +260,50 @@ section.animate.visible > .container {
     border-radius: 18px;
     box-shadow: 0 18px 50px rgba(0,0,0,0.35);
     z-index: 50;
+
+    overflow: hidden; /* щоб нічого не “вилазило” */
   }
 
-  .nav-open .header__drawer { display: flex; }
+  .nav-open .header__drawer{ display: flex; }
 
-  .nav.nav--collapsible {
+  .nav.nav--collapsible{
     flex-direction: column;
     align-items: stretch;
     gap: 8px;
   }
 
-  .nav.nav--collapsible a {
+  .nav.nav--collapsible a{
     color: #fff;
     padding: 12px 14px;
     border-radius: 12px;
     background: rgba(255,255,255,0.06);
   }
 
-  .nav.nav--collapsible a:hover {
+  .nav.nav--collapsible a:hover{
     background: rgba(255,255,255,0.12);
   }
 
-  .nav.nav--collapsible a::after { display: none; }
+  .nav.nav--collapsible a::after{ display: none; }
 
-  /* actions in drawer: centered + SAME WIDTH */
-  .header__actions {
+  /* actions у drawer: 2 кнопки однакові по ширині */
+  .header__actions{
     width: 100%;
     display: flex;
     flex-direction: column;
     gap: 10px;
-    align-items: center;   /* center horizontally */
+    align-items: stretch;
   }
 
-  .header__actions .btn {
+  .header__drawer .header__actions .btn{
     width: 100%;
-    max-width: 360px;      /* same size for both buttons */
-    text-align: center;
-
     color: #fff;
     background: rgba(255,255,255,0.06);
     border: 1px solid rgba(255,255,255,0.18);
   }
 
-  .header__actions .btn:hover {
+  .header__drawer .header__actions .btn:hover{
     background: rgba(255,255,255,0.12);
   }
-
-  .header__drawer .header__actions{
-    align-items: center;
-  }
-
-  .header__drawer .header__actions .btn{
-    width: 100%;
-    max-width: 520px;      /* як у signin */
-    min-height: var(--ui-btn-h);
-    padding: 0 18px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    box-sizing: border-box;
-  }
-
-  .header__actions{
-    align-items: center;
-  }
-
-  .header__actions .btn{
-    max-width: 520px;       /* як у формі */
-  }
-
 }
 
 @media (max-width: 480px) {
@@ -364,19 +311,16 @@ section.animate.visible > .container {
 }
 
 /* utility: horizontal scroll wrapper for tables */
-.scroll-x {
+.scroll-x{
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
-.scroll-x > table {
+.scroll-x > table{
   min-width: 720px;
 }
 
-/* iOS Safari: normalize form controls (SAFE) */
-button,
-input,
-select,
-textarea {
+/* iOS Safari: прибрати системні стилі */
+button, input, select, textarea {
   font: inherit;
   color: inherit;
 }
@@ -385,20 +329,4 @@ button {
   -webkit-appearance: none;
   appearance: none;
   -webkit-text-fill-color: currentColor;
-}
-
-/* ===== SAME SIZE BUTTONS (auth + drawer) ===== */
-:root{
-  --ui-btn-h: 56px;
-}
-
-/* щоб <a class="btn"> і <button class="btn"> були 1-в-1 */
-.header__drawer .btn,
-.auth .btn{
-  width: 100%;
-  min-height: var(--ui-btn-h);
-  padding: 0 18px;          /* замість різного vertical padding */
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
 }
