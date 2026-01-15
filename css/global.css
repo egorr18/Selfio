@@ -333,6 +333,30 @@ section.animate.visible > .container {
   .header__actions .btn:hover {
     background: rgba(255,255,255,0.12);
   }
+
+  .header__drawer .header__actions{
+    align-items: center;
+  }
+
+  .header__drawer .header__actions .btn{
+    width: 100%;
+    max-width: 520px;      /* як у signin */
+    min-height: var(--ui-btn-h);
+    padding: 0 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+  }
+
+  .header__actions{
+    align-items: center;
+  }
+
+  .header__actions .btn{
+    max-width: 520px;       /* як у формі */
+  }
+
 }
 
 @media (max-width: 480px) {
@@ -377,15 +401,4 @@ button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-}
-
-/* drawer: кнопки по центру і однакова ширина */
-@media (max-width: 768px){
-  .header__actions{
-    align-items: center;
-  }
-
-  .header__actions .btn{
-    max-width: 520px;       /* як у формі */
-  }
 }

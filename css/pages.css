@@ -504,6 +504,26 @@
   padding: 0 16px;
 }
 
+/* 2 кнопки в signin (Sign in / Create account) */
+.auth__switch .btn{
+  width: 100%;
+  min-height: var(--ui-btn-h);
+  padding: 0 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* submit теж такий самий */
+.auth__form .btn{
+  width: 100%;
+  min-height: var(--ui-btn-h);
+  padding: 0 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* якщо на мобілці хочеш дві верхні кнопки в стовпчик */
 @media (max-width: 480px){
   .auth__switch{
