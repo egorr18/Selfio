@@ -8,12 +8,12 @@
     <meta name="description"
           content="Selfio is a personalized journaling experience that helps you understand and manage stress." />
 
+    <link rel="preload" as="image" href="images/hero.jpg">
+
     <link rel="stylesheet" href="css/reset.css">
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/global.css">
     <link rel="stylesheet" href="css/home.css">
-
-
 </head>
 
 <body>
@@ -78,7 +78,7 @@
                 <h3>Personalize</h3>
                 <p>Answer a quick survey about how you express yourself, what causes you stress, and what area would you like to work on. This way, we can fully personalize your journal!</p>
                 <div class="step__image">
-                    <img src="images/step-1.jpg" alt="Personalize your journal">
+                    <img src="images/step-1.jpg" alt="Personalize your journal" loading="lazy" decoding="async">
                 </div>
             </article>
 
@@ -87,7 +87,7 @@
                 <h3>Write & Understand</h3>
                 <p>Write, reflect, and spot patterns. Selfio gives you gentle prompts and helps you understand what triggers your stress.</p>
                 <div class="step__image">
-                    <img src="images/step-2.png" alt="Write and understand emotions">
+                    <img src="images/step-2.png" alt="Write and understand emotions" loading="lazy" decoding="async">
                 </div>
             </article>
 
@@ -96,14 +96,13 @@
                 <h3>Manage stress</h3>
                 <p>Turn awareness into action: choose your focus, set your top tasks, and keep habits on track. Start with Selfio today.</p>
                 <div class="step__image">
-                    <img src="images/step-3.jpg" alt="Manage stress">
+                    <img src="images/step-3.jpg" alt="Manage stress" loading="lazy" decoding="async">
                 </div>
             </article>
 
         </div>
     </div>
 </section>
-
 
 <section class="story animate">
     <div class="container story__grid">
@@ -113,7 +112,7 @@
         </div>
 
         <div class="story__video">
-            <img src="images/story.jpg" alt="Customer success story">
+            <img src="images/story.jpg" alt="Customer success story" loading="lazy" decoding="async">
         </div>
     </div>
 </section>
@@ -131,12 +130,11 @@
 
         <div class="product__image">
             <div class="product__bg"></div>
-            <img src="images/product.png" alt="Selfio personalized journal">
+            <img src="images/product.png" alt="Selfio personalized journal" loading="lazy" decoding="async">
         </div>
 
     </div>
 </section>
-
 
 <footer class="footer">
     <div class="container footer__grid">
@@ -149,6 +147,7 @@
         </nav>
     </div>
 </footer>
+
 <script src="js/nav.js" defer></script>
 <script src="js/main.js" defer></script>
 </body>
