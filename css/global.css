@@ -245,6 +245,20 @@ section.animate.visible > .container {
 .selfio-toast[data-type="error"] { background: rgba(180, 40, 40, .92); }
 .selfio-toast[data-type="success"] { background: rgba(30, 120, 70, .92); }
 
+/* Accessibility: visible focus ring for keyboard users */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid rgba(22, 126, 105, 0.55);
+  outline-offset: 3px;
+}
+
+.nav-toggle:focus-visible {
+  border-color: rgba(22, 126, 105, 0.55);
+}
+
 @media (prefers-reduced-motion: reduce) {
   section.animate > .container,
   section.animate.visible > .container {
