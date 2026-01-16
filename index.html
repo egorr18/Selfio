@@ -10,7 +10,6 @@
 
     <link rel="preload" as="image" href="images/hero.jpg">
 
-    <link rel="stylesheet" href="css/reset.css">
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/global.css">
     <link rel="stylesheet" href="css/home.css">
@@ -39,6 +38,11 @@
             </nav>
 
             <div class="header__actions">
+                <button class="theme-toggle" type="button"
+                        data-theme-toggle
+                        aria-label="Toggle theme"
+                        aria-pressed="false">🌙
+                </button>
                 <a class="btn" href="pages/signin.html?mode=login">Sign in</a>
                 <a class="btn" href="pages/signin.html?mode=register">Create account</a>
             </div>
@@ -148,6 +152,7 @@
     </div>
 </footer>
 
+<script src="js/theme.js" defer></script>
 <script src="js/nav.js" defer></script>
 <script src="js/main.js" defer></script>
 </body>

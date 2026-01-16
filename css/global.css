@@ -8,8 +8,9 @@
 /* ===== BASE ===== */
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  color: var(--text-dark);
   line-height: 1.6;
+  background: var(--bg);
+  color: var(--text);
 }
 
 a { text-decoration: none; color: inherit; }
@@ -77,6 +78,8 @@ img { max-width: 100%; display: block; }
 .header {
   background: var(--white);
   border-bottom: 1px solid #eee;
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--border);
 }
 
 .header__inner {
@@ -316,6 +319,22 @@ section.animate.visible > .container {
     box-shadow: none;
     background: rgba(255,255,255,0.12);
   }
+}
+
+.theme-toggle{
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+}
+.theme-toggle:hover{
+  box-shadow: 0 8px 20px var(--shadow);
 }
 
 @media (max-width: 480px) {

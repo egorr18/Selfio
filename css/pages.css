@@ -1,11 +1,8 @@
 /* ===== PAGE HERO ===== */
 .page-hero {
   padding: 120px 0;
-  background: #eaf7f3;
+  background: var(--bg-soft);
   text-align: center;
-}
-
-.page-hero {
   opacity: 1 !important;
   transform: none !important;
 }
@@ -31,10 +28,9 @@
   color: var(--text-muted);
 }
 
-
-/* ===== PAGE CONTENT ===== */
 .page-content {
   padding: 120px 0;
+  background: transparent;
 }
 
 .page-grid {
@@ -54,11 +50,10 @@
   line-height: 1.6;
 }
 
-/* ===== FEATURES ===== */
 .page-block {
   position: relative;
   padding: 48px 32px;
-  background: #ffffff;
+  background: var(--surface);
   border-radius: 16px;
 }
 
@@ -81,11 +76,38 @@
   line-height: 1.6;
 }
 
+/* ===== THEME TEXT (for dark mode readability) ===== */
+.page-hero p,
+.page-block p,
+.why-matters p,
+.social-proof__label,
+.section-label,
+.toggle-label,
+.start-trial__text{
+  color: var(--muted);
+}
+
+.page-hero__label,
+.why-matters__label,
+.testimonial__text,
+.solution-card p,
+.why-community__content p,
+.why-community__quote{
+  color: var(--muted);
+}
+
+.page-hero h1,
+.why-matters h2,
+.social-proof h2,
+.section-title,
+.start-trial h1{
+  color: var(--green-main);
+}
 
 /* ===== WHY IT MATTERS ===== */
 .why-matters {
   padding: 140px 0;
-  background: #ffffff;
+  background: var(--surface);
 }
 
 .why-matters__grid {
@@ -164,7 +186,7 @@
 }
 
 .testimonial {
-  background: #ffffff;
+  background: var(--surface);
   padding: 32px;
   border-radius: 16px;
   text-align: left;
@@ -184,7 +206,7 @@
 /* ===== SOLUTIONS LIST ===== */
 .solutions-list {
   padding: 140px 0;
-  background: #ffffff;
+  background: var(--surface);
   text-align: center;
 }
 
@@ -228,7 +250,7 @@
 /* ===== WHY COMMUNITY ===== */
 .why-community {
   padding: 140px 0;
-  background: #ffffff;
+  background: var(--surface);
 }
 
 .why-community__grid {
@@ -298,7 +320,7 @@
 /* ===== PRICING ===== */
 .pricing-plans {
   padding: 140px 0;
-  background: #ffffff;
+  background: var(--surface);
 }
 
 .pricing-grid {
@@ -308,7 +330,7 @@
 }
 
 .pricing-card {
-  background: #ffffff;
+  background: var(--surface);
   border: 1px solid #e6eaea;
   border-radius: 20px;
   padding: 48px 32px;
@@ -465,7 +487,7 @@
 /* ===== AUTH ===== */
 .auth {
   padding: 140px 0;
-  background: #eaf7f3;
+  background: var(--bg-soft);
   text-align: center;
 }
 
@@ -500,8 +522,13 @@
 
 .auth__form input{
   width: 100%;
-  min-height: var(--ui-btn-h);
-  padding: 0 16px;
+  height: var(--ui-btn-h);
+  padding: 0 18px;
+  border-radius: 4px;
+  background: var(--input-bg);
+  color: var(--text);
+  border: 1px solid var(--input-border);
+  box-sizing: border-box;
 }
 
 /* 2 кнопки в signin (Sign in / Create account) */
@@ -695,8 +722,10 @@
     padding: 0 2px;
   }
 
-  .auth__form input {
-    font-size: 16px;
+  .auth__form input{
+    background: var(--input-bg);
+    color: var(--text);
+    border: 1px solid var(--input-border);
   }
 
   .auth__switch {
