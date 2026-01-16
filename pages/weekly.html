@@ -12,7 +12,6 @@
 </head>
 
 <body data-app data-page="weekly">
-
 <header class="header">
   <div class="container header__inner">
     <a href="../index.html" class="logo">Selfio</a>
@@ -26,26 +25,23 @@
     </button>
 
     <div class="header__drawer" id="site-menu" data-nav-drawer>
-      <nav class="nav nav--collapsible">
+      <nav class="nav nav--collapsible" aria-label="Primary">
         <a href="app.html">Today</a>
-        <a href="weekly.html">Weekly</a>
+        <a href="weekly.html" class="is-active" aria-current="page">Weekly</a>
         <a href="habits.html">Habits</a>
-        <a href="settings.html">Settings</a>
         <a href="account.html">Account</a>
       </nav>
 
-      <div class="header__actions">
-        <div class="header__actions">
-          <button class="theme-toggle" type="button"
-                  data-theme-toggle
-                  aria-label="Toggle theme"
-                  aria-pressed="false">🌙
-          </button>
+      <div class="header__actions header__actions--app">
+        <button class="theme-toggle" type="button"
+                data-theme-toggle
+                aria-label="Toggle theme"
+                aria-pressed="false">🌙</button>
+
         <span class="link" data-app-meta>—</span>
         <button class="btn btn--secondary" type="button" data-logout>Logout</button>
       </div>
     </div>
-  </div>
   </div>
 </header>
 
@@ -114,7 +110,6 @@
           <textarea class="weekplan__note" placeholder="Weekly note (optional)" data-week-note></textarea>
         </div>
       </div>
-
 
       <div class="weekplan__footer">
         <div class="weekplan__copy">

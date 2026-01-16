@@ -371,8 +371,13 @@
     function setHeaderMeta() {
         const email = localStorage.getItem(EMAIL_KEY) || "Signed user";
         const plan = (getPlanSelectedForCurrentUser() || "—").toUpperCase();
-        const el = document.querySelector("[data-app-meta]");
-        if (el) el.textContent = `${email} • ${plan}`;
+
+        const meta = document.querySelector("[data-app-meta]");
+        if (meta) meta.textContent = `${email} • ${plan}`;
+
+        // optional: якщо десь є окремі місця під email/plan
+        document.querySelectorAll("[data-user-email]").forEach(el => (el.textContent = email));
+        document.querySelectorAll("[data-user-plan]").forEach(el => (el.textContent = plan));
     }
 
     function bindLogout() {
@@ -1577,6 +1582,48 @@
         }
     }
 
+    function accountPage() {
+        const page = document.body.getAttribute("data-page");
+        if (page !== "account") return;
+
+        const email = localStorage.getItem(EMAIL_KEY) || "—";
+
+        const selected = getPlanSelectedForCurrentUser();
+        const planLabel = selected ? selected.toUpperCase() : "—";
+
+        const emailInput = document.querySelector("[data-account-email]");
+        if (emailInput) emailInput.value = email;
+
+        const badge = document.querySelector("[data-plan-badge]");
+        if (badge) badge.textContent = planLabel;
+
+        const perks = document.querySelector("[data-plan-perks]");
+        if (perks) {
+            const p = getPlan();
+            if (p === "free") {
+                perks.innerHTML =
+                    `Free: daily check-in + habits.<br>` +
+                    `Pro: week plan (this + next 2 weeks) + copy + push goals to Today.<br>` +
+                    `Premium: templates + up to 8 weeks + Month insights.`;
+            } else if (p === "pro") {
+                perks.innerHTML =
+                    `Pro active: plan goals for this week + next 2 weeks.<br>` +
+                    `Push goals to Today (plan → tasks).<br>` +
+                    `Upgrade to Premium for templates + 8 weeks + Month insights.`;
+            } else {
+                perks.innerHTML =
+                    `Premium active: templates + plan up to 8 weeks ahead.<br>` +
+                    `Month insights + trends.<br>` +
+                    `Push goals to Today (plan → tasks).`;
+            }
+        }
+
+        // label біля Theme
+        const t = document.documentElement.getAttribute("data-theme");
+        const label = document.querySelector("[data-theme-label]");
+        if (label) label.textContent = t === "dark" ? "Dark" : "Light";
+    }
+
     // ===== Habits page =====
     function habitsPage() {
         const page = document.body.getAttribute("data-page");
@@ -1693,5 +1740,6 @@
     weeklyPage();
     habitsPage();
     settingsPage();
+    accountPage()
 
 })();

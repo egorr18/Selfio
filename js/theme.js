@@ -11,21 +11,25 @@
         }
     }
 
-    function updateButton(btn) {
-        if (!btn) return;
+    function applyButtons() {
         const t = root.getAttribute("data-theme");
         const isDark = t === "dark";
-        btn.setAttribute("aria-pressed", String(isDark));
-        btn.textContent = isDark ? "☀️" : "🌙";
+
+        document.querySelectorAll(BTN_SEL).forEach((btn) => {
+            btn.setAttribute("aria-pressed", String(isDark));
+            btn.textContent = isDark ? "☀️" : "🌙";
+        });
+
+        // optional label (Account)
+        const label = document.querySelector("[data-theme-label]");
+        if (label) label.textContent = isDark ? "Dark" : "Light";
     }
-    
+
     // apply saved
     const saved = localStorage.getItem(KEY);
     if (saved === "dark" || saved === "light") setTheme(saved);
 
-    document.addEventListener("DOMContentLoaded", () => {
-        updateButton(document.querySelector(BTN_SEL));
-    });
+    document.addEventListener("DOMContentLoaded", applyButtons);
 
     document.addEventListener("click", (e) => {
         const btn = e.target.closest(BTN_SEL);
@@ -33,8 +37,9 @@
 
         const current = root.getAttribute("data-theme");
         const next = current === "dark" ? "light" : "dark";
+
         setTheme(next);
         localStorage.setItem(KEY, next);
-        updateButton(btn);
+        applyButtons();
     });
 })();

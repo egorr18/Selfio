@@ -779,3 +779,61 @@ body[data-hide-email="1"][data-page="my-plan"] [data-user-email]:hover{
     .theme-toggle{ align-self:center; }
 }
 
+/* =========================
+   Dark/Light tokens (APP only)
+   Paste at END of app.css
+   ========================= */
+
+body[data-app]{
+    --app-bg: var(--bg, #EAF4F1);
+    --app-surface: var(--surface, #ffffff);
+    --app-text: var(--text, #0E2A23);
+    --app-muted: var(--muted, rgba(14,42,35,0.72));
+    --app-border: var(--border, rgba(0,0,0,0.10));
+    --app-field: rgba(255,255,255,0.65);
+}
+
+html[data-theme="dark"] body[data-app]{
+    --app-bg: #0f1513;
+    --app-surface: #121a17;
+    --app-text: rgba(255,255,255,0.92);
+    --app-muted: rgba(255,255,255,0.68);
+    --app-border: rgba(255,255,255,0.14);
+    --app-field: rgba(255,255,255,0.06);
+}
+
+body[data-app] .app{ background: var(--app-bg) !important; }
+body[data-app] .card,
+body[data-app] .day{
+    background: var(--app-surface) !important;
+    border-color: var(--app-border) !important;
+}
+
+body[data-app] .card h2,
+body[data-app] .day__name{
+    color: var(--app-text) !important;
+}
+
+body[data-app] .mini,
+body[data-app] .app__title p,
+body[data-app] .app__meta{
+    color: var(--app-muted) !important;
+    opacity: 1 !important;
+}
+
+body[data-app] .text,
+body[data-app] .select,
+body[data-app] .weekplan__select,
+body[data-app] .weekplan__note{
+    background: var(--app-field) !important;
+    color: var(--app-text) !important;
+    border-color: var(--app-border) !important;
+}
+
+body[data-app] .theme-toggle{
+    background: var(--app-surface) !important;
+    color: var(--app-text) !important;
+    border-color: var(--app-border) !important;
+}
+
+html[data-theme="dark"] body[data-app] .progress{ background: rgba(255,255,255,0.08) !important; }
