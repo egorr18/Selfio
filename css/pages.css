@@ -52,19 +52,21 @@
 
 .page-block {
   position: relative;
-  padding: 48px 32px;
+  overflow: hidden;
+  padding-top: 54px;
   background: var(--surface);
   border-radius: 16px;
 }
 
 .page-block__number {
   position: absolute;
-  top: -24px;
-  left: 32px;
+  top: 14px;
+  left: 16px;
   font-size: 72px;
   font-weight: 700;
   color: rgba(23, 204, 168, 0.199);
   line-height: 1;
+  pointer-events: none;
 }
 
 .page-block h2 {
@@ -602,6 +604,11 @@
   width: 100%;
   height: var(--ui-btn-h);
   padding: 0 18px;
+}
+
+@media (max-width: 520px){
+  .page-block{ padding-top: 44px; }
+  .page-block__number{ font-size: 56px; }
 }
 
 /* iOS: щоб не зумило input при фокусі */
