@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Account — Selfio</title>
+    <meta name="description" content="Manage your Selfio account, preferences, and security." />
+
+    <link rel="stylesheet" href="../css/reset.css">
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/app.css">
+</head>
+
+<body data-app data-page="account">
+
+<header class="header">
+    <div class="container header__inner">
+        <a href="../index.html" class="logo">Selfio</a>
+
+        <button class="nav-toggle" type="button"
+                aria-label="Open menu"
+                aria-expanded="false"
+                aria-controls="site-menu"
+                data-nav-toggle>
+            <span></span><span></span><span></span>
+        </button>
+
+        <div class="header__drawer" id="site-menu" data-nav-drawer>
+            <nav class="nav nav--collapsible" aria-label="Primary">
+                <a href="app.html">Today</a>
+                <a href="weekly.html">Weekly</a>
+                <a href="habits.html">Habits</a>
+                <a href="account.html" class="is-active" aria-current="page">Settings</a>
+            </nav>
+
+            <div class="header__actions header__actions--app">
+                <!-- Theme -->
+                <button class="theme-toggle" type="button"
+                        data-theme-toggle
+                        aria-label="Toggle theme"
+                        aria-pressed="false">🌙</button>
+
+                <!-- User chip -->
+                <div class="account-chip" aria-label="Account">
+                    <span class="account-chip__email" data-user-email>your@email.com</span>
+                    <span class="account-chip__plan" data-user-plan>FREE</span>
+                </div>
+
+                <!-- (тимчасово в хедері; потім перенесемо в профіль) -->
+                <button class="btn btn--secondary" type="button" data-logout>Logout</button>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main class="app" role="main">
+    <div class="container">
+        <div class="app__top">
+            <div class="app__title">
+                <h1>Account</h1>
+                <p>Manage your profile, preferences, and security.</p>
+            </div>
+        </div>
+
+        <div class="app__grid account__grid">
+            <!-- LEFT -->
+            <div class="account__left">
+                <section class="card">
+                    <h2>Profile</h2>
+
+                    <div class="account__field">
+                        <label class="account__label" for="acc-email">Email</label>
+                        <input id="acc-email" class="text" type="email" autocomplete="email" readonly
+                               value="" data-account-email />
+                    </div>
+
+                    <p class="mini">Email is read-only for now.</p>
+                </section>
+
+                <section class="card">
+                    <h2>Preferences</h2>
+
+                    <div class="account__row">
+                        <div>
+                            <div class="account__label">Theme</div>
+                            <div class="mini" data-theme-label>System / Light</div>
+                        </div>
+
+                        <button class="btn btn--secondary btn--sm" type="button" data-theme-toggle-inline>
+                            Toggle theme
+                        </button>
+                    </div>
+                </section>
+
+                <section class="card">
+                    <h2>Security</h2>
+                    <p class="mini">Password change will be added later.</p>
+
+                    <div class="actions">
+                        <button class="btn btn--secondary" type="button" disabled aria-disabled="true">
+                            Change password (soon)
+                        </button>
+                    </div>
+                </section>
+
+                <section class="card">
+                    <h2>Data</h2>
+                    <p class="mini">Export and delete options will be added later.</p>
+
+                    <div class="actions">
+                        <button class="btn btn--secondary" type="button" disabled aria-disabled="true">
+                            Export data (soon)
+                        </button>
+                        <button class="btn btn--secondary" type="button" disabled aria-disabled="true">
+                            Delete account (soon)
+                        </button>
+                    </div>
+                </section>
+            </div>
+
+            <!-- RIGHT -->
+            <aside class="account__right">
+                <section class="card">
+                    <h2>Plan</h2>
+
+                    <div class="account__plan">
+                        <div class="account__planLabel">Current plan</div>
+                        <div class="account__planValue" data-plan-badge>FREE</div>
+                        <div class="mini">Upgrade any time.</div>
+                    </div>
+
+                    <div class="actions">
+                        <!-- потім перенесемо сюди як ти сказав (а з хедера приберемо) -->
+                        <a class="btn btn--primary" href="my-plan.html">Upgrade / Manage plan</a>
+                    </div>
+                </section>
+
+                <section class="card">
+                    <h2>Session</h2>
+                    <p class="mini">Sign out from this device.</p>
+                    <div class="actions">
+                        <button class="btn btn--secondary" type="button" data-logout>
+                            Logout
+                        </button>
+                    </div>
+                </section>
+            </aside>
+        </div>
+    </div>
+</main>
+
+<script src="../js/nav.js" defer></script>
+<script src="../js/main.js" defer></script>
+<script src="../js/account.js" defer></script>
+<script src="../js/theme.js" defer></script>
+</body>
+</html>

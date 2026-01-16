@@ -714,4 +714,68 @@ body[data-hide-email="1"][data-page="my-plan"] [data-user-email]:hover{
     filter: none;
 }
 
+/* ===== Account page ===== */
+.account__grid { align-items: start; }
+
+.account__field { margin-top: 12px; }
+.account__label { display:block; font-size: 13px; opacity: .75; margin-bottom: 6px; }
+
+.account__row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+}
+
+.account__plan{ margin-top: 6px; }
+.account__planLabel{ font-size: 13px; opacity: .75; }
+.account__planValue{
+    font-size: 28px;
+    font-weight: 800;
+    margin: 6px 0;
+    color: var(--green, #2D6A5C);
+}
+
+/* header chip */
+.header__actions--app{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.account-chip{
+    display:flex;
+    flex-direction:column;
+    line-height:1.1;
+    font-size: 14px;
+}
+.account-chip__email{ font-weight: 500; }
+.account-chip__plan{ font-weight: 800; opacity:.9; }
+
+/* theme button */
+.theme-toggle{
+    width: 44px;
+    height: 44px;
+    border: 1px solid rgba(0,0,0,0.12);
+    border-radius: 12px;
+    background: #fff;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+}
+
+/* mobile: make actions nicer */
+@media (max-width: 768px){
+    .header__actions--app{
+        width:100%;
+        flex-direction:column;
+        align-items:stretch;
+    }
+    .account-chip{
+        align-items:center;
+        text-align:center;
+    }
+    .theme-toggle{ align-self:center; }
+}
 

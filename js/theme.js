@@ -18,7 +18,7 @@
         btn.setAttribute("aria-pressed", String(isDark));
         btn.textContent = isDark ? "☀️" : "🌙";
     }
-
+    
     // apply saved
     const saved = localStorage.getItem(KEY);
     if (saved === "dark" || saved === "light") setTheme(saved);
