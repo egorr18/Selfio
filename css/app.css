@@ -752,6 +752,24 @@ body[data-hide-email="1"][data-page="my-plan"] [data-user-email]:hover{
 .account-chip__email{ font-weight: 500; }
 .account-chip__plan{ font-weight: 800; opacity:.9; }
 
+/* однаковий відступ між колонками (і між групами на мобілці) */
+[data-page="account"] .app__grid {
+    gap: 12px; /* було 18px, робимо менше */
+}
+
+/* однаковий відступ між card всередині кожної колонки */
+[data-page="account"] .account__left,
+[data-page="account"] .account__right {
+    display: grid;
+    gap: 12px;
+}
+
+/* щоб раптом не було зайвих margin у секцій */
+[data-page="account"] .account__left .card,
+[data-page="account"] .account__right .card {
+    margin: 0;
+}
+
 /* theme button */
 .theme-toggle{
     width: 44px;
