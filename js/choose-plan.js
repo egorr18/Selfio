@@ -5,10 +5,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const qs = new URLSearchParams(location.search);
     const mode = (qs.get("mode") || "onboarding").trim().toLowerCase(); // onboarding | upgrade
-    const pref = (qs.get("pref") || "").trim().toLowerCase();
     const nextRaw = (qs.get("next") || "app.html").trim();
 
-    const planBtns = Array.from(document.querySelectorAll("[data-plan]"));
     const toastEl = document.querySelector("[data-plan-toast]");
     const backBtn = document.querySelector("[data-back]");
 
@@ -18,21 +16,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const cancelPayBtn = document.querySelector("[data-cancel-pay]");
 
     const token = localStorage.getItem(TOKEN_KEY);
-
-    // якщо відкрили choose-plan без логіну
     if (!token) {
         location.href = `signin.html?next=${encodeURIComponent("choose-plan.html" + location.search)}`;
         return;
     }
 
     const ALLOWED_BASE = new Set([
-        "app.html",
-        "weekly.html",
-        "habits.html",
-        "account.html",
-        "my-plan.html",
-        "choose-plan.html",
-        "signin.html",
+        "app.html","weekly.html","habits.html","account.html",
+        "my-plan.html","choose-plan.html","signin.html",
     ]);
 
     function normalizePlan(p) {
@@ -92,158 +83,73 @@ document.addEventListener("DOMContentLoaded", () => {
         else location.href = "account.html";
     });
 
-    // ------- API через api.js -------
-    async function apiGetMe() {
-        const r = await window.Selfio.apiFetch("/me", { method: "GET", token });
-        if (r.status === 401) {
-            localStorage.removeItem(TOKEN_KEY);
-            location.href = `signin.html?next=${encodeURIComponent("choose-plan.html" + location.search)}`;
-            return null;
-        }
-        if (!r.ok) throw new Error(r.data?.message || r.data?.error || `GET /me failed: ${r.status}`);
-        return r.data;
-    }
+    // ---- local plan state ----
+    const meEmail = String(localStorage.getItem(EMAIL_KEY) || "").trim().toLowerCase();
+    const perKey = `selfio_plan:${meEmail || "anon"}`;
 
-    async function apiSetPlan(plan) {
-        // план синхронізуємо, але якщо бек лежить — не ламаємо UX
-        const r = await window.Selfio.apiFetch("/plan/select", {
+    let currentPlan = normalizePlan(localStorage.getItem(perKey) || localStorage.getItem(PLAN_KEY) || "");
+    const nextSafe = safeNext(nextRaw);
+
+    // ---- save plan local + try sync backend (non-blocking) ----
+    async function syncPlanBackend(plan) {
+        if (!window.Selfio?.apiFetch) return { ok: false, status: 0 };
+        return await window.Selfio.apiFetch("/plan/select", {
             method: "POST",
             token,
             body: { plan },
         });
-
-        if (r.status === 401) {
-            localStorage.removeItem(TOKEN_KEY);
-            location.href = `signin.html?next=${encodeURIComponent("choose-plan.html" + location.search)}`;
-            return null;
-        }
-
-        return r;
     }
-
-    const planKeyForEmail = (e) => `selfio_plan:${String(e || "anon").trim().toLowerCase()}`;
-
-    function savePlanLocal(email, plan) {
-        const perKey = planKeyForEmail(email);
-        localStorage.setItem(perKey, plan);
-        localStorage.setItem(PLAN_KEY, plan);
-    }
-
-    function paintSelected(selected) {
-        planBtns.forEach((b) => {
-            const p = normalizePlan(b.getAttribute("data-plan"));
-            b.style.outline = (p && p === selected) ? "2px solid rgba(45,106,92,0.45)" : "none";
-        });
-    }
-
-    function disablePlanButtons(disabled) {
-        planBtns.forEach((b) => (b.disabled = !!disabled));
-    }
-
-    let meEmail = String(localStorage.getItem(EMAIL_KEY) || "").trim().toLowerCase();
-    let currentPlan = "";   // з бекенду
-    let selected = normalizePlan(pref);
 
     async function applyPlanAndGo(plan) {
-        const nextSafe = safeNext(nextRaw);
-        disablePlanButtons(true);
+        // 1) local save
+        localStorage.setItem(perKey, plan);
+        localStorage.setItem(PLAN_KEY, plan);
 
-        // 1) завжди зберігаємо локально одразу (це головне)
-        savePlanLocal(meEmail, plan);
-
-        // 2) пробуємо синхронізувати з беком (але НЕ блокуємо редірект)
+        // 2) sync (optional)
         try {
             toast("Saving plan...");
-            const r = await apiSetPlan(plan);
-            if (!r || !r.ok) {
-                toast("Saved locally (backend sync failed).");
-            } else {
-                toast(`Plan saved: ${plan.toUpperCase()}`);
+            const r = await syncPlanBackend(plan);
+            if (r?.status === 401) {
+                localStorage.removeItem(TOKEN_KEY);
+                location.href = `signin.html?next=${encodeURIComponent("choose-plan.html" + location.search)}`;
+                return;
             }
-        } catch (e) {
-            console.error(e);
-            toast("Saved locally (backend unreachable).");
-        }
+            // навіть якщо не ok — ми все одно йдемо далі
+        } catch {}
 
-        // 3) редірект
+        // 3) go next
         location.href = nextSafe;
     }
 
-    function lockCurrentPlanInUpgrade() {
-        if (mode !== "upgrade") return;
-        planBtns.forEach((b) => {
-            const p = normalizePlan(b.getAttribute("data-plan"));
-            if (p && p === currentPlan) {
-                b.disabled = true;
-                b.title = "Current plan";
-            }
-        });
-    }
+    // ---- Click handling (event delegation) ----
+    document.addEventListener("click", async (e) => {
+        const el = e.target.closest("[data-plan]");
+        if (!el) return;
 
-    async function init() {
-        try {
-            const me = await apiGetMe();
-            if (!me) return;
+        // якщо це <a>, прибираємо дефолтний перехід
+        e.preventDefault();
 
-            meEmail = String(me.email || "").trim().toLowerCase();
-            currentPlan = normalizePlan(me.plan);
+        const p = normalizePlan(el.getAttribute("data-plan"));
+        if (!p) return;
 
-            localStorage.setItem(EMAIL_KEY, meEmail);
-            if (currentPlan) savePlanLocal(meEmail, currentPlan);
-
-            lockCurrentPlanInUpgrade();
-
-            if (selected) paintSelected(selected);
-        } catch (e) {
-            console.error(e);
-            // якщо бек недоступний — все одно дозволяємо вибір
-            toast("Backend not reachable. You can still pick a plan locally.");
-        }
-    }
-
-    planBtns.forEach((b) => {
-        b.addEventListener("click", async () => {
-            if (b.disabled) return;
-
-            const p = normalizePlan(b.getAttribute("data-plan"));
-            if (!p) return;
-
-            selected = p;
-            paintSelected(selected);
-
-            // ✅ ГОЛОВНИЙ ФІКС:
-            // onboarding — завжди дозволяємо вибрати навіть якщо currentPlan вже "free"
-            if (mode !== "upgrade") {
-                if (p === "free") {
-                    await applyPlanAndGo("free");
-                    return;
-                }
-
-                showPaywall(`${p.toUpperCase()} selected. Payment required (demo).`);
-                payBtn && (payBtn.onclick = async () => {
-                    hidePaywall();
-                    await applyPlanAndGo(p);
-                });
-                return;
-            }
-
-            // -------- UPGRADE MODE логіка --------
+        // UPGRADE MODE
+        if (mode === "upgrade") {
             if (currentPlan && p === currentPlan) {
                 toast("Current plan");
                 return;
             }
 
-            const currentRank = rank(currentPlan);
-            const selRank = rank(p);
+            const cur = rank(currentPlan);
+            const sel = rank(p);
 
-            // downgrade -> одразу
-            if (selRank < currentRank) {
+            // downgrade / same -> одразу
+            if (sel <= cur) {
                 await applyPlanAndGo(p);
                 return;
             }
 
-            // upgrade paid -> paywall
-            if (selRank > currentRank && isPaid(p)) {
+            // upgrade to paid -> paywall
+            if (sel > cur && isPaid(p)) {
                 showPaywall(`Upgrade to ${p.toUpperCase()} — payment required (demo).`);
                 payBtn && (payBtn.onclick = async () => {
                     hidePaywall();
@@ -252,9 +158,20 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            toast("No changes");
+            await applyPlanAndGo(p);
+            return;
+        }
+
+        // ONBOARDING MODE (після реєстрації)
+        if (p === "free") {
+            await applyPlanAndGo("free");
+            return;
+        }
+
+        showPaywall(`${p.toUpperCase()} selected. Payment required (demo).`);
+        payBtn && (payBtn.onclick = async () => {
+            hidePaywall();
+            await applyPlanAndGo(p);
         });
     });
-
-    init();
 });
