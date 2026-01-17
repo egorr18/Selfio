@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strings"
 
+	"backend/internal/middleware"
 	"backend/internal/services"
 )
 
@@ -134,6 +135,70 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+type changePasswordRequest struct {
+	CurrentPassword string `json:"current_password"`
+	NewPassword     string `json:"new_password"`
+}
+
+func (h *AuthHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+	if r.Method != http.MethodPost {
+		writeJSON(w, http.StatusMethodNotAllowed, apiError{Error: "method_not_allowed"})
+		return
+	}
+
+	userID, ok := middleware.UserIDFromContext(r.Context())
+	if !ok {
+		writeJSON(w, http.StatusUnauthorized, apiError{Error: "unauthorized"})
+		return
+	}
+
+	var req changePasswordRequest
+	dec := json.NewDecoder(r.Body)
+	dec.DisallowUnknownFields()
+
+	if err := dec.Decode(&req); err != nil {
+		writeJSON(w, http.StatusBadRequest, apiError{Error: "bad_request", Message: "invalid request body"})
+		return
+	}
+
+	req.CurrentPassword = strings.TrimSpace(req.CurrentPassword)
+	req.NewPassword = strings.TrimSpace(req.NewPassword)
+
+	if req.CurrentPassword == "" || req.NewPassword == "" {
+		writeJSON(w, http.StatusBadRequest, apiError{Error: "bad_request", Message: "current and new password are required"})
+		return
+	}
+	if len(req.NewPassword) < 6 {
+		writeJSON(w, http.StatusBadRequest, apiError{Error: "bad_request", Message: "new password too short"})
+		return
+	}
+	if req.NewPassword == req.CurrentPassword {
+		writeJSON(w, http.StatusBadRequest, apiError{Error: "bad_request", Message: "new password must be different"})
+		return
+	}
+
+	if err := h.authService.ChangePassword(r.Context(), userID, req.CurrentPassword, req.NewPassword); err != nil {
+		switch {
+		case errors.Is(err, services.ErrInvalidCredentials):
+			writeJSON(w, http.StatusUnauthorized, apiError{Error: "invalid_credentials", Message: "current password is incorrect"})
+			return
+		case errors.Is(err, services.ErrUserNotFound):
+			writeJSON(w, http.StatusNotFound, apiError{Error: "user_not_found", Message: "user not found"})
+			return
+		default:
+			log.Printf("[auth/change-password] error: %v", err)
+			writeJSON(w, http.StatusInternalServerError, apiError{Error: "internal_error"})
+			return
+		}
+	}
+
+	writeJSON(w, http.StatusOK, map[string]any{"ok": true})
+}
+
 func decodeAuthRequest(w http.ResponseWriter, r *http.Request) (authRequest, bool) {
 	var req authRequest
 
@@ -153,7 +218,6 @@ func decodeAuthRequest(w http.ResponseWriter, r *http.Request) (authRequest, boo
 		return authRequest{}, false
 	}
 
-	// Можеш поставити мін довжину
 	if len(req.Password) < 6 {
 		writeJSON(w, http.StatusBadRequest, apiError{Error: "bad_request", Message: "password too short"})
 		return authRequest{}, false

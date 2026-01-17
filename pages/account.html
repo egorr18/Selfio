@@ -107,13 +107,30 @@
 
                 <section class="card">
                     <h2>Security</h2>
-                    <p class="mini">Password change will be added later.</p>
+                    <p class="mini">Change your password for your account.</p>
 
-                    <div class="actions">
-                        <button class="btn btn--secondary" type="button" disabled aria-disabled="true">
-                            Change password (soon)
-                        </button>
-                    </div>
+                    <form class="account__pw" data-change-password>
+                        <div class="account__field">
+                            <label class="account__label" for="pw-current">Current password</label>
+                            <input id="pw-current" class="text" type="password" autocomplete="current-password" required />
+                        </div>
+
+                        <div class="account__field">
+                            <label class="account__label" for="pw-new">New password</label>
+                            <input id="pw-new" class="text" type="password" autocomplete="new-password" minlength="6" required />
+                        </div>
+
+                        <div class="account__field">
+                            <label class="account__label" for="pw-confirm">Confirm new password</label>
+                            <input id="pw-confirm" class="text" type="password" autocomplete="new-password" minlength="6" required />
+                        </div>
+
+                        <div class="actions">
+                            <button class="btn btn--primary" type="submit" data-save-password>Save password</button>
+                        </div>
+
+                        <p class="mini" data-password-msg></p>
+                    </form>
                 </section>
 
                 <section class="card">
@@ -173,6 +190,7 @@
 <script src="../js/nav.js" defer></script>
 <script src="../js/app.js" defer></script>
 <script src="../js/theme.js" defer></script>
+<script src="../js/api.js" defer></script>
 <script src="../js/account.js" defer></script>
 </body>
 </html>

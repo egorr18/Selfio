@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"errors"
-	"strings"
 
 	"backend/internal/models"
 	"backend/internal/repository"
@@ -12,51 +11,44 @@ import (
 )
 
 var (
-	ErrUserNotFound       = errors.New("user_not_found")
-	ErrInvalidCredentials = errors.New("invalid_credentials")
-	ErrUserAlreadyExists  = errors.New("user_already_exists")
+	ErrUserAlreadyExists  = errors.New("user already exists")
+	ErrUserNotFound       = errors.New("user not found")
+	ErrInvalidCredentials = errors.New("invalid credentials")
 )
 
 type AuthService struct {
-	repo repository.UserRepository // НЕ *repository.UserRepository
+	userRepo repository.UserRepository
 }
 
-func NewAuthService(repo repository.UserRepository) *AuthService { // НЕ *repository.UserRepository
-	return &AuthService{repo: repo}
+func NewAuthService(userRepo repository.UserRepository) *AuthService {
+	return &AuthService{userRepo: userRepo}
 }
 
 func (s *AuthService) Register(ctx context.Context, email, password string) (*models.User, error) {
-	email = strings.TrimSpace(strings.ToLower(email))
-
-	// 1) Перевірка чи існує
-	_, err := s.repo.GetByEmail(ctx, email)
-	if err == nil {
+	// if exists -> conflict
+	if _, err := s.userRepo.GetByEmail(ctx, email); err == nil {
 		return nil, ErrUserAlreadyExists
-	}
-	if err != nil && !errors.Is(err, repository.ErrUserNotFound) {
-		// реальна помилка БД (міграції/схема/конект) — НЕ маскуємо
-		return nil, err
+	} else {
+		if !errors.Is(err, repository.ErrUserNotFound) {
+			// real error
+			return nil, err
+		}
 	}
 
-	// 2) Створюємо
-	hash, err := HashPassword(password)
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, err
 	}
 
-	user, err := s.repo.Create(ctx, email, hash)
+	u, err := s.userRepo.Create(ctx, email, string(hash))
 	if err != nil {
-		// тут може бути race-condition (дуже рідко), але хоча б не маскуємо все під 409
 		return nil, err
 	}
-
-	return user, nil
+	return u, nil
 }
 
 func (s *AuthService) Login(ctx context.Context, email, password string) (*models.User, error) {
-	email = strings.TrimSpace(strings.ToLower(email))
-
-	user, err := s.repo.GetByEmail(ctx, email)
+	u, err := s.userRepo.GetByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, repository.ErrUserNotFound) {
 			return nil, ErrUserNotFound
@@ -64,20 +56,38 @@ func (s *AuthService) Login(ctx context.Context, email, password string) (*model
 		return nil, err
 	}
 
-	if err := CheckPassword(password, user.PasswordHash); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password)); err != nil {
 		return nil, ErrInvalidCredentials
 	}
 
-	return user, nil
+	return u, nil
 }
 
-// helpers
+// NEW: change password
+func (s *AuthService) ChangePassword(ctx context.Context, userID int64, currentPassword, newPassword string) error {
+	u, err := s.userRepo.GetByID(ctx, userID)
+	if err != nil {
+		if errors.Is(err, repository.ErrUserNotFound) {
+			return ErrUserNotFound
+		}
+		return err
+	}
 
-func HashPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	return string(bytes), err
-}
+	if err := bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(currentPassword)); err != nil {
+		return ErrInvalidCredentials
+	}
 
-func CheckPassword(password, hash string) error {
-	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	hash, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	if err := s.userRepo.UpdatePasswordHash(ctx, userID, string(hash)); err != nil {
+		if errors.Is(err, repository.ErrUserNotFound) {
+			return ErrUserNotFound
+		}
+		return err
+	}
+
+	return nil
 }

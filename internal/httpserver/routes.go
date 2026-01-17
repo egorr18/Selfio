@@ -31,4 +31,7 @@ func registerRoutes(
 	mux.Handle("/profile", middleware.AuthMiddleware(jwtService)(http.HandlerFunc(handlers.Profile)))
 	mux.Handle("/me", middleware.AuthMiddleware(jwtService)(http.HandlerFunc(meHandler.Me)))
 	mux.Handle("/plan/select", middleware.AuthMiddleware(jwtService)(http.HandlerFunc(meHandler.SelectPlan)))
+
+	// NEW: change password
+	mux.Handle("/auth/change-password", middleware.AuthMiddleware(jwtService)(http.HandlerFunc(authHandler.ChangePassword)))
 }

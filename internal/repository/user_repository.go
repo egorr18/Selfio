@@ -17,6 +17,8 @@ type UserRepository interface {
 
 	GetByID(ctx context.Context, id int64) (*models.User, error)
 	SetPlan(ctx context.Context, id int64, plan string) error
+
+	UpdatePasswordHash(ctx context.Context, id int64, passwordHash string) error
 }
 
 type PostgresUserRepository struct {
@@ -97,7 +99,21 @@ func (r *PostgresUserRepository) SetPlan(ctx context.Context, id int64, plan str
 	if err == nil && n == 0 {
 		return ErrUserNotFound
 	}
-	return nil
+	return err
+}
+
+func (r *PostgresUserRepository) UpdatePasswordHash(ctx context.Context, id int64, passwordHash string) error {
+	query := `UPDATE users SET password_hash = $1 WHERE id = $2`
+	res, err := r.db.ExecContext(ctx, query, passwordHash, id)
+	if err != nil {
+		return err
+	}
+
+	n, err := res.RowsAffected()
+	if err == nil && n == 0 {
+		return ErrUserNotFound
+	}
+	return err
 }
 
 // DTO для адмінки
