@@ -736,6 +736,16 @@ body[data-hide-email="1"][data-page="my-plan"] [data-user-email]:hover{
     color: var(--green, #2D6A5C);
 }
 
+/* ===== Account: Profile helpers ===== */
+.account__row--compact{
+    align-items:center;
+}
+
+[data-copy-toast]{
+    margin-top: 8px;
+    opacity: .75;
+}
+
 /* header chip */
 .header__actions--app{
     display:flex;

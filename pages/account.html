@@ -60,13 +60,32 @@
                 <section class="card">
                     <h2>Profile</h2>
 
+                    <!-- Name -->
                     <div class="account__field">
-                        <label class="account__label" for="acc-email">Email</label>
-                        <input id="acc-email" class="text" type="email" autocomplete="email" readonly
-                               value="" data-account-email />
+                        <label class="account__label" for="acc-name">Name</label>
+                        <input id="acc-name" class="text" type="text" autocomplete="name"
+                               placeholder="Your name" value="" data-account-name />
+                        <p class="mini">Used for a more personal experience (optional).</p>
                     </div>
 
-                    <p class="mini">Email is read-only for now.</p>
+                    <!-- Email + copy -->
+                    <div class="account__field">
+                        <div class="account__row account__row--compact">
+                            <label class="account__label" for="acc-email" style="margin:0;">Email</label>
+
+                            <button class="btn btn--ghost btn--sm" type="button" data-copy-email>
+                                Copy
+                            </button>
+                        </div>
+
+                        <input id="acc-email" class="text" type="email" autocomplete="email" readonly
+                               value="" data-account-email />
+
+                        <p class="mini">Email is read-only for now.</p>
+                        <p class="mini" data-copy-toast style="display:none;"></p>
+                    </div>
+
+                    <p class="mini">Member since: <b data-member-since>—</b></p>
                 </section>
 
                 <section class="card">
