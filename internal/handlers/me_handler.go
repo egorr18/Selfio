@@ -23,7 +23,7 @@ func NewMeHandler(repo repository.UserRepository) *MeHandler {
 type meResponse struct {
 	ID        int64  `json:"id"`
 	Email     string `json:"email"`
-	Plan      string `json:"plan"` // "" якщо не вибрано
+	Plan      string `json:"plan"`
 	CreatedAt string `json:"created_at"`
 }
 
@@ -60,7 +60,9 @@ func (h *MeHandler) SelectPlan(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req selectPlanRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	dec := json.NewDecoder(r.Body)
+	dec.DisallowUnknownFields()
+	if err := dec.Decode(&req); err != nil {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
 		return
 	}
@@ -81,7 +83,8 @@ func (h *MeHandler) SelectPlan(w http.ResponseWriter, r *http.Request) {
 
 // -------------------- DELETE ACCOUNT --------------------
 
-type deleteMeRequest struct {
+// ВАЖЛИВО: назва інша, щоб не було "redeclared"
+type deleteAccountRequest struct {
 	Password string `json:"password"`
 }
 
@@ -101,20 +104,21 @@ func (h *MeHandler) DeleteMe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req deleteMeRequest
+	var req deleteAccountRequest
 	dec := json.NewDecoder(r.Body)
 	dec.DisallowUnknownFields()
 	if err := dec.Decode(&req); err != nil {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
 		return
 	}
+
 	req.Password = strings.TrimSpace(req.Password)
 	if req.Password == "" {
 		http.Error(w, "password is required", http.StatusBadRequest)
 		return
 	}
 
-	// 1) беремо юзера з БД
+	// 1) беремо юзера
 	u, err := h.repo.GetByID(r.Context(), userID)
 	if err != nil {
 		http.Error(w, "user not found", http.StatusNotFound)
