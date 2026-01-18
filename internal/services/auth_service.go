@@ -24,6 +24,26 @@ func NewAuthService(userRepo repository.UserRepository) *AuthService {
 	return &AuthService{userRepo: userRepo}
 }
 
+func (s *AuthService) GetByID(ctx context.Context, id int64) (*models.User, error) {
+	return s.userRepo.GetByID(ctx, id) // якщо в тебе поле називається інакше — заміни
+}
+
+func (s *AuthService) DeleteAccount(ctx context.Context, id int64, currentPassword string) error {
+	u, err := s.userRepo.GetByID(ctx, id)
+	if err != nil {
+		if err == repository.ErrUserNotFound {
+			return ErrUserNotFound // якщо в тебе інша помилка — підстав свою
+		}
+		return err
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(currentPassword)); err != nil {
+		return ErrInvalidCredentials
+	}
+
+	return s.userRepo.DeleteByID(ctx, id)
+}
+
 func (s *AuthService) Register(ctx context.Context, email, password string) (*models.User, error) {
 	// if exists -> conflict
 	if _, err := s.userRepo.GetByEmail(ctx, email); err == nil {

@@ -19,6 +19,8 @@ type UserRepository interface {
 	SetPlan(ctx context.Context, id int64, plan string) error
 
 	UpdatePasswordHash(ctx context.Context, id int64, passwordHash string) error
+
+	DeleteByID(ctx context.Context, id int64) error
 }
 
 type PostgresUserRepository struct {
@@ -44,6 +46,20 @@ func (r *PostgresUserRepository) Create(ctx context.Context, email string, passw
 	}
 
 	return &user, nil
+}
+
+func (r *PostgresUserRepository) DeleteByID(ctx context.Context, id int64) error {
+	query := `DELETE FROM users WHERE id = $1`
+	res, err := r.db.ExecContext(ctx, query, id)
+	if err != nil {
+		return err
+	}
+
+	n, err := res.RowsAffected()
+	if err == nil && n == 0 {
+		return ErrUserNotFound
+	}
+	return nil
 }
 
 func (r *PostgresUserRepository) GetByEmail(ctx context.Context, email string) (*models.User, error) {

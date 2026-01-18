@@ -168,4 +168,95 @@ document.addEventListener("DOMContentLoaded", () => {
             window.Selfio?.toast?.("Password updated", "success");
         });
     }
+
+    // ===== Data: export + delete =====
+    document.addEventListener("DOMContentLoaded", () => {
+        const TOKEN_KEY = "selfio_token";
+        const EMAIL_KEY = "selfio_email";
+        const PLAN_KEY  = "selfio_plan";
+
+        const token = localStorage.getItem(TOKEN_KEY);
+        const exportBtn = document.querySelector("[data-export]");
+        const deleteBtn = document.querySelector("[data-delete]");
+
+        if (!exportBtn && !deleteBtn) return;
+
+        const apiFetch = window.Selfio?.apiFetch;
+        const toast = window.Selfio?.toast || ((m) => alert(m));
+
+        async function safeApi(path, opts) {
+            if (!apiFetch) throw new Error("api.js is not loaded");
+            const res = await apiFetch(path, opts);
+            if (res.status === 401) {
+                localStorage.removeItem(TOKEN_KEY);
+                location.href = `signin.html?next=${encodeURIComponent("account.html")}`;
+                return null;
+            }
+            if (!res.ok) {
+                throw new Error(res.data?.message || res.data?.error || `Request failed: ${res.status}`);
+            }
+            return res.data;
+        }
+
+        exportBtn?.addEventListener("click", async () => {
+            if (!token) {
+                location.href = `signin.html?next=${encodeURIComponent("account.html")}`;
+                return;
+            }
+
+            try {
+                toast("Preparing export...");
+                const data = await safeApi("/account/export", { token });
+                if (!data) return;
+
+                const json = JSON.stringify(data, null, 2);
+                const blob = new Blob([json], { type: "application/json" });
+
+                const a = document.createElement("a");
+                a.href = URL.createObjectURL(blob);
+                const d = new Date().toISOString().slice(0, 10);
+                a.download = `selfio-export-${d}.json`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(a.href);
+
+                toast("Export downloaded.");
+            } catch (e) {
+                console.error(e);
+                toast(e.message || "Export failed");
+            }
+        });
+
+        deleteBtn?.addEventListener("click", async () => {
+            if (!token) {
+                location.href = `signin.html?next=${encodeURIComponent("account.html")}`;
+                return;
+            }
+
+            const ok = confirm("This will permanently delete your account. Continue?");
+            if (!ok) return;
+
+            const pwd = prompt("Enter your current password to confirm deletion:");
+            if (!pwd) return;
+
+            try {
+                toast("Deleting account...");
+                await safeApi("/account/delete", { method: "POST", token, body: { password: pwd } });
+
+                // clear local
+                const email = (localStorage.getItem(EMAIL_KEY) || "").trim().toLowerCase();
+                if (email) localStorage.removeItem(`selfio_plan:${email}`);
+                localStorage.removeItem(TOKEN_KEY);
+                localStorage.removeItem(EMAIL_KEY);
+                localStorage.removeItem(PLAN_KEY);
+
+                toast("Account deleted.");
+                location.href = "../index.html";
+            } catch (e) {
+                console.error(e);
+                toast(e.message || "Delete failed");
+            }
+        });
+    });
 });

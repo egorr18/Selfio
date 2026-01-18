@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"backend/internal/middleware"
 	"backend/internal/services"
@@ -231,4 +232,80 @@ func writeJSON(w http.ResponseWriter, status int, data any) {
 	w.Header().Set("Cache-Control", "no-store")
 	w.WriteHeader(status)
 	_ = json.NewEncoder(w).Encode(data)
+}
+
+type deleteMeRequest struct {
+	Password string `json:"password"`
+}
+
+func (h *AuthHandler) Export(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+	if r.Method != http.MethodGet {
+		writeJSON(w, http.StatusMethodNotAllowed, apiError{Error: "method_not_allowed"})
+		return
+	}
+
+	userID, ok := middleware.UserIDFromContext(r.Context())
+	if !ok {
+		writeJSON(w, http.StatusUnauthorized, apiError{Error: "unauthorized"})
+		return
+	}
+
+	u, err := h.authService.GetByID(r.Context(), userID)
+	if err != nil {
+		log.Printf("[account/export] error: %v", err)
+		writeJSON(w, http.StatusInternalServerError, apiError{Error: "internal_error"})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]any{
+		"exported_at": time.Now().UTC(),
+		"user": map[string]any{
+			"id":         u.ID,
+			"email":      u.Email,
+			"plan":       u.Plan,
+			"created_at": u.CreatedAt,
+		},
+	})
+}
+
+func (h *AuthHandler) DeleteMe(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+	if r.Method != http.MethodPost {
+		writeJSON(w, http.StatusMethodNotAllowed, apiError{Error: "method_not_allowed"})
+		return
+	}
+
+	userID, ok := middleware.UserIDFromContext(r.Context())
+	if !ok {
+		writeJSON(w, http.StatusUnauthorized, apiError{Error: "unauthorized"})
+		return
+	}
+
+	var req deleteMeRequest
+	dec := json.NewDecoder(r.Body)
+	dec.DisallowUnknownFields()
+	if err := dec.Decode(&req); err != nil || strings.TrimSpace(req.Password) == "" {
+		writeJSON(w, http.StatusBadRequest, apiError{Error: "bad_request", Message: "password is required"})
+		return
+	}
+
+	err := h.authService.DeleteAccount(r.Context(), userID, strings.TrimSpace(req.Password))
+	if err != nil {
+		if errors.Is(err, services.ErrInvalidCredentials) {
+			writeJSON(w, http.StatusUnauthorized, apiError{Error: "invalid_credentials", Message: "invalid password"})
+			return
+		}
+		log.Printf("[account/delete] error: %v", err)
+		writeJSON(w, http.StatusInternalServerError, apiError{Error: "internal_error"})
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
