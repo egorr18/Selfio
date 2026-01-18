@@ -60,7 +60,6 @@
                 <section class="card">
                     <h2>Profile</h2>
 
-                    <!-- Name -->
                     <div class="account__field">
                         <label class="account__label" for="acc-name">Name</label>
                         <input id="acc-name" class="text" type="text" autocomplete="name"
@@ -68,19 +67,14 @@
                         <p class="mini">Used for a more personal experience (optional).</p>
                     </div>
 
-                    <!-- Email + copy -->
                     <div class="account__field">
                         <div class="account__row account__row--compact">
                             <label class="account__label" for="acc-email" style="margin:0;">Email</label>
-
-                            <button class="btn btn--ghost btn--sm" type="button" data-copy-email>
-                                Copy
-                            </button>
+                            <button class="btn btn--ghost btn--sm" type="button" data-copy-email>Copy</button>
                         </div>
 
                         <input id="acc-email" class="text" type="email" autocomplete="email" readonly
                                value="" data-account-email />
-
                         <p class="mini">Email is read-only for now.</p>
                         <p class="mini" data-copy-toast style="display:none;"></p>
                     </div>
@@ -97,7 +91,6 @@
                             <div class="mini" data-theme-label>—</div>
                         </div>
 
-                        <!-- цей самий toggle, щоб theme.js працював однаково -->
                         <button class="btn btn--secondary btn--sm" type="button"
                                 data-theme-toggle aria-label="Toggle theme" aria-pressed="false">
                             Toggle theme
@@ -109,27 +102,24 @@
                     <h2>Security</h2>
                     <p class="mini">Change your password for your account.</p>
 
-                    <form class="account__pw" data-change-password>
-                        <div class="account__field">
-                            <label class="account__label" for="pw-current">Current password</label>
-                            <input id="pw-current" class="text" type="password" autocomplete="current-password" required />
+                    <form class="account__form" data-pass-form>
+                        <label class="account__label" for="acc-pass-current">Current password</label>
+                        <input id="acc-pass-current" class="text" type="password" autocomplete="current-password"
+                               data-pass-current required />
+
+                        <label class="account__label" for="acc-pass-new">New password</label>
+                        <input id="acc-pass-new" class="text" type="password" autocomplete="new-password"
+                               data-pass-new required />
+
+                        <label class="account__label" for="acc-pass-confirm">Confirm new password</label>
+                        <input id="acc-pass-confirm" class="text" type="password" autocomplete="new-password"
+                               data-pass-confirm required />
+
+                        <div class="actions" style="margin-top:12px;">
+                            <button class="btn btn--primary" type="submit" data-pass-save>Save password</button>
                         </div>
 
-                        <div class="account__field">
-                            <label class="account__label" for="pw-new">New password</label>
-                            <input id="pw-new" class="text" type="password" autocomplete="new-password" minlength="6" required />
-                        </div>
-
-                        <div class="account__field">
-                            <label class="account__label" for="pw-confirm">Confirm new password</label>
-                            <input id="pw-confirm" class="text" type="password" autocomplete="new-password" minlength="6" required />
-                        </div>
-
-                        <div class="actions">
-                            <button class="btn btn--primary" type="submit" data-save-password>Save password</button>
-                        </div>
-
-                        <p class="mini" data-password-msg></p>
+                        <p class="mini" data-pass-msg aria-live="polite" style="margin-top:10px; display:none;"></p>
                     </form>
                 </section>
 
@@ -137,19 +127,15 @@
                     <h2>Data</h2>
                     <p class="mini">Export and delete options.</p>
 
-                    <div class="actions">
-                        <button class="btn btn--secondary" type="button" data-export>
-                            Export data
-                        </button>
-
-                        <button class="btn btn--secondary" type="button" data-delete>
-                            Delete account
-                        </button>
+                    <div class="actions" style="margin-top:12px;">
+                        <button class="btn btn--secondary" type="button" data-export>Export data</button>
+                        <button class="btn btn--secondary" type="button" data-delete>Delete account</button>
                     </div>
 
-                    <p class="mini">Delete requires your current password.</p>
+                    <p class="mini" style="margin-top:10px;">Delete requires your current password.</p>
+                    <input class="text" type="password" autocomplete="current-password"
+                           placeholder="Current password" data-delete-password />
                 </section>
-
             </div>
 
             <!-- RIGHT -->
@@ -174,6 +160,8 @@
                     <div class="mini" data-plan-perks style="margin-top:6px;">—</div>
 
                     <div class="actions" style="margin-top:12px;">
+                        <!-- Якщо не хочеш 2 Upgrade — просто видали цей -->
+                        <a class="btn btn--primary" href="choose-plan.html?mode=upgrade&next=account.html">Upgrade</a>
                         <a class="btn btn--secondary" href="weekly.html">Open Weekly</a>
                     </div>
                 </section>
@@ -191,9 +179,9 @@
 </main>
 
 <script src="../js/nav.js" defer></script>
+<script src="../js/api.js" defer></script>
 <script src="../js/app.js" defer></script>
 <script src="../js/theme.js" defer></script>
-<script src="../js/api.js" defer></script>
 <script src="../js/account.js" defer></script>
 </body>
 </html>
