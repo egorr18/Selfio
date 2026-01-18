@@ -35,7 +35,8 @@ func registerRoutes(
 
 	// NEW: account data
 	mux.Handle("/account/export", middleware.AuthMiddleware(jwtService)(http.HandlerFunc(authHandler.Export)))
-	mux.Handle("/account/delete", middleware.AuthMiddleware(jwtService)(http.HandlerFunc(authHandler.DeleteMe)))
+
+	mux.Handle("/account/delete", middleware.AuthMiddleware(jwtService)(http.HandlerFunc(meHandler.DeleteMe)))
 
 	// NEW: change password
 	mux.Handle("/auth/change-password", middleware.AuthMiddleware(jwtService)(http.HandlerFunc(authHandler.ChangePassword)))
