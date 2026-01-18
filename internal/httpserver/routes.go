@@ -31,6 +31,7 @@ func registerRoutes(
 	mux.Handle("/profile", middleware.AuthMiddleware(jwtService)(http.HandlerFunc(handlers.Profile)))
 	mux.Handle("/me", middleware.AuthMiddleware(jwtService)(http.HandlerFunc(meHandler.Me)))
 	mux.Handle("/plan/select", middleware.AuthMiddleware(jwtService)(http.HandlerFunc(meHandler.SelectPlan)))
+	mux.Handle("/me/delete", middleware.AuthMiddleware(jwtService)(http.HandlerFunc(meHandler.DeleteMe)))
 
 	// NEW: account data
 	mux.Handle("/account/export", middleware.AuthMiddleware(jwtService)(http.HandlerFunc(authHandler.Export)))

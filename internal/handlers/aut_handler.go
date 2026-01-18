@@ -234,10 +234,6 @@ func writeJSON(w http.ResponseWriter, status int, data any) {
 	_ = json.NewEncoder(w).Encode(data)
 }
 
-type deleteMeRequest struct {
-	Password string `json:"password"`
-}
-
 func (h *AuthHandler) Export(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusNoContent)
