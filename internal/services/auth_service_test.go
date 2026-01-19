@@ -6,6 +6,8 @@ import (
 
 	"backend/internal/models"
 	"backend/internal/repository"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 //
@@ -13,17 +15,19 @@ import (
 //
 
 type mockUserRepository struct {
-	createFn     func(ctx context.Context, email, passwordHash string) (*models.User, error)
-	getByEmailFn func(ctx context.Context, email string) (*models.User, error)
-	getByIDFn    func(ctx context.Context, id int64) (*models.User, error)
-	setPlanFn    func(ctx context.Context, id int64, plan string) error
+	createFn             func(ctx context.Context, email, passwordHash string) (*models.User, error)
+	getByEmailFn         func(ctx context.Context, email string) (*models.User, error)
+	getByIDFn            func(ctx context.Context, id int64) (*models.User, error)
+	setPlanFn            func(ctx context.Context, id int64, plan string) error
+	deleteByIDFn         func(ctx context.Context, id int64) error
+	updatePasswordHashFn func(ctx context.Context, id int64, passwordHash string) error
 }
 
 var _ repository.UserRepository = (*mockUserRepository)(nil)
 
 func (m *mockUserRepository) Create(ctx context.Context, email, passwordHash string) (*models.User, error) {
 	if m.createFn == nil {
-		return &models.User{ID: 1, Email: email}, nil
+		return &models.User{ID: 1, Email: email, PasswordHash: passwordHash}, nil
 	}
 	return m.createFn(ctx, email, passwordHash)
 }
@@ -49,6 +53,20 @@ func (m *mockUserRepository) SetPlan(ctx context.Context, id int64, plan string)
 	return m.setPlanFn(ctx, id, plan)
 }
 
+func (m *mockUserRepository) DeleteByID(ctx context.Context, id int64) error {
+	if m.deleteByIDFn == nil {
+		return nil
+	}
+	return m.deleteByIDFn(ctx, id)
+}
+
+func (m *mockUserRepository) UpdatePasswordHash(ctx context.Context, id int64, passwordHash string) error {
+	if m.updatePasswordHashFn == nil {
+		return nil
+	}
+	return m.updatePasswordHashFn(ctx, id, passwordHash)
+}
+
 //
 // TESTS
 //
@@ -60,7 +78,7 @@ func TestAuthService_Register_Success(t *testing.T) {
 			return nil, repository.ErrUserNotFound
 		},
 		createFn: func(ctx context.Context, email, passwordHash string) (*models.User, error) {
-			return &models.User{ID: 1, Email: email}, nil
+			return &models.User{ID: 1, Email: email, PasswordHash: passwordHash}, nil
 		},
 	}
 
@@ -95,7 +113,8 @@ func TestAuthService_Register_UserAlreadyExists(t *testing.T) {
 }
 
 func TestAuthService_Login_InvalidPassword(t *testing.T) {
-	hashed, _ := HashPassword("correct-password")
+	hashedBytes, _ := bcrypt.GenerateFromPassword([]byte("correct-password"), bcrypt.DefaultCost)
+	hashed := string(hashedBytes)
 
 	repo := &mockUserRepository{
 		getByEmailFn: func(ctx context.Context, email string) (*models.User, error) {
@@ -131,6 +150,7 @@ func TestAuthService_Login_UserNotFound(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
+	// У твоїй реалізації Login, скоріше за все, повертає ErrInvalidCredentials для "not found"
 	if err != ErrInvalidCredentials {
 		t.Fatalf("expected ErrInvalidCredentials, got %v", err)
 	}
