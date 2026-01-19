@@ -2,28 +2,16 @@ name: CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
+
+permissions:
+  contents: read
 
 jobs:
   go-test:
     runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_DB: selfio_db
-          POSTGRES_USER: selfio
-          POSTGRES_PASSWORD: selfio_pass
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd="pg_isready -U selfio -d selfio_db"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=10
 
     steps:
       - name: Checkout
@@ -42,43 +30,16 @@ jobs:
       - name: Go vet
         run: go vet ./...
 
-      - name: Install psql client
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y postgresql-client
-
-      - name: Run migrations
-        env:
-          PGPASSWORD: selfio_pass
-        run: |
-          for f in migrations/*.sql; do
-            echo "Applying $f"
-            psql -h localhost -U selfio -d selfio_db -f "$f"
-          done
-
-      # твої тести/код читають змінні БД — ці env допоможуть.
       - name: Go test
-        env:
-          POSTGRES_DB: selfio_db
-          POSTGRES_USER: selfio
-          POSTGRES_PASSWORD: selfio_pass
-          POSTGRES_HOST: localhost
-          POSTGRES_PORT: "5432"
-          DATABASE_URL: "postgres://selfio:selfio_pass@localhost:5432/selfio_db?sslmode=disable"
         run: go test ./...
 
       - name: Build server
-        env:
-          POSTGRES_DB: selfio_db
-          POSTGRES_USER: selfio
-          POSTGRES_PASSWORD: selfio_pass
-          POSTGRES_HOST: localhost
-          POSTGRES_PORT: "5432"
-          DATABASE_URL: "postgres://selfio:selfio_pass@localhost:5432/selfio_db?sslmode=disable"
         run: go build -o app ./cmd/server
 
   docker-build:
     runs-on: ubuntu-latest
+    needs: go-test
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
