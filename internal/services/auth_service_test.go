@@ -10,10 +10,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-//
-// MOCK REPOSITORY
-//
-
 type mockUserRepository struct {
 	createFn             func(ctx context.Context, email, passwordHash string) (*models.User, error)
 	getByEmailFn         func(ctx context.Context, email string) (*models.User, error)
@@ -150,8 +146,7 @@ func TestAuthService_Login_UserNotFound(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
-	// У твоїй реалізації Login, скоріше за все, повертає ErrInvalidCredentials для "not found"
-	if err != ErrInvalidCredentials {
-		t.Fatalf("expected ErrInvalidCredentials, got %v", err)
+	if err != ErrUserNotFound {
+		t.Fatalf("expected ErrUserNotFound, got %v", err)
 	}
 }
