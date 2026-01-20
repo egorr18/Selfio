@@ -251,14 +251,6 @@ button.card[disabled]{
     transition: width 180ms ease;
 }
 
-.card {
-    border: 1px solid rgba(0,0,0,0.06);
-}
-
-.item {
-    border: 1px solid rgba(0,0,0,0.06);
-}
-
 /* FIX overflow for inputs (width:100% + padding) */
 *, *::before, *::after {
     box-sizing: border-box;
@@ -377,14 +369,6 @@ button.card[disabled]{
 }
 
 .weekmini ul{ margin:6px 0 0; }
-
-.weekplan__tools{
-    display:flex;
-    gap:10px;
-    align-items:center;
-    margin-top:10px;
-    flex-wrap:wrap;
-}
 
 .weekplan__select{
     padding:10px 12px;
@@ -808,7 +792,7 @@ body[data-hide-email="1"][data-page="my-plan"] [data-user-email]:hover{
 }
 
 /* =========================
-   Dark/Light tokens (APP only)
+   Dark/Light tokens (APP only) — CLEAN (no duplicates)
    Paste at END of app.css
    ========================= */
 
@@ -830,11 +814,14 @@ html[data-theme="dark"] body[data-app]{
     --app-field: rgba(255,255,255,0.06);
 }
 
+/* App surfaces */
 body[data-app] .app{ background: var(--app-bg) !important; }
+
 body[data-app] .card,
 body[data-app] .day{
     background: var(--app-surface) !important;
     border-color: var(--app-border) !important;
+    color: var(--app-text) !important;
 }
 
 body[data-app] .card h2,
@@ -849,56 +836,18 @@ body[data-app] .app__meta{
     opacity: 1 !important;
 }
 
+/* Fields */
 body[data-app] .text,
 body[data-app] .select,
 body[data-app] .weekplan__select,
-body[data-app] .weekplan__note{
+body[data-app] .weekplan__note,
+body[data-app] .weekplan__goal-row input{
     background: var(--app-field) !important;
     color: var(--app-text) !important;
     border-color: var(--app-border) !important;
 }
 
-body[data-app] .theme-toggle{
-    background: var(--app-surface) !important;
-    color: var(--app-text) !important;
-    border-color: var(--app-border) !important;
-}
-
-html[data-theme="dark"] body[data-app] .progress{ background: rgba(255,255,255,0.08) !important; }
-
-/* ===== Theme: normalize app elements to global tokens ===== */
-body[data-app] .card,
-body[data-app] .day,
-body[data-app] .mood button,
-body[data-app] .item{
-    background: var(--surface);
-    border-color: var(--border);
-    color: var(--text);
-}
-
-body[data-app] .card h2,
-body[data-app] .day__name,
-body[data-app] .item input[type="text"]{
-    color: var(--text);
-}
-
-body[data-app] .btn--ghost{
-    color: var(--text);
-    border-color: var(--border);
-}
-
-/* =========================
-   FIX: Dark mode inputs in Plan/Weekly/Habits
-   Paste at VERY END of app.css
-   ========================= */
-
-/* 1) Не ламай текст у chooseplan в dark */
-body[data-app] .card.chooseplan__plan{
-    color: var(--app-text) !important;
-    -webkit-text-fill-color: currentColor;
-}
-
-/* 2) Inputs inside .item were turning WHITE (default browser bg) */
+/* Inputs inside .item (Habits list) — prevent white bg in dark */
 body[data-app] .item input[type="text"],
 body[data-app] .item input[type="password"],
 body[data-app] .item input[type="email"],
@@ -908,47 +857,63 @@ body[data-app] .item textarea{
     -webkit-text-fill-color: currentColor;
 }
 
-/* 3) Weekly goals inputs (Goal #1/#2/#3) — give them proper field style */
-body[data-app] .weekplan__goal-row input,
-body[data-app] .weekplan__fields .item input,
-body[data-app] .weekplan__fields .item textarea{
-    background: var(--app-field) !important;
-    color: var(--app-text) !important;
-    border: 1px solid var(--app-border) !important;
-    border-radius: 12px !important;
-    padding: 12px 12px !important;
-    outline: none;
-}
-
-/* 4) Ensure selects/notes in weekplan never fall back to light styles */
-body[data-app] .weekplan__select,
-body[data-app] .weekplan__note{
-    background: var(--app-field) !important;
-    color: var(--app-text) !important;
-    border-color: var(--app-border) !important;
-}
-
-/* 5) Placeholders readable in dark */
 body[data-app] input::placeholder,
 body[data-app] textarea::placeholder{
     color: var(--app-muted) !important;
-    opacity: 0.75;
+    opacity: .85;
 }
 
-/* 6) Weekmini block on Today was too light in dark */
+/* Progress */
+body[data-app] .progress{ background: rgba(0,0,0,0.06) !important; }
+html[data-theme="dark"] body[data-app] .progress{ background: rgba(255,255,255,0.10) !important; }
+
+/* Weekmini */
 body[data-app] .weekmini{
     background: var(--app-field) !important;
     border-color: var(--app-border) !important;
     color: var(--app-text) !important;
 }
 
-/* 7) Ghost buttons readable in dark */
+/* Buttons */
 body[data-app] .btn--ghost{
     color: var(--app-text) !important;
     border-color: var(--app-border) !important;
 }
 
-/* progress track readable in dark */
-body[data-app] .progress{ background: rgba(0,0,0,0.06); }
-:root[data-theme="dark"] body[data-app] .progress{ background: rgba(255,255,255,0.10); }
+/* Make secondary buttons green in APP (light + dark) */
+body[data-app] .btn--secondary{
+    background: var(--green-main) !important;
+    color: #fff !important;
+    border-color: transparent !important;
+}
+body[data-app] .btn--secondary:hover{
+    background: var(--green-dark) !important;
+}
 
+/* Account: "My plan" (ghost) → green outline */
+body[data-app][data-page="account"] .account__right .actions .btn--ghost{
+    background: transparent !important;
+    color: var(--green-main) !important;
+    border-color: var(--green-main) !important;
+}
+body[data-app][data-page="account"] .account__right .actions .btn--ghost:hover{
+    background: rgba(47,111,98,0.14) !important;
+}
+
+/* Checkboxes */
+body[data-app] input[type="checkbox"]{
+    accent-color: var(--green-main);
+}
+
+/* Choose plan cards text (don’t force dark text) */
+body[data-app] .card.chooseplan__plan{
+    color: var(--app-text) !important;
+    -webkit-text-fill-color: currentColor;
+}
+
+/* Theme toggle in app header */
+body[data-app] .theme-toggle{
+    background: var(--app-surface) !important;
+    color: var(--app-text) !important;
+    border-color: var(--app-border) !important;
+}

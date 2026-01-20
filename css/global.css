@@ -57,16 +57,14 @@ img { max-width: 100%; display: block; }
 .btn--primary:hover { background: var(--green-dark); }
 
 .btn--secondary {
-  background: var(--white);
+  background: var(--surface);
   color: var(--green-main);
   border: 1px solid var(--green-main);
 }
-
-.btn--ghost {
-  background: transparent;
-  color: var(--green-main);
-  border: 1px solid rgba(0,0,0,0.10);
+.btn--secondary:hover {
+  background: rgba(47,111,98,0.10);
 }
+
 
 /* ===== ACCESSIBILITY: focus styles ===== */
 :where(a, button, input, select, textarea):focus-visible {
