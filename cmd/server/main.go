@@ -28,6 +28,7 @@ import (
 )
 
 func main() {
+	// .env (локально) — в Docker може не бути потрібно, але не заважає
 	if err := godotenv.Load(); err != nil {
 		log.Println(".env not found, using system env")
 	}
@@ -37,5 +38,10 @@ func main() {
 		docs.SwaggerInfo.Host = h
 	}
 
+	// Sentry init (повертає cleanup func)
+	cleanup := httpserver.InitSentry()
+	defer cleanup()
+
+	// старт сервера
 	httpserver.Run()
 }
