@@ -1,45 +1,43 @@
 (() => {
-    const root = document.documentElement;
-    const KEY = "selfio-theme";
-    const BTN_SEL = "[data-theme-toggle]";
+    const root = document.documentElement; // <html>
+    const key = "theme"; // localStorage key
+    const btn = document.querySelector("[data-theme-toggle]");
 
-    function setTheme(theme) {
-        if (theme === "dark" || theme === "light") {
-            root.setAttribute("data-theme", theme);
-        } else {
-            root.removeAttribute("data-theme"); // system
-        }
+    // apply saved theme if exists
+    const saved = localStorage.getItem(key);
+    if (saved === "dark" || saved === "light") {
+        root.dataset.theme = saved; // sets <html data-theme="dark">
     }
 
-    function applyButtons() {
-        const t = root.getAttribute("data-theme");
-        const isDark = t === "dark";
+    const systemPrefersDark = () =>
+        window.matchMedia &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches;
 
-        document.querySelectorAll(BTN_SEL).forEach((btn) => {
-            btn.setAttribute("aria-pressed", String(isDark));
-            btn.textContent = isDark ? "☀️" : "🌙";
-        });
+    const currentTheme = () =>
+        root.dataset.theme || (systemPrefersDark() ? "dark" : "light");
 
-        // optional label (Account)
-        const label = document.querySelector("[data-theme-label]");
-        if (label) label.textContent = isDark ? "Dark" : "Light";
-    }
-
-    // apply saved
-    const saved = localStorage.getItem(KEY);
-    if (saved === "dark" || saved === "light") setTheme(saved);
-
-    document.addEventListener("DOMContentLoaded", applyButtons);
-
-    document.addEventListener("click", (e) => {
-        const btn = e.target.closest(BTN_SEL);
+    const paintBtn = () => {
         if (!btn) return;
+        const t = currentTheme();
+        btn.textContent = t === "dark" ? "☀️" : "🌙";
+        btn.setAttribute("aria-label", t === "dark" ? "Switch to light" : "Switch to dark");
+        btn.title = btn.getAttribute("aria-label");
+    };
 
-        const current = root.getAttribute("data-theme");
-        const next = current === "dark" ? "light" : "dark";
+    paintBtn();
 
-        setTheme(next);
-        localStorage.setItem(KEY, next);
-        applyButtons();
+    // if user didn't pick manually, react to system changes
+    const mq = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+    if (mq && mq.addEventListener) {
+        mq.addEventListener("change", () => {
+            if (!localStorage.getItem(key)) paintBtn();
+        });
+    }
+
+    btn?.addEventListener("click", () => {
+        const next = currentTheme() === "dark" ? "light" : "dark";
+        root.dataset.theme = next;
+        localStorage.setItem(key, next);
+        paintBtn();
     });
 })();

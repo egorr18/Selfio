@@ -26,6 +26,7 @@
 
   --input-bg: #ffffff;
   --input-border: rgba(0,0,0,0.22);
+
 }
 
 /* System dark (якщо користувач не обрав вручну) */
@@ -44,6 +45,11 @@
 
     --input-bg: #0f1715;
     --input-border: rgba(255,255,255,0.18);
+
+    --surface-2: #f9fbfa;      /* light section bg */
+    --surface-3: #f5f7f6;      /* light card bg */
+    --accent-soft: #eaf7f3;    /* hover / highlight */
+    --toggle-track: #dfeee8;   /* pricing toggle track */
   }
 }
 
@@ -62,4 +68,9 @@
 
   --input-bg: #0f1715;
   --input-border: rgba(255,255,255,0.18);
+
+  --surface-2: #101a17;
+  --surface-3: #0f1715;
+  --accent-soft: rgba(47, 111, 98, 0.14);
+  --toggle-track: rgba(255,255,255,0.10);
 }

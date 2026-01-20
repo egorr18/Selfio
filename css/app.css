@@ -865,3 +865,28 @@ body[data-app] .theme-toggle{
 }
 
 html[data-theme="dark"] body[data-app] .progress{ background: rgba(255,255,255,0.08) !important; }
+
+/* ===== Theme: normalize app elements to global tokens ===== */
+body[data-app] .card,
+body[data-app] .day,
+body[data-app] .mood button,
+body[data-app] .item{
+    background: var(--surface);
+    border-color: var(--border);
+    color: var(--text);
+}
+
+body[data-app] .card h2,
+body[data-app] .day__name,
+body[data-app] .item input[type="text"]{
+    color: var(--text);
+}
+
+body[data-app] .btn--ghost{
+    color: var(--text);
+    border-color: var(--border);
+}
+
+/* progress track readable in dark */
+body[data-app] .progress{ background: rgba(0,0,0,0.06); }
+:root[data-theme="dark"] body[data-app] .progress{ background: rgba(255,255,255,0.10); }
