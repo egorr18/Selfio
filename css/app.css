@@ -887,6 +887,68 @@ body[data-app] .btn--ghost{
     border-color: var(--border);
 }
 
+/* =========================
+   FIX: Dark mode inputs in Plan/Weekly/Habits
+   Paste at VERY END of app.css
+   ========================= */
+
+/* 1) Не ламай текст у chooseplan в dark */
+body[data-app] .card.chooseplan__plan{
+    color: var(--app-text) !important;
+    -webkit-text-fill-color: currentColor;
+}
+
+/* 2) Inputs inside .item were turning WHITE (default browser bg) */
+body[data-app] .item input[type="text"],
+body[data-app] .item input[type="password"],
+body[data-app] .item input[type="email"],
+body[data-app] .item textarea{
+    background: transparent !important;
+    color: var(--app-text) !important;
+    -webkit-text-fill-color: currentColor;
+}
+
+/* 3) Weekly goals inputs (Goal #1/#2/#3) — give them proper field style */
+body[data-app] .weekplan__goal-row input,
+body[data-app] .weekplan__fields .item input,
+body[data-app] .weekplan__fields .item textarea{
+    background: var(--app-field) !important;
+    color: var(--app-text) !important;
+    border: 1px solid var(--app-border) !important;
+    border-radius: 12px !important;
+    padding: 12px 12px !important;
+    outline: none;
+}
+
+/* 4) Ensure selects/notes in weekplan never fall back to light styles */
+body[data-app] .weekplan__select,
+body[data-app] .weekplan__note{
+    background: var(--app-field) !important;
+    color: var(--app-text) !important;
+    border-color: var(--app-border) !important;
+}
+
+/* 5) Placeholders readable in dark */
+body[data-app] input::placeholder,
+body[data-app] textarea::placeholder{
+    color: var(--app-muted) !important;
+    opacity: 0.75;
+}
+
+/* 6) Weekmini block on Today was too light in dark */
+body[data-app] .weekmini{
+    background: var(--app-field) !important;
+    border-color: var(--app-border) !important;
+    color: var(--app-text) !important;
+}
+
+/* 7) Ghost buttons readable in dark */
+body[data-app] .btn--ghost{
+    color: var(--app-text) !important;
+    border-color: var(--app-border) !important;
+}
+
 /* progress track readable in dark */
 body[data-app] .progress{ background: rgba(0,0,0,0.06); }
 :root[data-theme="dark"] body[data-app] .progress{ background: rgba(255,255,255,0.10); }
+

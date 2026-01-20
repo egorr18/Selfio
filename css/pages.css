@@ -159,10 +159,6 @@
   margin-bottom: 8px;
 }
 
-.why-matters__item--active {
-  background: var(--bg);
-}
-
 /* ===== SOCIAL PROOF ===== */
 .social-proof {
   padding: 140px 0;
