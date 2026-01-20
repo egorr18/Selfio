@@ -2,12 +2,10 @@ name: CI
 
 on:
   push:
-    branches: ["main"]
+    branches: [ "main" ]
+    tags: [ "v*" ]
   pull_request:
-    branches: ["main"]
-
-permissions:
-  contents: read
+    branches: [ "main" ]
 
 jobs:
   go-test:
@@ -21,7 +19,6 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: "1.22"
-          cache: true
 
       - name: Go fmt check
         run: |
@@ -36,13 +33,57 @@ jobs:
       - name: Build server
         run: go build -o app ./cmd/server
 
-  docker-build:
+  migrations:
     runs-on: ubuntu-latest
-    needs: go-test
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: selfio_db
+          POSTGRES_USER: selfio
+          POSTGRES_PASSWORD: selfio_pass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U selfio -d selfio_db"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Docker build
-        run: docker build -t selfio-backend:ci .
+      - name: Install psql client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Wait for Postgres
+        env:
+          PGPASSWORD: selfio_pass
+        run: |
+          for i in {1..30}; do
+            pg_isready -h localhost -p 5432 -U selfio -d selfio_db && exit 0
+            sleep 1
+          done
+          echo "Postgres did not become ready in time"
+          exit 1
+
+      - name: Apply migrations (*.sql)
+        env:
+          PGPASSWORD: selfio_pass
+        run: |
+          ls -la migrations || true
+          for f in $(ls -1 migrations/*.sql | sort); do
+            echo "Applying $f"
+            psql -h localhost -p 5432 -U selfio -d selfio_db -v ON_ERROR_STOP=1 -f "$f"
+          done
+
+      - name: Smoke check schema
+        env:
+          PGPASSWORD: selfio_pass
+        run: |
+          psql -h localhost -p 5432 -U selfio -d selfio_db -c "\dt"
+          psql -h localhost -p 5432 -U selfio -d selfio_db -c "SELECT COUNT(*) FROM users;"
