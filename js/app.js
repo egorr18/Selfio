@@ -126,7 +126,7 @@
         const p = getPlan();
         if (p === "free") return 0;
         if (p === "pro") return 3;
-        return 8; // premium
+        return 4; // premium
     }
 
     function ensureWeekPlanState(state, key) {

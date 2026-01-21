@@ -108,7 +108,9 @@
 }
 
 .select, .text {
+    box-sizing: border-box;
     width: 100%;
+    max-width: 100%;
     padding: 12px 12px;
     border-radius: 12px;
     border: 1px solid rgba(0,0,0,0.12);
@@ -256,12 +258,6 @@ button.card[disabled]{
     box-sizing: border-box;
 }
 
-.select, .text {
-    box-sizing: border-box;
-    width: 100%;
-    max-width: 100%;
-}
-
 /* extra safety for grid items */
 .app__grid > * { min-width: 0; }
 .row > * { min-width: 0; }
@@ -310,14 +306,6 @@ button.card[disabled]{
     align-items:center;
     margin-top:10px;
     flex-wrap:wrap;
-}
-
-.weekplan__select{
-    padding:10px 12px;
-    border-radius:12px;
-    border:1px solid rgba(255,255,255,.12);
-    background:rgba(255,255,255,.04);
-    color:inherit;
 }
 
 .weekplan__fields{
@@ -916,4 +904,93 @@ body[data-app] .theme-toggle{
     background: var(--app-surface) !important;
     color: var(--app-text) !important;
     border-color: var(--app-border) !important;
+}
+
+/* =========================================================
+   FINAL PATCH (APP): buttons + pills + dark select dropdown
+   Paste at the VERY END of app.css
+   ========================================================= */
+
+/* Let browser render native controls correctly for the theme */
+body[data-app]{ color-scheme: light; }
+html[data-theme="dark"] body[data-app]{ color-scheme: dark; }
+
+/* -------- Secondary buttons -> GREEN (both light & dark) -------- */
+body[data-app] .btn--secondary{
+    background: var(--green-main) !important;
+    color: #fff !important;
+    border-color: transparent !important;
+}
+body[data-app] .btn--secondary:hover{
+    filter: brightness(0.96);
+}
+/* feedback "pressed": white */
+body[data-app] .btn--secondary:active{
+    background: #fff !important;
+    color: var(--green-main) !important;
+    border: 1px solid var(--green-main) !important;
+}
+
+/* -------- Ghost button (base) -------- */
+body[data-app] .btn--ghost{
+    background: transparent !important;
+    color: var(--app-text) !important;
+    border: 1px solid var(--app-border) !important;
+}
+
+/* Account page: "My plan" should look GREEN (but different from Upgrade) */
+body[data-app][data-page="account"] .account__right .actions .btn--ghost{
+    border-color: var(--green-main) !important;
+    color: var(--green-main) !important;
+}
+body[data-app][data-page="account"] .account__right .actions .btn--ghost:hover{
+    background: rgba(47,111,98,0.14) !important;
+}
+body[data-app][data-page="account"] .account__right .actions .btn--ghost:active{
+    background: #fff !important;
+    color: var(--green-main) !important;
+    border-color: var(--green-main) !important;
+}
+
+/* -------- Pills (Prev / This week / Next) -------- */
+body[data-app] .pill{
+    background: rgba(0,0,0,0.06);
+    border: 1px solid rgba(0,0,0,0.10);
+    color: var(--app-text);
+}
+html[data-theme="dark"] body[data-app] .pill{
+    background: rgba(255,255,255,0.10);
+    border-color: rgba(255,255,255,0.14);
+    color: rgba(255,255,255,0.92);
+}
+body[data-app] .pill:hover{ filter: brightness(0.97); }
+body[data-app] .pill:active{
+    background: #fff !important;
+    color: var(--green-main) !important;
+    border-color: var(--green-main) !important;
+}
+body[data-app] .pill[disabled],
+body[data-app] .pill:disabled{
+    opacity: .55;
+    cursor: not-allowed;
+}
+
+/* -------- Weekplan selects + dropdown options in DARK -------- */
+body[data-app] .weekplan__select,
+body[data-app] select{
+    background: var(--app-field) !important;
+    color: var(--app-text) !important;
+    border: 1px solid var(--app-border) !important;
+}
+
+/* Most browsers respect option bg/text if color-scheme is dark */
+html[data-theme="dark"] body[data-app] select option,
+html[data-theme="dark"] body[data-app] select optgroup{
+    background: #121a17;
+    color: rgba(255,255,255,0.92);
+}
+
+/* checkbox green */
+body[data-app] input[type="checkbox"]{
+    accent-color: var(--green-main);
 }
