@@ -91,9 +91,16 @@
 
       <!-- Premium tools -->
       <div class="weekplan__tools">
-        <select class="weekplan__select" data-weekplan-template>
+        <select
+                id="weekplanTemplate"
+                name="weekplanTemplate"
+                class="weekplan__select"
+                data-weekplan-template
+                aria-label="Week plan template"
+        >
           <option value="study">Study Sprint</option>
         </select>
+
 
         <button class="pill" type="button" data-weekplan-template-apply>Apply template</button>
         <button class="pill" type="button" data-weekplan-clear>Clear</button>
@@ -108,13 +115,26 @@
         </div>
 
         <div class="item">
-          <textarea class="weekplan__note" placeholder="Weekly note (optional)" data-week-note></textarea>
+          <textarea
+                  id="weekplanNote"
+                  name="weekplanNote"
+                  class="weekplan__note"
+                  placeholder="Weekly note (optional)"
+                  data-week-note
+                  aria-label="Weekly note"
+          ></textarea>
         </div>
       </div>
 
       <div class="weekplan__footer">
         <div class="weekplan__copy">
-          <select class="weekplan__select" data-weekplan-copy-weeks>
+          <select
+                  id="weekplanCopyWeeks"
+                  name="weekplanCopyWeeks"
+                  class="weekplan__select"
+                  data-weekplan-copy-weeks
+                  aria-label="Copy forward weeks"
+          >
             <option value="1">+1 week</option>
           </select>
           <button class="btn" type="button" data-weekplan-copy>Copy forward</button>
