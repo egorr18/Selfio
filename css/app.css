@@ -708,9 +708,24 @@ body[data-hide-email="1"][data-page="my-plan"] [data-user-email]:hover{
     color: var(--green, #2D6A5C);
 }
 
-/* ===== Account: Profile helpers ===== */
 .account__row--compact{
     align-items:center;
+}
+
+.account__inputWrap{
+    position: relative;
+}
+
+.account__inputWrap .text{
+    padding-right: 90px; /* space for Copy button */
+}
+
+.account__copyBtn{
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 36px;
 }
 
 [data-copy-toast]{

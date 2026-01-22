@@ -68,13 +68,14 @@
                     </div>
 
                     <div class="account__field">
-                        <div class="account__row account__row--compact">
-                            <label class="account__label" for="acc-email" style="margin:0;">Email</label>
-                            <button class="btn btn--ghost btn--sm" type="button" data-copy-email>Copy</button>
+                        <label class="account__label" for="acc-email">Email</label>
+
+                        <div class="account__inputWrap">
+                            <input id="acc-email" class="text" type="email" autocomplete="email" readonly
+                                   value="" data-account-email />
+                            <button class="btn btn--ghost btn--sm account__copyBtn" type="button" data-copy-email>Copy</button>
                         </div>
 
-                        <input id="acc-email" class="text" type="email" autocomplete="email" readonly
-                               value="" data-account-email />
                         <p class="mini">Email is read-only for now.</p>
                         <p class="mini" data-copy-toast style="display:none;"></p>
                     </div>
