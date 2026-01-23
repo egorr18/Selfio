@@ -1,13 +1,7 @@
-// js/sign.js
+// js/sign.js (Supabase auth)
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.querySelector(".auth__form");
     if (!form) return;
-
-    const toast = window.Selfio?.toast || ((m) => alert(String(m)));
-
-    const EMAIL_KEY = "selfio_email";
-    const PLAN_KEY  = "selfio_plan";
-    const TOKEN_KEY = "selfio_token"; // тимчасово для сумісності з твоїми сторінками
 
     const titleEl = document.querySelector("[data-auth-title]");
     const textEl  = document.querySelector("[data-auth-text]");
@@ -32,10 +26,12 @@ document.addEventListener("DOMContentLoaded", () => {
     function sanitizeNext(raw) {
         let v = String(raw || "").trim();
         if (!v) return "app.html";
+
         const low = v.toLowerCase();
         if (low.startsWith("http:") || low.startsWith("https:") || low.startsWith("//") || low.startsWith("javascript:")) {
             return "app.html";
         }
+
         try { v = decodeURIComponent(v); } catch {}
         const base = v.split(/[?#]/)[0];
         if (!ALLOWED_BASE.has(base)) return "app.html";
@@ -44,8 +40,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const next = sanitizeNext(qs.get("next"));
 
-    // ---------- MODE ----------
-    let authMode = (String(qs.get("mode") || "login").toLowerCase() === "register") ? "register" : "login";
+    let authMode = (String(qs.get("mode") || "login").toLowerCase() === "register")
+        ? "register"
+        : "login";
 
     function paintMode() {
         if (authMode === "login") {
@@ -75,133 +72,91 @@ document.addEventListener("DOMContentLoaded", () => {
     btnModeRegister?.addEventListener("click", () => { authMode = "register"; paintMode(); });
     paintMode();
 
-    function normalizePlan(p) {
-        p = String(p || "").trim().toLowerCase();
-        return (p === "free" || p === "pro" || p === "premium") ? p : "";
+    function toast(msg) {
+        window.Selfio?.toast ? window.Selfio.toast(msg) : alert(String(msg));
     }
 
-    function setSubmitting(on, text = "Connecting...") {
+    function setBusy(on) {
         btnModeLogin && (btnModeLogin.disabled = on);
         btnModeRegister && (btnModeRegister.disabled = on);
         if (btnSubmit) {
             btnSubmit.disabled = on;
-            if (!btnSubmit.dataset.originalText) btnSubmit.dataset.originalText = btnSubmit.textContent;
-            btnSubmit.textContent = on ? text : btnSubmit.dataset.originalText;
+            btnSubmit.textContent = on ? "Connecting..." : (authMode === "login" ? "Sign in" : "Create account");
         }
     }
 
-    // ---------- SUBMIT ----------
     let submitting = false;
 
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
         if (submitting) return;
         submitting = true;
-        setSubmitting(true);
+        setBusy(true);
 
         try {
-            const email = (form.querySelector("input[type='email']")?.value || "").trim();
-            const password = String(form.querySelector("input[type='password']")?.value || "");
+            if (!window.Selfio?.cloud?.sb) {
+                toast("Cloud is not ready: supabase.js or config.js missing.");
+                return;
+            }
+
+            const email = (form.querySelector("input[type='email']")?.value || "").trim().toLowerCase();
+            const password = form.querySelector("input[type='password']")?.value || "";
 
             if (!email || !password) {
-                toast("Enter email and password", "err");
+                toast("Enter email and password");
                 return;
             }
 
-            // ✅ Supabase Cloud mode only
-            const cloud = window.Selfio?.cloud;
-            const client = cloud?.client;
+            const client = window.Selfio.cloud.sb();
 
-            if (!client) {
-                toast("Supabase client is not ready. Check config.js + supabase CDN.", "err");
-                return;
-            }
-
-            // Щоб не тягнути план з іншого акаунта
-            localStorage.removeItem(PLAN_KEY);
-
-            if (authMode === "login") {
-                const { data, error } = await client.auth.signInWithPassword({ email, password });
+            if (authMode === "register") {
+                const { data, error } = await client.auth.signUp({ email, password });
                 if (error) {
-                    toast(error.message || "Login failed", "err");
+                    toast(error.message || "Register failed");
                     return;
                 }
 
-                // session може бути в data.session, а може бути через getSession()
-                const session = data?.session || await cloud.getSession();
-                if (!session) {
-                    toast("Signed in, but no session found. Check Auth settings.", "err");
-                    return;
-                }
+                // Записуємо локально (для UI)
+                localStorage.setItem("selfio_email", email);
+                if (!localStorage.getItem("selfio_plan")) localStorage.setItem("selfio_plan", "free");
 
-                localStorage.setItem(EMAIL_KEY, email.toLowerCase());
-                localStorage.setItem(TOKEN_KEY, session.access_token); // тимчасово для твоїх guard'ів
+                // Створюємо/оновлюємо профіль
+                await window.Selfio.cloud.ensureProfile(email);
 
-                // Підтягнути профіль (план/імʼя)
-                let profile = null;
-                try {
-                    profile = await cloud.readProfile();
-                    if (!profile) profile = await cloud.ensureProfile({ email });
-                } catch (err) {
-                    console.warn("Profile load/upsert failed:", err);
-                }
-
-                const plan = normalizePlan(profile?.plan);
-                if (plan) localStorage.setItem(PLAN_KEY, plan);
-
-                // Якщо план порожній — ведемо на choose-plan
-                if (!plan) {
-                    location.href = `choose-plan.html?next=${encodeURIComponent(next)}`;
-                    return;
-                }
-
-                location.href = next;
+                // Після реєстрації — на вибір плану
+                location.href = `choose-plan.html?next=${encodeURIComponent(next)}`;
                 return;
             }
 
-            // REGISTER
-            const emailRedirectTo = new URL("signin.html?mode=login", location.href).toString();
-
-            const { data, error } = await client.auth.signUp({
-                email,
-                password,
-                options: { emailRedirectTo }
-            });
-
+            // LOGIN
+            const { data, error } = await client.auth.signInWithPassword({ email, password });
             if (error) {
-                // найчастіші кейси
-                const msg = String(error.message || "");
-                if (msg.toLowerCase().includes("rate limit")) {
-                    toast("Email rate limit in Supabase. Disable Confirm email OR create user from dashboard (Add user).", "err", 6000);
-                } else if (msg.toLowerCase().includes("disabled")) {
-                    toast("Email signups are disabled in Supabase. Check: Email provider ON + User Signups ON + Save changes.", "err", 6000);
-                } else {
-                    toast(msg || "Register failed", "err");
-                }
+                toast(error.message || "Login failed");
                 return;
             }
 
-            // Якщо Confirm email OFF -> session є одразу
-            const session = data?.session || await cloud.getSession();
-            if (!session) {
-                toast("Account created. If Confirm email is ON, you must confirm via email first.", "info", 6000);
+            localStorage.setItem("selfio_email", email);
+
+            // підтягнути профіль/план
+            await window.Selfio.cloud.ensureProfile(email);
+            const prof = await window.Selfio.cloud.loadProfile().catch(() => null);
+
+            const plan = (prof?.plan || localStorage.getItem("selfio_plan") || "free").toLowerCase();
+            localStorage.setItem("selfio_plan", plan);
+
+            // якщо плану нема (на всяк) — на choose-plan
+            if (!plan) {
+                location.href = `choose-plan.html?next=${encodeURIComponent(next)}`;
                 return;
             }
 
-            localStorage.setItem(EMAIL_KEY, email.toLowerCase());
-            localStorage.setItem(TOKEN_KEY, session.access_token); // тимчасово
-
-            // Створимо профіль одразу (план поки що буде free або порожній — як у тебе в таблиці)
-            try { await cloud.ensureProfile({ email }); } catch {}
-
-            // Після реєстрації — завжди на вибір плану
-            location.href = `choose-plan.html?next=${encodeURIComponent(next)}`;
+            location.href = next;
         } catch (err) {
             console.error(err);
-            toast("Unexpected error. Check Console.", "err");
+            toast("Auth error. Check console.");
         } finally {
             submitting = false;
-            setSubmitting(false);
+            setBusy(false);
         }
     });
 });
