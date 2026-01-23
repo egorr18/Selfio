@@ -96,5 +96,7 @@
     }
 
     // export
-    window.Selfio = { API_BASE, apiFetch, toast, setLoading };
+// export (НЕ затираємо Selfio, а додаємо поля)
+    window.Selfio = window.Selfio || {};
+    Object.assign(window.Selfio, { API_BASE, apiFetch, toast, setLoading });
 })();
