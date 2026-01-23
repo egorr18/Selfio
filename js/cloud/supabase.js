@@ -1,52 +1,41 @@
-// js/cloud/supabase.js
 window.Selfio = window.Selfio || {};
 
 (function () {
-    let _client = null;
+    const cfg = window.Selfio.config || {};
+    const supabaseUrl = cfg.supabaseUrl;
+    const supabaseAnonKey = cfg.supabaseAnonKey;
 
-    function sb() {
-        const { supabaseUrl, supabaseAnonKey } = window.Selfio.config || {};
-        if (!supabaseUrl || !supabaseAnonKey) {
-            throw new Error("Supabase keys are missing in config.js");
-        }
-        if (!window.supabase?.createClient) {
-            throw new Error("Supabase CDN not loaded (window.supabase.createClient missing)");
-        }
-
-        if (_client) return _client;
-
-        _client = window.supabase.createClient(supabaseUrl, supabaseAnonKey, {
-            auth: {
-                persistSession: true,
-                autoRefreshToken: true,
-                storageKey: "selfio_sb_auth", // щоб сесія жила між сторінками
-                detectSessionInUrl: true
-            }
-        });
-
-        return _client;
+    if (!supabaseUrl || !supabaseAnonKey) {
+        console.warn("Supabase config missing (supabaseUrl / supabaseAnonKey). Cloud mode disabled.");
+        return;
     }
 
+    if (!window.supabase?.createClient) {
+        console.error("Supabase CDN not loaded. Add supabase script in <head>.");
+        return;
+    }
+
+    // ✅ один клієнт на весь сайт
+    const client = window.supabase.createClient(supabaseUrl, supabaseAnonKey, {
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+    });
+
     async function getUser() {
-        const client = sb();
-        const { data, error } = await client.auth.getUser();
-        if (error) return null;
+        const { data } = await client.auth.getUser();
         return data?.user || null;
     }
 
     async function ensureProfile(email) {
-        const client = sb();
         const user = await getUser();
         if (!user) return;
 
-        // 1) пробуємо знайти існуючий профіль
+        // не затираємо plan якщо профіль вже існує
         const { data: existing } = await client
             .from("profiles")
-            .select("plan,name,email")
+            .select("plan")
             .eq("id", user.id)
             .maybeSingle();
 
-        // 2) якщо є — оновлюємо тільки name/email (plan не чіпаємо)
         if (existing) {
             await client.from("profiles").update({
                 email: (email || user.email || "").toLowerCase(),
@@ -55,7 +44,6 @@ window.Selfio = window.Selfio || {};
             return;
         }
 
-        // 3) якщо нема — створюємо з plan
         const plan = (localStorage.getItem("selfio_plan") || "free").toLowerCase();
 
         await client.from("profiles").insert({
@@ -66,33 +54,7 @@ window.Selfio = window.Selfio || {};
         });
     }
 
-    async function loadProfile() {
-        const client = sb();
-        const user = await getUser();
-        if (!user) return null;
-
-        const { data, error } = await client
-            .from("profiles")
-            .select("id,email,plan,name,created_at")
-            .eq("id", user.id)
-            .maybeSingle();
-
-        if (error) throw error;
-        return data || null;
-    }
-
-    async function savePlan(plan) {
-        const client = sb();
-        const user = await getUser();
-        if (!user) throw new Error("Not signed in");
-
-        const p = String(plan || "").toLowerCase();
-        await client.from("profiles").upsert({ id: user.id, plan: p });
-        localStorage.setItem("selfio_plan", p);
-    }
-
     async function loadState() {
-        const client = sb();
         const user = await getUser();
         if (!user) return null;
 
@@ -107,7 +69,6 @@ window.Selfio = window.Selfio || {};
     }
 
     async function saveState(state) {
-        const client = sb();
         const user = await getUser();
         if (!user) throw new Error("Not signed in");
 
@@ -119,5 +80,5 @@ window.Selfio = window.Selfio || {};
         if (error) throw error;
     }
 
-    window.Selfio.cloud = { sb, getUser, ensureProfile, loadProfile, savePlan, loadState, saveState };
+    window.Selfio.cloud = { client, getUser, ensureProfile, loadState, saveState };
 })();
