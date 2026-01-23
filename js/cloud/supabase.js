@@ -1,31 +1,21 @@
 window.Selfio = window.Selfio || {};
 
 (function () {
-    if (!window.supabase?.createClient) {
-        console.error("Supabase CDN not loaded");
-        return;
-    }
-
-    let client = null;
+    let _client = null;
 
     function sb() {
-        if (client) return client;
+        if (_client) return _client;
 
         const { supabaseUrl, supabaseAnonKey } = window.Selfio.config || {};
         if (!supabaseUrl || !supabaseAnonKey) {
             throw new Error("Supabase keys are missing in config.js");
         }
+        if (!window.supabase?.createClient) {
+            throw new Error("Supabase CDN not loaded (window.supabase.createClient missing)");
+        }
 
-        client = window.supabase.createClient(supabaseUrl, supabaseAnonKey, {
-            auth: {
-                storageKey: "selfio-auth",     // важливо: стабільний ключ
-                persistSession: true,
-                autoRefreshToken: true,
-                detectSessionInUrl: true,
-            },
-        });
-
-        return client;
+        _client = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+        return _client;
     }
 
     async function getUser() {
@@ -41,7 +31,7 @@ window.Selfio = window.Selfio || {};
             id: user.id,
             email: email || user.email,
             plan: (localStorage.getItem("selfio_plan") || "free").toLowerCase(),
-            name: localStorage.getItem("selfio_name") || "",
+            name: localStorage.getItem("selfio_name") || ""
         });
     }
 
@@ -65,7 +55,7 @@ window.Selfio = window.Selfio || {};
 
         const { error } = await sb().from("user_state").upsert({
             user_id: user.id,
-            data: state,
+            data: state
         });
 
         if (error) throw error;

@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const TOKEN_KEY = "selfio_token";
     const EMAIL_KEY = "selfio_email";
     const PLAN_KEY  = "selfio_plan";
+    const PROVIDER_KEY = "selfio_auth_provider"; // "supabase" | "backend"
 
     const titleEl = document.querySelector("[data-auth-title]");
     const textEl  = document.querySelector("[data-auth-text]");
@@ -20,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
         "app.html",
         "weekly.html",
         "habits.html",
-        "settings.html",
+        "account.html",
         "choose-plan.html",
         "my-plan.html",
     ]);
@@ -44,6 +45,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const isGitHubPages = location.hostname.endsWith("github.io");
     const isLocalhost = location.hostname === "localhost" || location.hostname === "127.0.0.1";
+
+    // allow forcing provider for testing
+    const providerParam = String(qs.get("provider") || "").toLowerCase();
+    const forceSupabase = providerParam === "supabase" || providerParam === "cloud";
+    const forceBackend  = providerParam === "backend" || providerParam === "local";
+
+    function hasSupabaseReady() {
+        const cfg = window.Selfio?.config;
+        return !!(
+            cfg?.supabaseUrl &&
+            cfg?.supabaseAnonKey &&
+            window.supabase?.createClient &&
+            window.Selfio?.cloud?.sb
+        );
+    }
+
+    const useSupabase =
+        !forceBackend &&
+        (isGitHubPages || forceSupabase) &&
+        hasSupabaseReady();
+
+    // ---------- Backend config (old mode) ----------
     const API_BASE_URL = isGitHubPages
         ? "https://selfio-backend.onrender.com"
         : (isLocalhost ? "http://localhost:8080" : "https://selfio-backend.onrender.com");
@@ -67,7 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (ct.includes("application/json")) {
             try { return await res.json(); } catch { return {}; }
         }
-        const text = await res.text();
+        const text = await res.text().catch(() => "");
         return text ? { message: text } : {};
     };
 
@@ -78,7 +101,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const planKeyForEmail = (email) => `selfio_plan:${String(email || "").trim().toLowerCase() || "anon"}`;
 
-    // Render може прокидатися — легкий ping
+    // Render wake up ping
     async function pingBackendOnce() {
         try {
             const res = await fetch(`${API_BASE_URL}/health`, { method: "GET", cache: "no-store" });
@@ -98,13 +121,12 @@ document.addEventListener("DOMContentLoaded", () => {
         return false;
     }
 
-    // ---------- MODE ----------
+    // ---------- MODE UI ----------
     let authMode = (String(qs.get("mode") || "login").toLowerCase() === "register")
         ? "register"
         : "login";
 
     function paintMode() {
-        // Візуально: активна кнопка — primary, інша — secondary
         if (authMode === "login") {
             btnModeLogin?.classList.add("btn--primary");
             btnModeLogin?.classList.remove("btn--secondary");
@@ -113,7 +135,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (titleEl) titleEl.textContent = "Welcome back";
             if (textEl)  textEl.textContent  = "Sign in to continue your journaling journey.";
-            if (noteEl)  noteEl.innerHTML     = 'New here? Select <b>Create account</b>.';
+            if (noteEl)  noteEl.innerHTML    = 'New here? Select <b>Create account</b>.';
             if (btnSubmit) btnSubmit.textContent = "Sign in";
         } else {
             btnModeRegister?.classList.add("btn--primary");
@@ -123,22 +145,49 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (titleEl) titleEl.textContent = "Create account";
             if (textEl)  textEl.textContent  = "Create an account to start using Selfio.";
-            if (noteEl)  noteEl.innerHTML     = 'Already have an account? Select <b>Sign in</b>.';
+            if (noteEl)  noteEl.innerHTML    = 'Already have an account? Select <b>Sign in</b>.';
             if (btnSubmit) btnSubmit.textContent = "Create account";
         }
     }
 
-    btnModeLogin?.addEventListener("click", () => {
-        authMode = "login";
-        paintMode();
-    });
-
-    btnModeRegister?.addEventListener("click", () => {
-        authMode = "register";
-        paintMode();
-    });
-
+    btnModeLogin?.addEventListener("click", () => { authMode = "login"; paintMode(); });
+    btnModeRegister?.addEventListener("click", () => { authMode = "register"; paintMode(); });
     paintMode();
+
+    function setUIBusy(busy, text = "Connecting...") {
+        btnModeLogin && (btnModeLogin.disabled = busy);
+        btnModeRegister && (btnModeRegister.disabled = busy);
+        btnSubmit && (btnSubmit.disabled = busy);
+        if (btnSubmit) btnSubmit.textContent = busy ? text : (authMode === "login" ? "Sign in" : "Create account");
+    }
+
+    // ---------- Supabase helpers ----------
+    function sbClient() {
+        if (!window.Selfio?.cloud?.sb) {
+            throw new Error("Selfio.cloud is missing. Check that api.js does NOT overwrite window.Selfio.");
+        }
+        return window.Selfio.cloud.sb();
+    }
+
+    async function supaGetUser() {
+        return await window.Selfio.cloud.getUser();
+    }
+
+    async function supaEnsureProfile(email) {
+        await window.Selfio.cloud.ensureProfile(email);
+    }
+
+    async function supaReadProfilePlan(userId) {
+        const client = sbClient();
+        const { data, error } = await client
+            .from("profiles")
+            .select("plan")
+            .eq("id", userId)
+            .maybeSingle();
+
+        if (error) throw error;
+        return normalizePlan(data?.plan);
+    }
 
     // ---------- SUBMIT ----------
     let submitting = false;
@@ -151,12 +200,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const email = form.querySelector("input[type='email']")?.value.trim() || "";
         const password = form.querySelector("input[type='password']")?.value || "";
 
-        // disable UI
-        btnModeLogin && (btnModeLogin.disabled = true);
-        btnModeRegister && (btnModeRegister.disabled = true);
-        btnSubmit && (btnSubmit.disabled = true);
-        const prevSubmitText = btnSubmit ? btnSubmit.textContent : "";
-        if (btnSubmit) btnSubmit.textContent = "Connecting...";
+        setUIBusy(true, "Connecting...");
 
         try {
             if (!email || !password) {
@@ -167,19 +211,93 @@ document.addEventListener("DOMContentLoaded", () => {
             // щоб не тягнути план з іншого акаунта
             localStorage.removeItem(PLAN_KEY);
 
+            // =========================
+            // ✅ SUPABASE MODE (GitHub Pages)
+            // =========================
+            if (useSupabase) {
+                const client = sbClient();
+
+                // login/register
+                if (authMode === "login") {
+                    const { data, error } = await client.auth.signInWithPassword({ email, password });
+                    if (error) {
+                        alert(error.message || "Supabase login failed");
+                        return;
+                    }
+
+                    // store flags
+                    localStorage.setItem(PROVIDER_KEY, "supabase");
+                    localStorage.setItem(EMAIL_KEY, email.toLowerCase());
+
+                    // keep something in TOKEN_KEY so old pages that check token won't block
+                    const accessToken = data?.session?.access_token || "sb";
+                    localStorage.setItem(TOKEN_KEY, accessToken);
+
+                    // create/update profile
+                    await supaEnsureProfile(email);
+
+                    const user = await supaGetUser();
+                    if (!user) {
+                        alert("Signed in, but session is not available. Check Auth settings (email confirmation?).");
+                        return;
+                    }
+
+                    // sync plan from profiles (if exists)
+                    let plan = "";
+                    try { plan = await supaReadProfilePlan(user.id); } catch {}
+                    if (plan) {
+                        localStorage.setItem(PLAN_KEY, plan);
+                        localStorage.setItem(planKeyForEmail(email), plan);
+                    }
+
+                    // if no plan -> choose-plan
+                    const savedPlan = normalizePlan(localStorage.getItem(planKeyForEmail(email)));
+                    if (!savedPlan) {
+                        window.location.href = `choose-plan.html?next=${encodeURIComponent(next)}&provider=supabase`;
+                        return;
+                    }
+
+                    window.location.href = next;
+                    return;
+                }
+
+                // register
+                const { data, error } = await client.auth.signUp({ email, password });
+                if (error) {
+                    alert(error.message || "Supabase register failed");
+                    return;
+                }
+
+                localStorage.setItem(PROVIDER_KEY, "supabase");
+                localStorage.setItem(EMAIL_KEY, email.toLowerCase());
+
+                // If email confirmations are ON, session may be null here
+                const accessToken = data?.session?.access_token;
+                if (accessToken) localStorage.setItem(TOKEN_KEY, accessToken);
+                else localStorage.setItem(TOKEN_KEY, "sb");
+
+                // try profile (works only if session exists)
+                try { await supaEnsureProfile(email); } catch {}
+
+                // after register -> choose plan
+                window.location.href = `choose-plan.html?next=${encodeURIComponent(next)}&provider=supabase`;
+                return;
+            }
+
+            // =========================
+            // ✅ BACKEND MODE (Local / Docker)
+            // =========================
             const ready = await ensureBackendReady();
             if (!ready) {
                 alert("Server is waking up. Try again in 10–20 seconds.");
                 return;
             }
 
-            // ---------------- LOGIN ONLY ----------------
             if (authMode === "login") {
                 const res = await post("/auth/login", { email, password });
                 const data = await readBody(res);
 
                 if (!res.ok) {
-                    // якщо ти додаси 404 user_not_found — буде ще точніше
                     if (res.status === 404 && data?.error === "user_not_found") {
                         alert("You don’t have an account yet. Click “Create account”.");
                     } else if (res.status === 401) {
@@ -196,10 +314,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     return;
                 }
 
+                localStorage.setItem(PROVIDER_KEY, "backend");
                 localStorage.setItem(TOKEN_KEY, token);
-                localStorage.setItem(EMAIL_KEY, email);
+                localStorage.setItem(EMAIL_KEY, email.toLowerCase());
 
-                // синхронізуємо план з БД (щоб UI показував правильне)
+                // sync plan from DB
                 try {
                     const meRes = await getMe(token);
                     if (meRes.ok) {
@@ -212,7 +331,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 } catch {}
 
-                // якщо плану нема в localStorage — на choose-plan
                 const savedPlan = normalizePlan(localStorage.getItem(planKeyForEmail(email)));
                 if (!savedPlan) {
                     window.location.href = `choose-plan.html?next=${encodeURIComponent(next)}`;
@@ -223,7 +341,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            // ---------------- REGISTER ONLY ----------------
+            // register backend
             const reg = await post("/auth/register", { email, password });
             const regData = await readBody(reg);
 
@@ -236,7 +354,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            // якщо register повернув token — ок. Якщо ні — робимо login
+            // if register has no token -> login
             let token = regData?.token;
             if (!token) {
                 const login = await post("/auth/login", { email, password });
@@ -248,22 +366,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 token = loginData.token;
             }
 
+            localStorage.setItem(PROVIDER_KEY, "backend");
             localStorage.setItem(TOKEN_KEY, token);
-            localStorage.setItem(EMAIL_KEY, email);
+            localStorage.setItem(EMAIL_KEY, email.toLowerCase());
 
-            // після реєстрації завжди на choose-plan
             window.location.href = `choose-plan.html?next=${encodeURIComponent(next)}`;
         } catch (err) {
             console.error(err);
-            alert("Backend is not reachable");
+            alert(String(err?.message || err || "Something went wrong"));
         } finally {
             submitting = false;
-            btnModeLogin && (btnModeLogin.disabled = false);
-            btnModeRegister && (btnModeRegister.disabled = false);
-            if (btnSubmit) {
-                btnSubmit.disabled = false;
-                btnSubmit.textContent = prevSubmitText || "Continue";
-            }
+            setUIBusy(false);
         }
     });
 });
