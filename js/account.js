@@ -204,33 +204,45 @@ document.addEventListener("DOMContentLoaded", () => {
         passConfirm.value = "";
     });
 
-    // Export data: tries backend GET /me/export, otherwise local export
+    // Export data: tries backend GET /me/export, otherwise local export (full)
     btnExport?.addEventListener("click", async () => {
-        const email = (elEmail?.value || localStorage.getItem(EMAIL_KEY) || "").trim();
-        const plan = normalizePlan(localStorage.getItem(PLAN_KEY) || "free");
-
-        // 1) try backend
+        const email = (elEmail?.value || localStorage.getItem(EMAIL_KEY) || "").trim().toLowerCase();
+        const plan = normalizePlan((elPlanBadge?.textContent || localStorage.getItem(PLAN_KEY) || "free"));
+        // 1) try backend export (if exists)
         if (apiFetch) {
             const res = await apiFetch("/me/export", { token });
             if (res.ok && res.data) {
-                downloadJSON(res.data, `selfio-export-${today()}.json`);
+                await shareOrDownloadJSON(res.data, `selfio-export-${today()}.json`);
                 toast("Export ready ✅");
                 return;
             }
-            // якщо 404/мережа — падаємо в local export
             console.warn("Export backend failed:", res.status, res.data);
         }
 
-        // 2) local export fallback
+        // 2) local export fallback (NO token/password)
+        const theme =
+            document.documentElement.getAttribute("data-theme") ||
+            localStorage.getItem("selfio_theme") ||
+            localStorage.getItem("theme") ||
+            "system";
+
+        const { state, snapshotUsed } = collectLocalStateForExport(email);
+
         const payload = {
+            schema: "selfio.export.v1",
             exported_at: new Date().toISOString(),
-            email,
+            email_masked: maskEmail(email || "anon"),
             plan,
             name: localStorage.getItem("selfio_name") || "",
-            note: "Local export (backend export not available)."
+            theme,
+            state,
+            note: snapshotUsed
+                ? "Local export (state key not found, exported selfio_* snapshot)."
+                : "Local export (no password/token)."
         };
-        downloadJSON(payload, `selfio-export-${today()}.json`);
-        toast("Exported locally ✅");
+
+        await shareOrDownloadJSON(payload, `selfio-export-${today()}.json`);
+        toast("Exported ✅");
     });
 
     // Delete account: needs backend POST /me/delete, otherwise local cleanup only
@@ -272,8 +284,73 @@ document.addEventListener("DOMContentLoaded", () => {
         toast("Backend unavailable. Can't delete from database.");
     });
 
-    function downloadJSON(obj, filename) {
-        const blob = new Blob([JSON.stringify(obj, null, 2)], { type: "application/json" });
+    function safeJsonParse(str, fallback) {
+        try { return JSON.parse(str); } catch { return fallback; }
+    }
+
+    function maskEmail(email) {
+        const e = String(email || "");
+        const at = e.indexOf("@");
+        if (at <= 1) return e || "anon";
+        const name = e.slice(0, at);
+        const domain = e.slice(at + 1);
+        return `${name.slice(0, 2)}***@${domain}`;
+    }
+
+// tries to get real app state; if not found -> exports snapshot of selfio_* (excluding token)
+    function collectLocalStateForExport(email) {
+        const APP_KEY = "selfio_app_v1";
+
+        // 1) try common state keys
+        const keysToTry = [
+            `${APP_KEY}:${email || "anon"}`,
+            `${APP_KEY}:${(email || "anon").toLowerCase()}`,
+            APP_KEY
+        ];
+
+        for (const k of keysToTry) {
+            const raw = localStorage.getItem(k);
+            if (!raw) continue;
+            const parsed = safeJsonParse(raw, null);
+            if (parsed && typeof parsed === "object") {
+                const days = parsed.days || {};
+                const settings = parsed.settings || {};
+                const weeks = parsed.weeks || {};
+                return { state: { days, settings, weeks }, snapshotUsed: false };
+            }
+        }
+
+        // 2) fallback: snapshot all selfio_* keys (no token)
+        const snap = {};
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (!key) continue;
+
+            // take only selfio_* keys but NEVER token
+            if (!key.startsWith("selfio_")) continue;
+            if (key === "selfio_token") continue;
+
+            snap[key] = localStorage.getItem(key);
+        }
+
+        return { state: { snapshot: snap }, snapshotUsed: true };
+    }
+
+// share sheet on mobile if possible, otherwise download
+    async function shareOrDownloadJSON(obj, filename) {
+        const json = JSON.stringify(obj, null, 2);
+        const blob = new Blob([json], { type: "application/json" });
+
+        // Mobile share (iOS/Android)
+        try {
+            const file = new File([blob], filename, { type: "application/json" });
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                await navigator.share({ files: [file], title: "Selfio export" });
+                return;
+            }
+        } catch (_) {}
+
+        // Fallback download
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
@@ -281,7 +358,7 @@ document.addEventListener("DOMContentLoaded", () => {
         document.body.appendChild(a);
         a.click();
         a.remove();
-        URL.revokeObjectURL(url);
+        setTimeout(() => URL.revokeObjectURL(url), 1500);
     }
 
     function today() {
