@@ -141,6 +141,10 @@
 }
 
 /* ===== PRODUCT ===== */
+.product{
+  padding: 72px 0;
+}
+
 .product__grid{
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -240,6 +244,12 @@
     aspect-ratio: 4 / 5;
     max-width: 560px;
     margin: 0 auto;
+  }
+}
+
+@media (max-width: 768px){
+  .product{
+    padding: 56px 0;
   }
 }
 
