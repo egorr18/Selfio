@@ -9,11 +9,9 @@
 
     const API_BASE = window.SELFIO_API_BASE || DEFAULT_BASE;
 
-    // ----- Toast (без правок HTML) -----
     function ensureToastEl() {
         let el = document.getElementById("selfio-toast");
         if (el) return el;
-
         el = document.createElement("div");
         el.id = "selfio-toast";
         el.className = "selfio-toast selfio-toast--hidden";
@@ -22,30 +20,23 @@
     }
 
     let toastTimer = null;
-
     function toast(message, type = "info", ms = 2200) {
         const el = ensureToastEl();
         el.textContent = String(message || "");
         el.dataset.type = type;
         el.classList.remove("selfio-toast--hidden");
-
         if (toastTimer) clearTimeout(toastTimer);
-        toastTimer = setTimeout(() => {
-            el.classList.add("selfio-toast--hidden");
-        }, ms);
+        toastTimer = setTimeout(() => el.classList.add("selfio-toast--hidden"), ms);
     }
 
-    // ----- Button loading -----
     function setLoading(btn, loading, text = "Loading...") {
         if (!btn) return;
         if (!btn.dataset.originalText) btn.dataset.originalText = btn.textContent;
-
         btn.disabled = !!loading;
         btn.textContent = loading ? text : btn.dataset.originalText;
         btn.setAttribute("aria-busy", loading ? "true" : "false");
     }
 
-    // ----- Parse response (json/text) -----
     async function readBody(res) {
         const ct = res.headers.get("content-type") || "";
         if (ct.includes("application/json")) {
@@ -55,7 +46,6 @@
         return text ? { message: text } : {};
     }
 
-    // ----- The helper: apiFetch -----
     async function apiFetch(path, opts = {}) {
         const {
             method = "GET",
@@ -88,15 +78,20 @@
             return {
                 ok: false,
                 status: 0,
-                data: { error: isTimeout ? "timeout" : "network_error", message: isTimeout ? "Request timeout" : "Network error" },
+                data: {
+                    error: isTimeout ? "timeout" : "network_error",
+                    message: isTimeout ? "Request timeout" : "Network error",
+                },
             };
         } finally {
             clearTimeout(t);
         }
     }
 
-    // export
-// export (НЕ затираємо Selfio, а додаємо поля)
+    // ✅ НЕ перезатираємо window.Selfio повністю
     window.Selfio = window.Selfio || {};
-    Object.assign(window.Selfio, { API_BASE, apiFetch, toast, setLoading });
+    window.Selfio.API_BASE = API_BASE;
+    window.Selfio.apiFetch = apiFetch;
+    window.Selfio.toast = toast;
+    window.Selfio.setLoading = setLoading;
 })();

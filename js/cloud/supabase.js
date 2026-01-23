@@ -1,45 +1,77 @@
-window.Selfio = window.Selfio || {};
+// js/cloud/supabase.js
+(() => {
+    window.Selfio = window.Selfio || {};
+    const cfg = window.Selfio.config || {};
+    const { supabaseUrl, supabaseAnonKey } = cfg;
 
-(function () {
-    let _client = null;
+    if (!supabaseUrl || !supabaseAnonKey) {
+        console.warn("Supabase config missing (supabaseUrl / supabaseAnonKey). Cloud mode disabled.");
+        return;
+    }
 
-    function sb() {
-        if (_client) return _client;
+    if (!window.supabase?.createClient) {
+        console.error("Supabase CDN not loaded. Add <script src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js'></script> in <head>.");
+        return;
+    }
 
-        const { supabaseUrl, supabaseAnonKey } = window.Selfio.config || {};
-        if (!supabaseUrl || !supabaseAnonKey) {
-            throw new Error("Supabase keys are missing in config.js");
-        }
-        if (!window.supabase?.createClient) {
-            throw new Error("Supabase CDN not loaded (window.supabase.createClient missing)");
-        }
+    // ✅ Singleton client (не створюємо кожен раз новий)
+    const client = window.supabase.createClient(supabaseUrl, supabaseAnonKey, {
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+    });
 
-        _client = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
-        return _client;
+    async function getSession() {
+        const { data, error } = await client.auth.getSession();
+        if (error) throw error;
+        return data.session || null;
     }
 
     async function getUser() {
-        const { data } = await sb().auth.getUser();
-        return data?.user || null;
+        const { data, error } = await client.auth.getUser();
+        if (error) return null;
+        return data.user || null;
     }
 
-    async function ensureProfile(email) {
-        const user = await getUser();
-        if (!user) return;
+    async function signOut() {
+        await client.auth.signOut();
+    }
 
-        await sb().from("profiles").upsert({
-            id: user.id,
-            email: email || user.email,
-            plan: (localStorage.getItem("selfio_plan") || "free").toLowerCase(),
-            name: localStorage.getItem("selfio_name") || ""
-        });
+    async function ensureProfile(overrides = {}) {
+        const user = await getUser();
+        if (!user) return null;
+
+        const email = overrides.email || user.email || "";
+        const plan = String(overrides.plan ?? localStorage.getItem("selfio_plan") ?? "free").toLowerCase();
+        const name = String(overrides.name ?? localStorage.getItem("selfio_name") ?? "");
+
+        const { data, error } = await client
+            .from("profiles")
+            .upsert({ id: user.id, email, plan, name }, { onConflict: "id" })
+            .select()
+            .single();
+
+        if (error) throw error;
+        return data || null;
+    }
+
+    async function readProfile() {
+        const user = await getUser();
+        if (!user) return null;
+
+        const { data, error } = await client
+            .from("profiles")
+            .select("*")
+            .eq("id", user.id)
+            .maybeSingle();
+
+        if (error) throw error;
+        return data || null;
     }
 
     async function loadState() {
         const user = await getUser();
         if (!user) return null;
 
-        const { data, error } = await sb()
+        const { data, error } = await client
             .from("user_state")
             .select("data")
             .eq("user_id", user.id)
@@ -53,7 +85,7 @@ window.Selfio = window.Selfio || {};
         const user = await getUser();
         if (!user) throw new Error("Not signed in");
 
-        const { error } = await sb().from("user_state").upsert({
+        const { error } = await client.from("user_state").upsert({
             user_id: user.id,
             data: state
         });
@@ -61,5 +93,14 @@ window.Selfio = window.Selfio || {};
         if (error) throw error;
     }
 
-    window.Selfio.cloud = { sb, getUser, ensureProfile, loadState, saveState };
+    window.Selfio.cloud = {
+        client,
+        getSession,
+        getUser,
+        signOut,
+        ensureProfile,
+        readProfile,
+        loadState,
+        saveState,
+    };
 })();
