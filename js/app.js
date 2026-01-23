@@ -1617,11 +1617,6 @@
                     `Push goals to Today (plan → tasks).`;
             }
         }
-
-        // label біля Theme
-        const t = document.documentElement.getAttribute("data-theme");
-        const label = document.querySelector("[data-theme-label]");
-        if (label) label.textContent = t === "dark" ? "Dark" : "Light";
     }
 
     // ===== Habits page =====
