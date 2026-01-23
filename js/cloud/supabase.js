@@ -1,48 +1,55 @@
 window.Selfio = window.Selfio || {};
 
 (function () {
-    function sb() {
-        // 1) перевірка SDK
-        if (!window.supabase?.createClient) {
-            throw new Error(
-                "Supabase SDK not loaded. Make sure the CDN script is included BEFORE cloud.js"
-            );
-        }
+    if (!window.supabase?.createClient) {
+        console.error("Supabase CDN not loaded");
+        return;
+    }
 
-        // 2) перевірка ключів
+    let client = null;
+
+    function sb() {
+        if (client) return client;
+
         const { supabaseUrl, supabaseAnonKey } = window.Selfio.config || {};
         if (!supabaseUrl || !supabaseAnonKey) {
             throw new Error("Supabase keys are missing in config.js");
         }
 
-        return window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+        client = window.supabase.createClient(supabaseUrl, supabaseAnonKey, {
+            auth: {
+                storageKey: "selfio-auth",     // важливо: стабільний ключ
+                persistSession: true,
+                autoRefreshToken: true,
+                detectSessionInUrl: true,
+            },
+        });
+
+        return client;
     }
 
     async function getUser() {
-        const client = sb();
-        const { data } = await client.auth.getUser();
+        const { data } = await sb().auth.getUser();
         return data?.user || null;
     }
 
     async function ensureProfile(email) {
-        const client = sb();
         const user = await getUser();
         if (!user) return;
 
-        await client.from("profiles").upsert({
+        await sb().from("profiles").upsert({
             id: user.id,
             email: email || user.email,
             plan: (localStorage.getItem("selfio_plan") || "free").toLowerCase(),
-            name: localStorage.getItem("selfio_name") || ""
+            name: localStorage.getItem("selfio_name") || "",
         });
     }
 
     async function loadState() {
-        const client = sb();
         const user = await getUser();
         if (!user) return null;
 
-        const { data, error } = await client
+        const { data, error } = await sb()
             .from("user_state")
             .select("data")
             .eq("user_id", user.id)
@@ -53,13 +60,12 @@ window.Selfio = window.Selfio || {};
     }
 
     async function saveState(state) {
-        const client = sb();
         const user = await getUser();
         if (!user) throw new Error("Not signed in");
 
-        const { error } = await client.from("user_state").upsert({
+        const { error } = await sb().from("user_state").upsert({
             user_id: user.id,
-            data: state
+            data: state,
         });
 
         if (error) throw error;
