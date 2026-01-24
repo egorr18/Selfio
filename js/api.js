@@ -1,97 +1,65 @@
-// js/api.js
-(() => {
-    const isGitHubPages = location.hostname.endsWith("github.io");
-    const isLocalhost = location.hostname === "localhost" || location.hostname === "127.0.0.1";
+// js/core/api.js
+(function () {
+  window.Selfio = window.Selfio || {};
 
-    const DEFAULT_BASE = isGitHubPages
-        ? "https://selfio-backend.onrender.com"
-        : (isLocalhost ? "http://localhost:8080" : "https://selfio-backend.onrender.com");
+  function sb() {
+    const c = window.Selfio.supabase;
+    if (!c) throw new Error("Supabase client not initialized");
+    return c;
+  }
 
-    const API_BASE = window.SELFIO_API_BASE || DEFAULT_BASE;
+  async function uid() {
+    const { data, error } = await sb().auth.getUser();
+    if (error) throw error;
+    if (!data.user) throw new Error("Not authenticated");
+    return data.user.id;
+  }
 
-    function ensureToastEl() {
-        let el = document.getElementById("selfio-toast");
-        if (el) return el;
-        el = document.createElement("div");
-        el.id = "selfio-toast";
-        el.className = "selfio-toast selfio-toast--hidden";
-        document.body.appendChild(el);
-        return el;
-    }
+  // PROFILE
+  async function getMyProfile() {
+    const id = await uid();
+    const { data, error } = await sb().from("profiles").select("*").eq("id", id).single();
+    if (error) throw error;
+    return data;
+  }
 
-    let toastTimer = null;
-    function toast(message, type = "info", ms = 2200) {
-        const el = ensureToastEl();
-        el.textContent = String(message || "");
-        el.dataset.type = type;
-        el.classList.remove("selfio-toast--hidden");
-        if (toastTimer) clearTimeout(toastTimer);
-        toastTimer = setTimeout(() => el.classList.add("selfio-toast--hidden"), ms);
-    }
+  async function updateMyProfile(patch) {
+    const id = await uid();
+    const { data, error } = await sb()
+      .from("profiles")
+      .update({ ...patch })
+      .eq("id", id)
+      .select("*")
+      .single();
+    if (error) throw error;
+    return data;
+  }
 
-    function setLoading(btn, loading, text = "Loading...") {
-        if (!btn) return;
-        if (!btn.dataset.originalText) btn.dataset.originalText = btn.textContent;
-        btn.disabled = !!loading;
-        btn.textContent = loading ? text : btn.dataset.originalText;
-        btn.setAttribute("aria-busy", loading ? "true" : "false");
-    }
+  // PLAN
+  async function getMyPlan() {
+    const id = await uid();
+    const { data, error } = await sb()
+      .from("user_plans")
+      .select("*")
+      .eq("user_id", id)
+      .single();
+    if (error) throw error;
+    return data;
+  }
 
-    async function readBody(res) {
-        const ct = res.headers.get("content-type") || "";
-        if (ct.includes("application/json")) {
-            try { return await res.json(); } catch { return {}; }
-        }
-        const text = await res.text().catch(() => "");
-        return text ? { message: text } : {};
-    }
+  async function setMyPlan(plan) {
+    const id = await uid();
+    const payload = { user_id: id, plan, status: "active", provider: "manual" };
 
-    async function apiFetch(path, opts = {}) {
-        const {
-            method = "GET",
-            body,
-            token,
-            headers = {},
-            timeoutMs = 12000,
-        } = opts;
+    const { data, error } = await sb()
+      .from("user_plans")
+      .upsert(payload, { onConflict: "user_id" })
+      .select("*")
+      .single();
 
-        const ctrl = new AbortController();
-        const t = setTimeout(() => ctrl.abort(), timeoutMs);
+    if (error) throw error;
+    return data;
+  }
 
-        try {
-            const res = await fetch(`${API_BASE}${path}`, {
-                method,
-                headers: {
-                    "Content-Type": "application/json",
-                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-                    ...headers,
-                },
-                body: body !== undefined ? JSON.stringify(body) : undefined,
-                cache: "no-store",
-                signal: ctrl.signal,
-            });
-
-            const data = await readBody(res);
-            return { ok: res.ok, status: res.status, data };
-        } catch (err) {
-            const isTimeout = err?.name === "AbortError";
-            return {
-                ok: false,
-                status: 0,
-                data: {
-                    error: isTimeout ? "timeout" : "network_error",
-                    message: isTimeout ? "Request timeout" : "Network error",
-                },
-            };
-        } finally {
-            clearTimeout(t);
-        }
-    }
-
-    // ✅ НЕ перезатираємо window.Selfio повністю
-    window.Selfio = window.Selfio || {};
-    window.Selfio.API_BASE = API_BASE;
-    window.Selfio.apiFetch = apiFetch;
-    window.Selfio.toast = toast;
-    window.Selfio.setLoading = setLoading;
+  window.Selfio.api = { getMyProfile, updateMyProfile, getMyPlan, setMyPlan };
 })();

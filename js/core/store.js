@@ -23,34 +23,36 @@ window.Selfio = window.Selfio || {};
     }
 
     async function load() {
-        const m = mode();
+    const m = mode();
 
-        if (m === "cloud") {
-            const cloudState = await window.Selfio.cloud.loadState();
-            // якщо в хмарі пусто — не ламаємо demo
-            return cloudState ?? localLoad();
-        }
-
-        // local backend (docker) — підключимо коли додамо /state
-        if (m === "local") {
-            return localLoad(); // тимчасово
-        }
-
+    if (m === "cloud") {
+        try {
+        if (!window.Selfio?.cloud?.loadState) throw new Error("Selfio.cloud not ready");
+        const cloudState = await window.Selfio.cloud.loadState();
+        return cloudState ?? localLoad();
+        } catch (e) {
+        // якщо не залогінений / нема таблиць / RLS — не ламаємо app
+        console.warn("[Selfio.store] cloud load failed, fallback to local:", e?.message || e);
         return localLoad();
+        }
+    }
+
+    if (m === "local") return localLoad();
+    return localLoad();
     }
 
     async function save(state) {
-        const m = mode();
+    const m = mode();
 
-        // завжди зберігаємо локально (щоб не втрачати дані)
-        localSave(state);
+    localSave(state);
 
-        if (m === "cloud") {
-            await window.Selfio.cloud.saveState(state);
+    if (m === "cloud") {
+        try {
+        if (!window.Selfio?.cloud?.saveState) throw new Error("Selfio.cloud not ready");
+        await window.Selfio.cloud.saveState(state);
+        } catch (e) {
+        console.warn("[Selfio.store] cloud save failed (kept local):", e?.message || e);
         }
-
-        // local backend (docker) — потім додамо api save
     }
-
-    window.Selfio.store = { mode, setMode, load, save, localLoad, localSave };
+    }
 })();

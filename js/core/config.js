@@ -1,14 +1,14 @@
+// js/core/config.js
 window.Selfio = window.Selfio || {};
 
-const savedMode = localStorage.getItem("selfio_mode") || "demo"; // demo | cloud | local
-
 window.Selfio.config = {
-    mode: savedMode,
+  // режим (якщо треба) — можна перемикати: localStorage.setItem("selfio_mode","cloud")
+  mode: localStorage.getItem("selfio_mode") || "cloud", // cloud | demo | local
 
-    // Cloud (Supabase) — вставиш зі Settings → API
-    supabaseUrl:  "https://duvgdgzbjrkkcxddfpvm.supabase.co",
-    supabaseAnonKey: "sb_publishable_Y9be6af3F00v3otDYNyhGA_lrtM5CwZ",
+  // Supabase (Project Settings → API)
+  supabaseUrl: "https://duvgdgzbjrkkcxddfpvm.supabase.co",
+  supabaseAnonKey: "sb_publishable_Y9be6af3F00v3otDYNyhGA_lrtM5CwZ",
 
-    // Local backend (docker), якщо захочеш старий режим
-    localApiBase: "http://localhost:8080",
+  // Redirect після підтвердження email (якщо увімкнеш підтвердження)
+  emailRedirectTo: location.origin + "/pages/account.html",
 };

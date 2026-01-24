@@ -43,17 +43,15 @@
       </nav>
 
       <div class="header__actions">
-        <div class="header__actions">
-          <button class="theme-toggle" type="button"
-                  data-theme-toggle
-                  aria-label="Toggle theme"
-                  aria-pressed="false">🌙
-          </button>
+        <button class="theme-toggle" type="button"
+                data-theme-toggle
+                aria-label="Toggle theme"
+                aria-pressed="false">🌙
+        </button>
         <a class="btn" href="signin.html?mode=login">Sign in</a>
         <a class="btn" href="signin.html?mode=register">Create account</a>
       </div>
     </div>
-  </div>
   </div>
 </header>
 
@@ -66,33 +64,15 @@
       Sign in or create an account to continue your journaling journey.
     </p>
 
-    <!-- Перемикач режиму (НЕ submit) -->
     <div class="auth__switch">
       <button type="button" class="btn btn--primary" data-mode="login">Sign in</button>
       <button type="button" class="btn btn--secondary" data-mode="register">Create account</button>
     </div>
 
     <form class="auth__form" novalidate>
-      <input
-              type="email"
-              name="email"
-              autocomplete="email"
-              placeholder="Email address"
-              required
-      />
-
-      <input
-              type="password"
-              name="password"
-              autocomplete="current-password"
-              placeholder="Password"
-              required
-      />
-
-      <!-- ОДНА submit кнопка -->
-      <button type="submit" class="btn btn--primary" data-submit>
-        Sign in
-      </button>
+      <input type="email" name="email" autocomplete="email" placeholder="Email address" required />
+      <input type="password" name="password" autocomplete="current-password" placeholder="Password" required />
+      <button type="submit" class="btn btn--primary" data-submit>Sign in</button>
     </form>
 
     <p class="auth__note" data-auth-note>
@@ -113,12 +93,12 @@
     </nav>
   </div>
 </footer>
+
 <script src="../js/core/config.js" defer></script>
 <script src="../js/cloud/supabase.js" defer></script>
-<script src="../js/core/store.js" defer></script>
+<script src="../js/core/auth.js" defer></script>
 
 <script src="../js/nav.js" defer></script>
-<script src="../js/api.js" defer></script>
 <script src="../js/sign.js" defer></script>
 <script src="../js/theme.js" defer></script>
 </body>

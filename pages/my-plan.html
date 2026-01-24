@@ -9,6 +9,8 @@
   <link rel="stylesheet" href="../css/variables.css">
   <link rel="stylesheet" href="../css/global.css">
   <link rel="stylesheet" href="../css/app.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 
 <body data-app data-page="my-plan">
@@ -38,8 +40,6 @@
                 data-theme-toggle
                 aria-label="Toggle theme"
                 aria-pressed="false">🌙</button>
-
-        <!-- ОЦЕ ОДНЕ ДЖЕРЕЛО ПРАВДИ ДЛЯ ПЛАНА -->
         <span class="link" data-app-meta>—</span>
       </div>
     </div>
@@ -48,7 +48,6 @@
 
 <section class="app">
   <div class="container">
-
     <div class="app__top">
       <div class="app__title">
         <h1>Your plan</h1>
@@ -61,26 +60,20 @@
     </div>
 
     <div class="myplan__grid">
-      <!-- ACCOUNT -->
       <div class="card">
         <h2>Account</h2>
         <div class="mini">Email: <b data-my-email>—</b></div>
         <div class="mini" style="margin-top:6px;">Plan: <b data-my-plan>—</b></div>
       </div>
 
-      <!-- PLAN CARD (як на pricing) -->
       <div class="card myplan__card">
         <div class="myplan__badge" data-plan-badge>—</div>
-
         <h2 class="myplan__name" data-plan-name>—</h2>
         <div class="myplan__price" data-plan-price>—</div>
-
         <p class="myplan__desc" data-plan-desc>—</p>
-
         <ul class="myplan__features" data-plan-features></ul>
       </div>
     </div>
-
   </div>
 </section>
 

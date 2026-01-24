@@ -1,162 +1,147 @@
-// js/sign.js (Supabase auth)
-document.addEventListener("DOMContentLoaded", () => {
-    const form = document.querySelector(".auth__form");
-    if (!form) return;
+// js/sign.js
+(function () {
+  function $(sel) { return document.querySelector(sel); }
 
-    const titleEl = document.querySelector("[data-auth-title]");
-    const textEl  = document.querySelector("[data-auth-text]");
-    const noteEl  = document.querySelector("[data-auth-note]");
+  const ALLOWED_NEXT = new Set([
+    "app.html",
+    "weekly.html",
+    "habits.html",
+    "account.html",
+    "my-plan.html",
+    "choose-plan.html",
+  ]);
 
-    const btnModeLogin    = document.querySelector("[data-mode='login']");
-    const btnModeRegister = document.querySelector("[data-mode='register']");
-    const btnSubmit       = document.querySelector("[data-submit]");
+  function sanitizeNext(raw) {
+    let v = String(raw || "").trim();
+    if (!v) return "app.html";
 
-    const qs = new URLSearchParams(location.search);
-
-    const ALLOWED_BASE = new Set([
-        "app.html",
-        "weekly.html",
-        "habits.html",
-        "settings.html",
-        "choose-plan.html",
-        "my-plan.html",
-        "account.html",
-    ]);
-
-    function sanitizeNext(raw) {
-        let v = String(raw || "").trim();
-        if (!v) return "app.html";
-
-        const low = v.toLowerCase();
-        if (low.startsWith("http:") || low.startsWith("https:") || low.startsWith("//") || low.startsWith("javascript:")) {
-            return "app.html";
-        }
-
-        try { v = decodeURIComponent(v); } catch {}
-        const base = v.split(/[?#]/)[0];
-        if (!ALLOWED_BASE.has(base)) return "app.html";
-        return v;
+    const low = v.toLowerCase();
+    if (low.startsWith("http:") || low.startsWith("https:") || low.startsWith("//") || low.startsWith("javascript:")) {
+      return "app.html";
     }
 
+    try { v = decodeURIComponent(v); } catch {}
+    const base = v.split(/[?#]/)[0];
+    if (!ALLOWED_NEXT.has(base)) return "app.html";
+    return v;
+  }
+
+  function ensureMsgEl() {
+    let el = $("#auth-msg");
+    if (el) return el;
+    const form = $(".auth__form");
+    if (!form) return null;
+
+    el = document.createElement("p");
+    el.id = "auth-msg";
+    el.className = "mini";
+    el.style.marginTop = "10px";
+    form.appendChild(el);
+    return el;
+  }
+
+  function msg(text, kind = "") {
+    const el = ensureMsgEl();
+    if (!el) return;
+    el.textContent = text || "";
+    el.dataset.kind = kind; // можеш стилізувати по [data-kind="error"]
+  }
+
+  function setModeUI(mode) {
+    const title = document.querySelector("[data-auth-title]");
+    const text = document.querySelector("[data-auth-text]");
+    const note = document.querySelector("[data-auth-note]");
+    const submit = document.querySelector("[data-submit]");
+
+    const isReg = mode === "register";
+
+    if (title) title.textContent = isReg ? "Create account" : "Welcome back";
+    if (text) text.textContent = isReg
+      ? "Create an account to continue your journaling journey."
+      : "Sign in to continue your journaling journey.";
+    if (note) note.innerHTML = isReg
+      ? 'Already have an account? Select <b>Sign in</b>.'
+      : 'New here? Select <b>Create account</b>.';
+    if (submit) submit.textContent = isReg ? "Create account" : "Sign in";
+
+    document.querySelectorAll(".auth__switch [data-mode]").forEach((b) => {
+      const m = b.getAttribute("data-mode");
+      b.classList.toggle("btn--primary", m === mode);
+      b.classList.toggle("btn--secondary", m !== mode);
+    });
+  }
+
+  async function afterAuthRedirect(next) {
+    // якщо план вже вибрано — йдемо на next, інакше на choose-plan
+    const email = (localStorage.getItem("selfio_email") || "").toLowerCase();
+    const perUserPlan = localStorage.getItem(`selfio_plan:${email || "anon"}`);
+    const hasPlan = !!perUserPlan;
+
+    if (!hasPlan) {
+      location.href = `choose-plan.html?next=${encodeURIComponent(next)}`;
+      return;
+    }
+    location.href = next;
+  }
+
+  document.addEventListener("DOMContentLoaded", async () => {
+    const qs = new URLSearchParams(location.search);
     const next = sanitizeNext(qs.get("next"));
 
-    let authMode = (String(qs.get("mode") || "login").toLowerCase() === "register")
-        ? "register"
-        : "login";
+    const cloud = window.Selfio?.cloud;
+    const auth = window.Selfio?.auth;
 
-    function paintMode() {
-        if (authMode === "login") {
-            btnModeLogin?.classList.add("btn--primary");
-            btnModeLogin?.classList.remove("btn--secondary");
-            btnModeRegister?.classList.add("btn--secondary");
-            btnModeRegister?.classList.remove("btn--primary");
-
-            if (titleEl) titleEl.textContent = "Welcome back";
-            if (textEl)  textEl.textContent  = "Sign in to continue your journaling journey.";
-            if (noteEl)  noteEl.innerHTML     = 'New here? Select <b>Create account</b>.';
-            if (btnSubmit) btnSubmit.textContent = "Sign in";
-        } else {
-            btnModeRegister?.classList.add("btn--primary");
-            btnModeRegister?.classList.remove("btn--secondary");
-            btnModeLogin?.classList.add("btn--secondary");
-            btnModeLogin?.classList.remove("btn--primary");
-
-            if (titleEl) titleEl.textContent = "Create account";
-            if (textEl)  textEl.textContent  = "Create an account to start using Selfio.";
-            if (noteEl)  noteEl.innerHTML     = 'Already have an account? Select <b>Sign in</b>.';
-            if (btnSubmit) btnSubmit.textContent = "Create account";
-        }
+    if (!cloud || !auth) {
+      console.error("[Selfio] Missing Selfio.cloud or Selfio.auth. Check script order.");
+      msg("App scripts not loaded правильно. Перевір порядок підключень.", "error");
+      return;
     }
 
-    btnModeLogin?.addEventListener("click", () => { authMode = "login"; paintMode(); });
-    btnModeRegister?.addEventListener("click", () => { authMode = "register"; paintMode(); });
-    paintMode();
+    let mode = (qs.get("mode") || "login").toLowerCase();
+    if (mode !== "register") mode = "login";
+    setModeUI(mode);
 
-    function toast(msg) {
-        window.Selfio?.toast ? window.Selfio.toast(msg) : alert(String(msg));
-    }
+    document.querySelectorAll(".auth__switch [data-mode]").forEach((b) => {
+      b.addEventListener("click", () => {
+        mode = b.getAttribute("data-mode") === "register" ? "register" : "login";
+        setModeUI(mode);
+        msg("");
+        const url = new URL(location.href);
+        url.searchParams.set("mode", mode);
+        history.replaceState({}, "", url.toString());
+      });
+    });
 
-    function setBusy(on) {
-        btnModeLogin && (btnModeLogin.disabled = on);
-        btnModeRegister && (btnModeRegister.disabled = on);
-        if (btnSubmit) {
-            btnSubmit.disabled = on;
-            btnSubmit.textContent = on ? "Connecting..." : (authMode === "login" ? "Sign in" : "Create account");
-        }
-    }
-
-    let submitting = false;
+    const form = $(".auth__form");
+    if (!form) return;
 
     form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        if (submitting) return;
-        submitting = true;
-        setBusy(true);
+      e.preventDefault();
+      msg("");
 
-        try {
-            if (!window.Selfio?.cloud?.sb) {
-                toast("Cloud is not ready: supabase.js or config.js missing.");
-                return;
-            }
+      const email = (form.querySelector('input[name="email"]')?.value || "").trim();
+      const password = (form.querySelector('input[name="password"]')?.value || "").trim();
+      if (!email || !password) return msg("Fill email + password.", "error");
 
-            const email = (form.querySelector("input[type='email']")?.value || "").trim().toLowerCase();
-            const password = form.querySelector("input[type='password']")?.value || "";
-
-            if (!email || !password) {
-                toast("Enter email and password");
-                return;
-            }
-
-            const client = window.Selfio.cloud.sb();
-
-            if (authMode === "register") {
-                const { data, error } = await client.auth.signUp({ email, password });
-                if (error) {
-                    toast(error.message || "Register failed");
-                    return;
-                }
-
-                // Записуємо локально (для UI)
-                localStorage.setItem("selfio_email", email);
-                if (!localStorage.getItem("selfio_plan")) localStorage.setItem("selfio_plan", "free");
-
-                // Створюємо/оновлюємо профіль
-                await window.Selfio.cloud.ensureProfile(email);
-
-                // Після реєстрації — на вибір плану
-                location.href = `choose-plan.html?next=${encodeURIComponent(next)}`;
-                return;
-            }
-
-            // LOGIN
-            const { data, error } = await client.auth.signInWithPassword({ email, password });
-            if (error) {
-                toast(error.message || "Login failed");
-                return;
-            }
-
-            localStorage.setItem("selfio_email", email);
-
-            // підтягнути профіль/план
-            await window.Selfio.cloud.ensureProfile(email);
-            const prof = await window.Selfio.cloud.loadProfile().catch(() => null);
-
-            const plan = (prof?.plan || localStorage.getItem("selfio_plan") || "free").toLowerCase();
-            localStorage.setItem("selfio_plan", plan);
-
-            // якщо плану нема (на всяк) — на choose-plan
-            if (!plan) {
-                location.href = `choose-plan.html?next=${encodeURIComponent(next)}`;
-                return;
-            }
-
-            location.href = next;
-        } catch (err) {
-            console.error(err);
-            toast("Auth error. Check console.");
-        } finally {
-            submitting = false;
-            setBusy(false);
+      try {
+        if (mode === "register") {
+          const res = await auth.signUp(email, password, "");
+          if (res?.user && !res?.session) {
+            msg("Check your email to confirm your account.", "ok");
+            return;
+          }
+        } else {
+          await auth.signIn(email, password);
         }
+
+        // створимо/оновимо профіль
+        await cloud.ensureProfile();
+
+        await afterAuthRedirect(next);
+      } catch (err) {
+        console.error(err);
+        msg(err?.message || "Auth failed", "error");
+      }
     });
-});
+  });
+})();

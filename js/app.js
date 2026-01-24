@@ -1,4 +1,4 @@
-(function () {
+(async function () {
     const TOKEN_KEY = "selfio_token";
     const EMAIL_KEY = "selfio_email";
     const PLAN_KEY = "selfio_plan";
@@ -6,6 +6,62 @@
 
     const DEFAULT_FOCUSES = ["Deep work", "Study", "Health", "Social", "Reset"];
     const DEFAULT_HABITS = ["Drink water", "Study 30 min"];
+    
+    // ===== supabase helpers (cloud auth) =====
+    function getMode() {
+        return (window.Selfio?.store?.mode?.() || window.Selfio?.config?.mode || "demo");
+    }
+
+    let __sbClient = null;
+
+    function getSupabaseClient() {
+        if (__sbClient) return __sbClient;
+
+        // якщо твій js/cloud/supabase.js вже створив client — беремо його
+        if (window.Selfio?.cloud?.client) {
+            __sbClient = window.Selfio.cloud.client;
+            return __sbClient;
+        }
+
+        // fallback: пробуємо створити клієнт тут (якщо підключений UMD supabase-js)
+        const url = window.Selfio?.config?.supabaseUrl;
+        const key = window.Selfio?.config?.supabaseAnonKey;
+
+        const lib = window.supabase || window.Supabase || null; // UMD зазвичай window.supabase
+        const createClient = lib?.createClient;
+
+        if (url && key && typeof createClient === "function") {
+            __sbClient = createClient(url, key);
+            return __sbClient;
+        }
+
+        return null;
+    }
+
+    async function getSupabaseSession() {
+        const sb = getSupabaseClient();
+        if (!sb?.auth?.getSession) return null;
+
+        try {
+            const { data, error } = await sb.auth.getSession();
+            if (error) return null;
+            return data?.session || null;
+        } catch {
+            return null;
+        }
+    }
+
+    async function supabaseSignOutSafe() {
+        const sb = getSupabaseClient();
+        if (!sb?.auth?.signOut) return;
+        try { await sb.auth.signOut(); } catch { /* ignore */ }
+    }
+
+    function signinUrl(nextFile) {
+        // якщо в тебе sign.js підтримує mode=login — лишай. Якщо ні, прибери mode=login.
+        const next = encodeURIComponent(nextFile);
+        return `signin.html?mode=login&next=${next}`;
+    }
 
     // ===== utils =====
     function ymd(d = new Date()) {
@@ -357,12 +413,32 @@
         return `${page}.html`;
     }
 
-    function requireAuth() {
+    async function requireAuth() {
+        const page = document.body.getAttribute("data-page") || "today";
+        const nextFile = pageFileFromDataPage(page);
+
+        const m = getMode();
+
+        // Cloud (Supabase): джерело правди — session
+        if (m === "cloud") {
+            const session = await getSupabaseSession();
+            const email = session?.user?.email;
+
+            if (!email) {
+                location.replace(signinUrl(nextFile));
+                return false;
+            }
+
+            // синхронізуємо legacy-ключі (щоб твій код нижче не ламався)
+            localStorage.setItem(EMAIL_KEY, email);
+            localStorage.setItem(TOKEN_KEY, "sb"); // "маркер" сумісності
+            return true;
+        }
+
+        // Demo/Local: залишаємо стару перевірку по selfio_token
         const token = localStorage.getItem(TOKEN_KEY);
         if (!token) {
-            const page = document.body.getAttribute("data-page") || "today";
-            const next = encodeURIComponent(pageFileFromDataPage(page));
-            location.href = `signin.html?next=${next}`;
+            location.replace(signinUrl(nextFile));
             return false;
         }
         return true;
@@ -380,16 +456,23 @@
         document.querySelectorAll("[data-user-plan]").forEach(el => (el.textContent = plan));
     }
 
-    function bindLogout() {
+        function bindLogout() {
         document.querySelectorAll("[data-logout]").forEach((btn) => {
             if (btn.dataset.bound === "1") return;
             btn.dataset.bound = "1";
 
-            btn.addEventListener("click", (e) => {
+            btn.addEventListener("click", async (e) => {
                 e.preventDefault();
                 e.stopPropagation();
 
-                // end session
+                const m = getMode();
+
+                // cloud: корректний logout з Supabase
+                if (m === "cloud") {
+                    await supabaseSignOutSafe();
+                }
+
+                // чистимо legacy/local дані
                 localStorage.removeItem(TOKEN_KEY);
                 localStorage.removeItem(EMAIL_KEY);
                 localStorage.removeItem(PLAN_KEY);
@@ -399,16 +482,13 @@
             });
         });
 
-        // якщо браузер повернув сторінку з BFCache (Back) — перевіряємо auth ще раз
+        // BFCache (Back) — перевіряємо auth ще раз
         if (window.__selfio_pageshow_bound) return;
         window.__selfio_pageshow_bound = true;
 
-        window.addEventListener("pageshow", () => {
-            if (!localStorage.getItem(TOKEN_KEY)) {
-                const page = document.body.getAttribute("data-page") || "today";
-                const next = encodeURIComponent(pageFileFromDataPage(page));
-                location.replace(`signin.html?next=${next}`);
-            }
+        window.addEventListener("pageshow", async () => {
+            const ok = await requireAuth();
+            if (!ok) return; // requireAuth сам редіректне
         });
     }
 
@@ -1718,7 +1798,7 @@
 
     const page = document.body.getAttribute("data-page") || "today";
 
-    if (!requireAuth()) return;
+    if (!(await requireAuth())) return;
 
     // якщо план не вибрано — пускаємо тільки на choose-plan
     const selected = getPlanSelectedForCurrentUser();
