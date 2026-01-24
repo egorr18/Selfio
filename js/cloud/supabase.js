@@ -85,6 +85,16 @@
     return data.user || null;
   }
 
+  // ✅ ДОДАЛИ: requireUser (щоб my-plan.js та інші сторінки могли редіректити правильно)
+  async function requireUser(redirectTo) {
+    const user = await getUser().catch(() => null);
+    if (!user && redirectTo) {
+      location.replace(redirectTo);
+      return null;
+    }
+    return user;
+  }
+
   async function ensureProfile() {
     const user = await getUser();
     if (!user) return null;
@@ -124,7 +134,7 @@
 
       if (upErr) throw upErr;
 
-      // кешуємо план локально, щоб твій app.js бачив його миттєво
+      // кешуємо план локально
       const effectivePlan = normalizePlan(existing.plan || patch.plan || "free");
       localStorage.setItem("selfio_plan", effectivePlan);
       localStorage.setItem(planKeyForEmail(email), effectivePlan);
@@ -152,6 +162,30 @@
     localStorage.setItem(planKeyForEmail(email), normalizePlan(ins.plan));
 
     return ins;
+  }
+
+  // ✅ ДОДАЛИ: getMyPlan (це те, чого не вистачало і через що був TypeError)
+  async function getMyPlan() {
+    const user = await getUser();
+    if (!user) return null;
+
+    // гарантуємо, що профіль існує
+    await ensureProfile();
+
+    const { data: row, error } = await client
+      .from("profiles")
+      .select("plan")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    const plan = normalizePlan(row?.plan || "free");
+    const email = String(user.email || "").toLowerCase();
+    localStorage.setItem("selfio_plan", plan);
+    localStorage.setItem(planKeyForEmail(email), plan);
+
+    return plan;
   }
 
   async function getMyProfile() {
@@ -230,7 +264,7 @@
     else localStorage.removeItem("selfio_email");
   });
 
-  // ✅ Єдиний логаут на всіх сторінках (щоб твій app.js не ламав Supabase-сесію)
+  // ✅ Єдиний логаут на всіх сторінках
   document.addEventListener(
     "click",
     async (e) => {
@@ -249,14 +283,17 @@
         location.replace(homeUrl());
       }
     },
-    true // capture — щоб перехопити ДО інших хендлерів
+    true
   );
 
+  // ✅ Експорт (додали requireUser + getMyPlan)
   window.Selfio.cloud = {
     client,
     getSession,
     getUser,
+    requireUser,
     ensureProfile,
+    getMyPlan,
     getMyProfile,
     savePlan,
     loadState,
