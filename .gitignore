@@ -1,28 +1,14 @@
-# ENV (ніколи не коміть секрети)
 .env
 .env.*
 !.env.example
 
-# GO BUILD ARTIFACTS
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
-*.test
-*.out
-*.coverprofile
+# OS / Editor
+.DS_Store
+.idea/
+.vscode/
 
-# GO WORKSPACE / TEMP
-bin/
-tmp/
-air.toml
+# Logs
+*.log
 
-# OPTIONAL: якщо колись використаєш vendor
-vendor/
-
-# DOCKER (інколи зʼявляються локальні файли)
-*.pid
-
-# SWAGGER GENERATED (тільки якщо НЕ хочеш тримати згенеровані docs у репо)
-# docs/
+# Optional (if ever)
+node_modules/
