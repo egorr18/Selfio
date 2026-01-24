@@ -1,8 +1,5 @@
 // js/my-plan.js
 (() => {
-  const EMAIL_KEY = "selfio_email";
-  const PLAN_KEY = "selfio_plan";
-
   const VALID_PLANS = new Set(["free", "pro", "premium"]);
   const norm = (s) => String(s || "").trim();
   const normLower = (s) => norm(s).toLowerCase();
@@ -74,34 +71,61 @@
     }
   }
 
+  function redirectToSignIn() {
+    const next = encodeURIComponent("my-plan.html");
+    location.replace(`signin.html?mode=login&next=${next}`);
+  }
+
   async function init() {
     const page = document.body.getAttribute("data-page");
     if (page !== "my-plan") return;
 
-    if (!window.Selfio?.cloud?.requireUser) {
-      location.replace("signin.html?mode=login&next=" + encodeURIComponent("my-plan.html"));
-      return;
+    const cloud = window.Selfio?.cloud;
+    const auth = window.Selfio?.auth;
+
+    if (!cloud || !auth) {
+      console.error("Selfio.cloud або Selfio.auth не ініціалізовані. Перевір order скриптів.");
+      return redirectToSignIn();
     }
 
-    const user = await window.Selfio.cloud.requireUser("signin.html?mode=login&next=" + encodeURIComponent("my-plan.html"));
-    if (!user) return;
+    // 1) перевіряємо сесію Supabase
+    let session = null;
+    try {
+      session = await auth.getSession();
+    } catch (e) {
+      console.error(e);
+    }
+    if (!session) return redirectToSignIn();
+
+    // 2) user
+    let user = null;
+    try {
+      user = await cloud.getUser(); // або auth.getUser()
+    } catch (e) {
+      console.error(e);
+    }
+    if (!user) return redirectToSignIn();
 
     const email = normLower(user.email);
-    localStorage.setItem(EMAIL_KEY, email);
 
-    let plan = normalizePlan(localStorage.getItem(PLAN_KEY));
+    // 3) гарантуємо профіль і беремо plan з БД
+    try { await cloud.ensureProfile(); } catch (e) { console.error(e); }
+
+    let plan = "free";
     try {
-      const cloudPlan = await window.Selfio.cloud.getMyPlan();
-      if (cloudPlan) plan = normalizePlan(cloudPlan);
-    } catch (_) {}
-
-    localStorage.setItem(PLAN_KEY, plan);
+      const cloudPlan = await cloud.getMyPlan(); // якщо така функція є в supabase.js
+      plan = normalizePlan(cloudPlan || "free");
+    } catch (e) {
+      console.error(e);
+    }
 
     setHeaderMeta(email, plan);
     render(email, plan);
 
-    const back = document.querySelector("[data-back]");
-    back?.addEventListener("click", () => (history.length > 1 ? history.back() : location.replace("app.html")));
+    document.querySelector("[data-back]")?.addEventListener("click", () => {
+      if (history.length > 1) history.back();
+      else location.replace("account.html");
+    });
   }
 
   document.addEventListener("DOMContentLoaded", init);
