@@ -54,6 +54,7 @@
   position: relative;
   overflow: hidden;
   padding-top: 54px;
+  padding-left: 10px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 16px;
