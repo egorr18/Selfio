@@ -243,65 +243,109 @@ document.addEventListener("DOMContentLoaded", async () => {
     msg.textContent = "";
   }
 
-  delBtn?.addEventListener("click", async () => {
-      hide();
+  // --- DELETE ACCOUNT (Edge Function) ---
+  (function () {
+    const PAGE = document.body?.getAttribute("data-page");
+    if (PAGE !== "account") return;
 
-      const password = String(passInput?.value || "").trim();
-      if (!password) return show("Enter your current password.");
+    const FN_DELETE_URL = "https://duvgdgzbjrkkcxddfpvm.functions.supabase.co/delete-account";
 
-      // 1) беремо email поточного юзера
-      let user = null;
-      try { user = await window.Selfio.cloud.getUser(); } catch (e) {}
-      if (!user?.email) {
+    const toast = window.Selfio?.toast || ((m) => alert(String(m)));
+
+    function homeUrl() {
+      const p = location.pathname || "";
+      return p.includes("/pages/") ? "../index.html" : "index.html";
+    }
+
+    function clearLocalAuthEverywhere() {
+      localStorage.removeItem("selfio_token");
+      localStorage.removeItem("selfio_email");
+      localStorage.removeItem("selfio_name");
+      localStorage.removeItem("selfio_plan");
+      // якщо десь кешував по email:
+      Object.keys(localStorage)
+        .filter((k) => k.startsWith("selfio_plan:"))
+        .forEach((k) => localStorage.removeItem(k));
+    }
+
+    async function runDelete(password) {
+      const cloud = window.Selfio?.cloud;
+      if (!cloud?.getSession || !cloud?.client) {
+        toast("Cloud is not ready. Check script order (config.js -> supabase.js -> account.js).");
+        return;
+      }
+
+      const session = await cloud.getSession().catch(() => null);
+      const token = session?.access_token;
+
+      if (!token) {
         location.replace("signin.html?mode=login&next=" + encodeURIComponent("account.html"));
         return;
       }
 
-      // 2) ПЕРЕВІРКА ПАРОЛЯ:
-      // пробуємо перелогінитись тим самим email+password
-      let token = "";
-      try {
-        const { data, error } = await window.Selfio.supabase.auth.signInWithPassword({
-          email: user.email,
-          password,
-        });
-        if (error) throw error;
-        token = data?.session?.access_token || "";
-        if (!token) throw new Error("No session token after sign-in");
-      } catch (e) {
-        return show("Password is incorrect.");
+      const res = await fetch(FN_DELETE_URL, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ password }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (res.status === 403) {
+        toast("Wrong password ❌");
+        return;
+      }
+      if (!res.ok) {
+        toast(data?.error || "Delete failed. Open console/network for details.");
+        return;
       }
 
-      // 3) confirm
-      const ok = confirm("Delete account forever? This cannot be undone.");
-      if (!ok) return;
+      // вийти з сесії, почистити локально, на головну
+      try { await cloud.client.auth.signOut(); } catch (_) {}
+      clearLocalAuthEverywhere();
+      toast("Account deleted ✅");
+      location.replace(homeUrl());
+    }
 
-      // 4) ВИДАЛЕННЯ: Edge Function -> delete auth user + data
-      try {
-        await window.Selfio.cloud.deleteAccountHard(token);
+    // ✅ Делегація кліку (capture), щоб точно спрацювало
+    document.addEventListener(
+      "click",
+      async (e) => {
+        const btn = e.target?.closest?.("[data-delete]");
+        if (!btn) return;
 
-        // 5) чистимо локальне
-        const emailLow = String(user.email).toLowerCase();
-        localStorage.removeItem("selfio_auth");
-        localStorage.removeItem("selfio_token");
-        localStorage.removeItem("selfio_email");
-        localStorage.removeItem("selfio_plan");
-        localStorage.removeItem("selfio_app_v1");
-        localStorage.removeItem(`selfio_plan:${emailLow}`);
+        e.preventDefault();
+        e.stopPropagation();
 
-        try { await window.Selfio.supabase.auth.signOut(); } catch {}
+        const passEl = document.querySelector("[data-delete-password]");
+        const password = String(passEl?.value || "").trim();
 
-        // на головну
-        const p = location.pathname || "";
-        location.replace(p.includes("/pages/") ? "../index.html" : "index.html");
-      } catch (e) {
-        console.error(e);
-        show("Delete failed. Check Edge Function logs & service role secret.");
-      }
-    });
-  });
+        if (!password) {
+          toast("Enter your current password.");
+          return;
+        }
+
+        // простий “loading”
+        btn.disabled = true;
+        const oldText = btn.textContent;
+        btn.textContent = "Deleting...";
+
+        try {
+          await runDelete(password);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = oldText;
+        }
+      },
+      true
+    );
+  })();
 
   // init
   setThemeLabel();
-  await loadMe();
+  await loadMe(); 
+});
 });
