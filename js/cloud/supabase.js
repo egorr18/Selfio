@@ -3,7 +3,7 @@
   window.Selfio = window.Selfio || {};
   const cfg = window.Selfio.config || {};
 
-  // ✅ Це НЕ URL. Це ключ у localStorage.
+  // ✅ Це ключ localStorage для supabase сесії. НЕ URL.
   const AUTH_STORAGE_KEY = "selfio_auth";
 
   function homeUrl() {
@@ -11,21 +11,21 @@
     return p.includes("/pages/") ? "../index.html" : "index.html";
   }
 
-  function normalizePlan(p) {
-    p = String(p || "").trim().toLowerCase();
-    return (p === "free" || p === "pro" || p === "premium") ? p : "free";
-  }
-
-  function planKeyForEmail(email) {
-    return `selfio_plan:${(email || "anon").toLowerCase()}`;
-  }
-
   function safeJsonParse(s) {
     try { return JSON.parse(s); } catch { return null; }
   }
 
+  function findLegacySbAuthKey() {
+    // якщо раніше сесія була під дефолтним sb-...-auth-token
+    for (const k of Object.keys(localStorage)) {
+      if (k.startsWith("sb-") && k.endsWith("-auth-token")) return k;
+    }
+    return null;
+  }
+
   function syncLocalFromStoredSession() {
-    const raw = localStorage.getItem(AUTH_STORAGE_KEY);
+    const legacyKey = findLegacySbAuthKey();
+    const raw = localStorage.getItem(AUTH_STORAGE_KEY) || (legacyKey ? localStorage.getItem(legacyKey) : null);
     const j = raw ? safeJsonParse(raw) : null;
 
     const session =
@@ -37,32 +37,19 @@
     if (session?.user?.email) localStorage.setItem("selfio_email", String(session.user.email).toLowerCase());
   }
 
-  function clearLocalAuthEverywhere() {
-    // auth/session
-    localStorage.removeItem("selfio_token");
-    localStorage.removeItem("selfio_email");
-    localStorage.removeItem("selfio_name");
-    localStorage.removeItem("selfio_plan");
-    localStorage.removeItem(AUTH_STORAGE_KEY);
-
-    // plan cache per email
-    Object.keys(localStorage)
-      .filter((k) => k.startsWith("selfio_plan:"))
-      .forEach((k) => localStorage.removeItem(k));
-
-    // якщо колись Supabase зберігав під стандартним ключем:
+  function clearAllLocalAuth() {
+    // прибрати все selfio_* (крім теми) + supabase session keys
+    const keep = new Set(["selfio_theme", "theme"]);
     for (const k of Object.keys(localStorage)) {
+      if (k.startsWith("selfio_") && !keep.has(k)) localStorage.removeItem(k);
+      if (k.startsWith("selfio_plan:")) localStorage.removeItem(k);
       if (k.startsWith("sb-") && k.endsWith("-auth-token")) localStorage.removeItem(k);
     }
-  }
-
-  function functionsUrl() {
-    const u = String(cfg.supabaseUrl || "");
-    return u.replace(".supabase.co", ".functions.supabase.co");
+    localStorage.removeItem(AUTH_STORAGE_KEY);
   }
 
   if (!window.supabase || typeof window.supabase.createClient !== "function") {
-    console.error("[Selfio] Supabase SDK missing. Add CDN script first.");
+    console.error("[Selfio] Supabase SDK missing.");
     window.Selfio.supabase = null;
     window.Selfio.cloud = null;
     return;
@@ -75,7 +62,7 @@
     return;
   }
 
-  // ✅ щоб app.js одразу бачив selfio_token/selfio_email
+  // ✅ синхронно піднімаємо selfio_token/selfio_email ДО app.js
   syncLocalFromStoredSession();
 
   const client = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey, {
@@ -105,6 +92,14 @@
     const user = await getUser().catch(() => null);
     if (!user && redirectTo) location.replace(redirectTo);
     return user;
+  }
+
+  function normalizePlan(p) {
+    p = String(p || "").trim().toLowerCase();
+    return (p === "free" || p === "pro" || p === "premium") ? p : "free";
+  }
+  function planKeyForEmail(email) {
+    return `selfio_plan:${(email || "anon").toLowerCase()}`;
   }
 
   async function ensureProfile() {
@@ -138,7 +133,6 @@
       const effectivePlan = normalizePlan(existing.plan || patch.plan || "free");
       localStorage.setItem("selfio_plan", effectivePlan);
       localStorage.setItem(planKeyForEmail(email), effectivePlan);
-
       return { ...existing, ...patch, plan: effectivePlan };
     }
 
@@ -151,10 +145,8 @@
 
     if (insErr) throw insErr;
 
-    const p = normalizePlan(ins.plan);
-    localStorage.setItem("selfio_plan", p);
-    localStorage.setItem(planKeyForEmail(email), p);
-
+    localStorage.setItem("selfio_plan", normalizePlan(ins.plan));
+    localStorage.setItem(planKeyForEmail(email), normalizePlan(ins.plan));
     return ins;
   }
 
@@ -184,7 +176,6 @@
     const email = String(user.email || "").toLowerCase();
     localStorage.setItem("selfio_plan", plan);
     localStorage.setItem(planKeyForEmail(email), plan);
-
     return plan;
   }
 
@@ -201,7 +192,6 @@
     const email = String(user.email || "").toLowerCase();
     localStorage.setItem("selfio_plan", plan);
     localStorage.setItem(planKeyForEmail(email), plan);
-
     return plan;
   }
 
@@ -219,39 +209,20 @@
     return data?.data || null;
   }
 
-  async function saveState(state) {
-    const user = await getUser();
-    if (!user) throw new Error("Not signed in");
+  async function deleteAccountViaFunction(password) {
+    // ✅ гарантуємо, що токен реальний
+    await client.auth.refreshSession().catch(() => {});
 
-    const { error } = await client
-      .from("user_state")
-      .upsert(
-        { user_id: user.id, data: state, updated_at: new Date().toISOString() },
-        { onConflict: "user_id" }
-      );
-
-    if (error) throw error;
-  }
-
-  // ✅ ГОЛОВНЕ: жорстке видалення акаунта через Edge Function
-  async function deleteAccountHard(password) {
-    password = String(password || "").trim();
-    if (!password) {
-      const err = new Error("Password required");
-      err.code = "PASSWORD_REQUIRED";
-      throw err;
-    }
-
-    const session = await getSession().catch(() => null);
-    const token = session?.access_token || "";
-
+    const session = await getSession();
+    const token = session?.access_token;
     if (!token) {
-      const err = new Error("No session token");
-      err.code = "NO_SESSION";
+      const err = new Error("SESSION_EXPIRED");
+      err.code = "SESSION_EXPIRED";
       throw err;
     }
 
-    const url = `${functionsUrl()}/delete-account`;
+    const url = String(cfg.supabaseUrl).replace(".supabase.co", ".functions.supabase.co") + "/delete-account";
+
     const res = await fetch(url, {
       method: "POST",
       headers: {
@@ -261,43 +232,26 @@
       body: JSON.stringify({ password }),
     });
 
-    const body = await res.json().catch(() => ({}));
+    const data = await res.json().catch(() => ({}));
 
     if (res.status === 403) {
-      const err = new Error("Wrong password");
+      const err = new Error("WRONG_PASSWORD");
       err.code = "WRONG_PASSWORD";
       throw err;
     }
-
     if (res.status === 401) {
-      const err = new Error(body?.error || "Invalid JWT");
-      err.code = "INVALID_JWT";
+      const err = new Error(data?.error || "SESSION_EXPIRED");
+      err.code = "SESSION_EXPIRED";
       throw err;
     }
-
     if (!res.ok) {
-      const err = new Error(body?.error || `Delete failed (${res.status})`);
-      err.code = "DELETE_FAILED";
-      throw err;
+      throw new Error(data?.error || `Delete failed (${res.status})`);
     }
 
-    // ✅ успіх
-    try { await client.auth.signOut(); } catch (_) {}
-    clearLocalAuthEverywhere();
     return true;
   }
 
-  // ✅ sync токена в localStorage (якщо тобі це потрібно для app.js)
-  client.auth.onAuthStateChange((_event, session) => {
-    if (session?.access_token) localStorage.setItem("selfio_token", session.access_token);
-    else localStorage.removeItem("selfio_token");
-
-    const email = session?.user?.email ? String(session.user.email).toLowerCase() : "";
-    if (email) localStorage.setItem("selfio_email", email);
-    else localStorage.removeItem("selfio_email");
-  });
-
-  // ✅ єдиний logout
+  // logout
   document.addEventListener("click", async (e) => {
     const btn = e.target?.closest?.("[data-logout]");
     if (!btn) return;
@@ -306,21 +260,22 @@
     e.stopPropagation();
 
     try { await client.auth.signOut(); } catch (_) {}
-    clearLocalAuthEverywhere();
+    clearAllLocalAuth();
     location.replace(homeUrl());
   }, true);
 
   window.Selfio.cloud = {
     client,
+    AUTH_STORAGE_KEY,
     getSession,
     getUser,
     requireUser,
     ensureProfile,
-    getMyProfile,
     getMyPlan,
+    getMyProfile,
     savePlan,
     loadState,
-    saveState,
-    deleteAccountHard,
+    deleteAccountViaFunction,
+    clearAllLocalAuth,
   };
 })();

@@ -8,6 +8,7 @@ const corsHeaders: Record<string, string> = {
 };
 
 serve(async (req) => {
+  // CORS
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   if (req.method !== "POST") {
@@ -20,7 +21,6 @@ serve(async (req) => {
   try {
     const auth = req.headers.get("Authorization") || "";
     const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
-
     if (!token) {
       return new Response(JSON.stringify({ error: "Missing access token" }), {
         status: 401,
@@ -28,16 +28,16 @@ serve(async (req) => {
       });
     }
 
-    // ✅ secrets (не SUPABASE_*)
+    // ✅ Secrets (НЕ SUPABASE_*)
     const projectUrl = Deno.env.get("PROJECT_URL");
     const anonKey = Deno.env.get("ANON_KEY");
     const serviceRoleKey = Deno.env.get("SERVICE_ROLE_KEY");
 
     if (!projectUrl || !anonKey || !serviceRoleKey) {
-      return new Response(JSON.stringify({ error: "Missing secrets (PROJECT_URL/ANON_KEY/SERVICE_ROLE_KEY)" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ error: "Missing secrets (PROJECT_URL/ANON_KEY/SERVICE_ROLE_KEY)" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const admin = createClient(projectUrl, serviceRoleKey, {
@@ -48,7 +48,7 @@ serve(async (req) => {
       auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
     });
 
-    // ✅ витягаємо користувача з JWT
+    // 1) Перевіряємо JWT → хто викликає
     const { data: userRes, error: userErr } = await admin.auth.getUser(token);
     if (userErr || !userRes.user) {
       return new Response(JSON.stringify({ error: "Invalid JWT" }), {
@@ -60,9 +60,9 @@ serve(async (req) => {
     const uid = userRes.user.id;
     const email = userRes.user.email || "";
 
+    // 2) Пароль з body
     const body = await req.json().catch(() => ({}));
     const password = String(body?.password || "").trim();
-
     if (!password) {
       return new Response(JSON.stringify({ error: "Password required" }), {
         status: 400,
@@ -70,7 +70,7 @@ serve(async (req) => {
       });
     }
 
-    // ✅ перевірка пароля
+    // 3) Перевірка пароля (якщо не той → 403)
     const { error: pwErr } = await publicClient.auth.signInWithPassword({ email, password });
     if (pwErr) {
       return new Response(JSON.stringify({ error: "Wrong password" }), {
@@ -79,14 +79,14 @@ serve(async (req) => {
       });
     }
 
-    // 1) видаляємо дані
+    // 4) Видаляємо дані
     const d1 = await admin.from("user_state").delete().eq("user_id", uid);
     if (d1.error) throw d1.error;
 
     const d2 = await admin.from("profiles").delete().eq("id", uid);
     if (d2.error) throw d2.error;
 
-    // 2) видаляємо auth користувача
+    // 5) Видаляємо AUTH користувача (головне)
     const { error: delErr } = await admin.auth.admin.deleteUser(uid);
     if (delErr) throw delErr;
 
