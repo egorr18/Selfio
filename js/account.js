@@ -1,23 +1,22 @@
-// js/account.js (Supabase) — FULL, no duplicates
+// js/account.js (Supabase) — clean, no duplicates
 document.addEventListener("DOMContentLoaded", async () => {
   const toast = window.Selfio?.toast || ((m) => alert(String(m)));
   const setLoading = window.Selfio?.setLoading || (() => {});
   const cloud = window.Selfio?.cloud;
 
-  if (!cloud) {
+  if (!cloud?.client || !cloud.getUser) {
     console.error("[Selfio] cloud missing");
-    toast("Cloud not ready. Check script order.");
+    toast("Cloud not ready. Check script order (config.js -> supabase.js -> account.js).");
     return;
   }
 
-  // --- Elements ---
+  // Elements
   const elEmail = document.querySelector("[data-account-email]");
   const elName = document.querySelector("[data-account-name]");
   const elMemberSince = document.querySelector("[data-member-since]");
   const elPlanBadge = document.querySelector("[data-plan-badge]");
   const elPlanPerks = document.querySelector("[data-plan-perks]");
   const elMeta = document.querySelector("[data-app-meta]");
-  const elThemeLabel = document.querySelector("[data-theme-label]");
 
   const btnCopyEmail = document.querySelector("[data-copy-email]");
   const toastCopy = document.querySelector("[data-copy-toast]");
@@ -32,7 +31,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   const passSaveBtn = document.querySelector("[data-pass-save]");
   const passMsg = document.querySelector("[data-pass-msg]");
 
-  // --- Helpers ---
+  const FN_DELETE_URL = "https://duvgdgzbjrkkcxddfpvm.functions.supabase.co/delete-account";
+
+  function homeUrl() {
+    const p = location.pathname || "";
+    return p.includes("/pages/") ? "../index.html" : "index.html";
+  }
+
   function normalizePlan(p) {
     p = String(p || "").trim().toLowerCase();
     return p === "free" || p === "pro" || p === "premium" ? p : "free";
@@ -54,7 +59,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         "Upgrade to Premium for templates + month insights.",
       ].join("\n");
     }
-    return ["Premium active: templates + up to 8 weeks ahead.", "Month insights + trends.", "Export data."].join("\n");
+    return [
+      "Premium active: templates + up to 8 weeks ahead.",
+      "Month insights + trends.",
+      "Export data.",
+    ].join("\n");
   }
 
   function formatDate(iso) {
@@ -74,23 +83,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     el.style.display = msg ? "" : "none";
   }
 
-  function setThemeLabel() {
-    const t = localStorage.getItem("selfio_theme") || localStorage.getItem("theme") || "system";
-    const label = t === "dark" ? "Dark" : t === "light" ? "Light" : "System";
-    if (elThemeLabel) elThemeLabel.textContent = label;
-  }
-
-  function homeUrl() {
-    const p = location.pathname || "";
-    return p.includes("/pages/") ? "../index.html" : "index.html";
-  }
-
   function clearLocalAuthEverywhere() {
     localStorage.removeItem("selfio_token");
     localStorage.removeItem("selfio_email");
     localStorage.removeItem("selfio_name");
     localStorage.removeItem("selfio_plan");
-    localStorage.removeItem("selfio_auth"); // supabase storageKey
 
     Object.keys(localStorage)
       .filter((k) => k.startsWith("selfio_plan:"))
@@ -123,7 +120,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     localStorage.setItem(`selfio_plan:${email || "anon"}`, plan);
   }
 
-  // --- Copy email ---
+  // Copy email
   btnCopyEmail?.addEventListener("click", async () => {
     const email = (elEmail?.value || "").trim();
     if (!email) return;
@@ -141,7 +138,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  // --- Save name (debounced) ---
+  // Save name (debounced)
   let nameTimer = null;
   elName?.addEventListener("input", () => {
     const v = String(elName.value || "");
@@ -160,7 +157,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }, 450);
   });
 
-  // --- Change password ---
+  // Change password (reauth + updateUser)
   passForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
     showInlineMsg(passMsg, "");
@@ -200,7 +197,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  // --- Export data ---
+  // Export data
   btnExport?.addEventListener("click", async () => {
     try {
       const user = await cloud.getUser();
@@ -235,29 +232,48 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  // --- Delete account (Edge Function) ---
-  const FN_DELETE_URL = "https://duvgdgzbjrkkcxddfpvm.functions.supabase.co/delete-account";
-
+  // Delete account (Edge Function)
   btnDelete?.addEventListener("click", async (e) => {
     e.preventDefault();
 
     const password = String(delPassword?.value || "").trim();
     if (!password) {
       toast("Enter your current password.");
-      delPassword?.focus();
       return;
     }
 
     const ok = confirm("Delete account forever? This cannot be undone.");
     if (!ok) return;
 
+    const anonKey = window.Selfio?.config?.supabaseAnonKey;
+    if (!anonKey) {
+      toast("Missing anon key in config.js");
+      return;
+    }
+
     setLoading(btnDelete, true, "Deleting...");
     btnDelete.disabled = true;
 
     try {
-      const session = await cloud.getSession().catch(() => null);
-      const token = session?.access_token;
+      // беремо session (і пробуємо refresh, щоб JWT був валідний)
+      let session = null;
+      try {
+        const s1 = await cloud.client.auth.getSession();
+        session = s1?.data?.session || null;
+      } catch {}
 
+      if (!session) {
+        location.replace("signin.html?mode=login&next=" + encodeURIComponent("account.html"));
+        return;
+      }
+
+      // refresh (не обов’язково, але часто рятує від Invalid JWT)
+      try {
+        const r = await cloud.client.auth.refreshSession();
+        session = r?.data?.session || session;
+      } catch {}
+
+      const token = session?.access_token;
       if (!token) {
         location.replace("signin.html?mode=login&next=" + encodeURIComponent("account.html"));
         return;
@@ -266,10 +282,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       const res = await fetch(FN_DELETE_URL, {
         method: "POST",
         headers: {
+          Authorization: `Bearer ${token}`,
+          apikey: anonKey,
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-          // корисно для Supabase Functions (часто вимагає):
-          "apikey": window.Selfio?.config?.supabaseAnonKey || "",
         },
         body: JSON.stringify({ password }),
       });
@@ -280,29 +295,34 @@ document.addEventListener("DOMContentLoaded", async () => {
         toast("Wrong password ❌");
         return;
       }
-      if (!res.ok) {
-        console.error("Delete failed:", data);
-        toast(data?.error || "Delete failed. Check console/network.");
+
+      if (res.status === 401) {
+        // якщо шлюз каже Invalid JWT — перезалогін
+        toast(data?.message || data?.error || "Session expired. Please sign in again.");
+        location.replace("signin.html?mode=login&next=" + encodeURIComponent("account.html"));
         return;
       }
 
-      try {
-        await cloud.client.auth.signOut();
-      } catch (_) {}
+      if (!res.ok) {
+        console.error("Delete failed:", data);
+        toast(data?.error || data?.message || "Delete failed. Check console/network.");
+        return;
+      }
 
+      // успіх: чистимо все
+      try { await cloud.client.auth.signOut(); } catch {}
       clearLocalAuthEverywhere();
       toast("Account deleted ✅");
       location.replace(homeUrl());
     } catch (err) {
       console.error(err);
-      toast("Delete failed. Check console.");
+      toast("Delete failed. Check console/network.");
     } finally {
       btnDelete.disabled = false;
       setLoading(btnDelete, false);
     }
   });
 
-  // --- Init ---
-  setThemeLabel();
+  // init
   await loadMe();
 });

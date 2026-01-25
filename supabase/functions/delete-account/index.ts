@@ -1,98 +1,94 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-/**
- * ✅ Налаштуй allowed origins під себе:
- * - прод: https://egorr18.github.io
- * - локалка: http://localhost:5500 (або твій порт)
- */
-const ALLOWED_ORIGINS = new Set([
-  "https://egorr18.github.io",
-  "http://localhost:5500",
-  "http://127.0.0.1:5500",
-]);
-
-function corsHeaders(req: Request) {
-  const origin = req.headers.get("Origin") || "";
-  const allowOrigin = ALLOWED_ORIGINS.has(origin) ? origin : "https://egorr18.github.io";
-
-  return {
-    "Access-Control-Allow-Origin": allowOrigin,
-    "Vary": "Origin",
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Max-Age": "86400",
-  };
-}
-
-function json(req: Request, status: number, body: unknown) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders(req), "Content-Type": "application/json" },
-  });
-}
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, apikey, x-client-info, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
 
 serve(async (req) => {
-  // ✅ CORS preflight
-  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders(req) });
-
-  // ✅ тільки POST
-  if (req.method !== "POST") return json(req, 405, { error: "Method not allowed" });
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    // ✅ витягаємо токен з Authorization: Bearer <token>
+    // 1) Bearer token
     const auth = req.headers.get("Authorization") || "";
     const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
-    if (!token) return json(req, 401, { error: "Missing access token" });
+    if (!token) {
+      return new Response(JSON.stringify({ error: "Missing access token" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
-    // ✅ беремо з Secrets (НІЯКИХ ключів в коді)
+    // 2) Secrets (в Supabase Functions вони вже є)
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const serviceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
 
     if (!supabaseUrl || !serviceRole || !anonKey) {
-      return json(req, 500, { error: "Missing Supabase secrets (URL / SERVICE_ROLE / ANON_KEY)" });
+      return new Response(JSON.stringify({ error: "Missing function secrets" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    // ✅ адмін клієнт (service role) — для deleteUser та доступу без RLS
-    const admin = createClient(supabaseUrl, serviceRole, {
-      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
-    });
+    // admin client (service role)
+    const admin = createClient(supabaseUrl, serviceRole);
 
-    // ✅ публічний клієнт (anon) — для перевірки пароля
+    // public client (anon) — тільки для перевірки пароля
     const publicClient = createClient(supabaseUrl, anonKey, {
       auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
     });
 
-    // ✅ хто викликає (перевіряємо токен)
+    // 3) Хто викликає (перевірка JWT)
     const { data: userRes, error: userErr } = await admin.auth.getUser(token);
-    if (userErr || !userRes.user) return json(req, 401, { error: "Invalid token" });
+    if (userErr || !userRes.user) {
+      return new Response(JSON.stringify({ error: "Invalid token" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const uid = userRes.user.id;
     const email = userRes.user.email || "";
-    if (!email) return json(req, 400, { error: "User email missing" });
 
-    // ✅ читаємо password з body
-    const body = await req.json().catch(() => ({} as any));
-    const password = String((body as any)?.password || "").trim();
-    if (!password) return json(req, 400, { error: "Password required" });
+    // 4) Пароль з body
+    const body = await req.json().catch(() => ({}));
+    const password = String(body?.password || "").trim();
 
-    // ✅ перевірка пароля (якщо невірний — 403)
+    if (!password) {
+      return new Response(JSON.stringify({ error: "Password required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // 5) Перевірка пароля
     const { error: pwErr } = await publicClient.auth.signInWithPassword({ email, password });
-    if (pwErr) return json(req, 403, { error: "Wrong password" });
+    if (pwErr) {
+      return new Response(JSON.stringify({ error: "Wrong password" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
-    // ✅ 1) видалити всі дані користувача (додай таблиці, якщо з’являться нові)
+    // 6) Видалення даних
     await admin.from("user_state").delete().eq("user_id", uid);
     await admin.from("profiles").delete().eq("id", uid);
 
-    // ✅ 2) видалити auth.users (це повне видалення акаунта)
+    // 7) Видалення auth.users (повне видалення акаунта)
     const { error: delErr } = await admin.auth.admin.deleteUser(uid);
     if (delErr) throw delErr;
 
-    // ✅ ок
-    return json(req, 200, { ok: true });
+    return new Response(JSON.stringify({ ok: true }), {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (e) {
-    const msg = e instanceof Error ? e.message : String(e);
-    return json(req, 500, { error: msg });
+    return new Response(JSON.stringify({ error: String(e?.message || e) }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });
