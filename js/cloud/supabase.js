@@ -3,7 +3,7 @@
   window.Selfio = window.Selfio || {};
   const cfg = window.Selfio.config || {};
 
-  const AUTH_STORAGE_KEY = "selfio_auth"; // важливо: щоб ми могли синхронно підтягнути сесію
+  const AUTH_STORAGE_KEY = "sb-duvgdgzbjrkkcxddfpvm-auth-token";
 
   function homeUrl() {
     // якщо ми на /pages/* — виходимо на ../index.html
