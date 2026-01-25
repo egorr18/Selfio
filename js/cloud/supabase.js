@@ -3,10 +3,10 @@
   window.Selfio = window.Selfio || {};
   const cfg = window.Selfio.config || {};
 
-  const AUTH_STORAGE_KEY = "sb-duvgdgzbjrkkcxddfpvm-auth-token";
+  // ✅ Це НЕ URL. Це ключ у localStorage.
+  const AUTH_STORAGE_KEY = "selfio_auth";
 
   function homeUrl() {
-    // якщо ми на /pages/* — виходимо на ../index.html
     const p = location.pathname || "";
     return p.includes("/pages/") ? "../index.html" : "index.html";
   }
@@ -25,11 +25,9 @@
   }
 
   function syncLocalFromStoredSession() {
-    // Спроба синхронно підняти сесію (до виконання app.js)
     const raw = localStorage.getItem(AUTH_STORAGE_KEY);
     const j = raw ? safeJsonParse(raw) : null;
 
-    // формати можуть відрізнятись, тому робимо “м’яко”
     const session =
       (j && j.access_token && j.user) ? j :
       (j && j.currentSession && j.currentSession.access_token) ? j.currentSession :
@@ -39,10 +37,28 @@
     if (session?.user?.email) localStorage.setItem("selfio_email", String(session.user.email).toLowerCase());
   }
 
-  function clearLocalAuth() {
+  function clearLocalAuthEverywhere() {
+    // auth/session
     localStorage.removeItem("selfio_token");
     localStorage.removeItem("selfio_email");
-    // selfio_plan НЕ чіпаємо — це твій вибір/кеш
+    localStorage.removeItem("selfio_name");
+    localStorage.removeItem("selfio_plan");
+    localStorage.removeItem(AUTH_STORAGE_KEY);
+
+    // plan cache per email
+    Object.keys(localStorage)
+      .filter((k) => k.startsWith("selfio_plan:"))
+      .forEach((k) => localStorage.removeItem(k));
+
+    // якщо колись Supabase зберігав під стандартним ключем:
+    for (const k of Object.keys(localStorage)) {
+      if (k.startsWith("sb-") && k.endsWith("-auth-token")) localStorage.removeItem(k);
+    }
+  }
+
+  function functionsUrl() {
+    const u = String(cfg.supabaseUrl || "");
+    return u.replace(".supabase.co", ".functions.supabase.co");
   }
 
   if (!window.supabase || typeof window.supabase.createClient !== "function") {
@@ -59,7 +75,7 @@
     return;
   }
 
-  // ✅ синхронно піднімаємо selfio_token/selfio_email ДО app.js
+  // ✅ щоб app.js одразу бачив selfio_token/selfio_email
   syncLocalFromStoredSession();
 
   const client = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey, {
@@ -85,13 +101,9 @@
     return data.user || null;
   }
 
-  // ✅ ДОДАЛИ: requireUser (щоб my-plan.js та інші сторінки могли редіректити правильно)
   async function requireUser(redirectTo) {
     const user = await getUser().catch(() => null);
-    if (!user && redirectTo) {
-      location.replace(redirectTo);
-      return null;
-    }
+    if (!user && redirectTo) location.replace(redirectTo);
     return user;
   }
 
@@ -102,7 +114,6 @@
     const email = String(user.email || "").toLowerCase();
     const localName = localStorage.getItem("selfio_name") || "";
 
-    // 1) перевіряємо чи є профіль
     const { data: existing, error: selErr } = await client
       .from("profiles")
       .select("id,email,plan,name,created_at")
@@ -117,24 +128,13 @@
       "free"
     );
 
-    // 2) якщо є — оновлюємо email/name, але plan не чіпаємо (якщо вже встановлений)
     if (existing) {
-      const patch = {
-        email,
-        name: localName,
-      };
-
-      // якщо в базі plan порожній — підставимо локальний
+      const patch = { email, name: localName };
       if (!existing.plan) patch.plan = localPlan;
 
-      const { error: upErr } = await client
-        .from("profiles")
-        .update(patch)
-        .eq("id", user.id);
-
+      const { error: upErr } = await client.from("profiles").update(patch).eq("id", user.id);
       if (upErr) throw upErr;
 
-      // кешуємо план локально
       const effectivePlan = normalizePlan(existing.plan || patch.plan || "free");
       localStorage.setItem("selfio_plan", effectivePlan);
       localStorage.setItem(planKeyForEmail(email), effectivePlan);
@@ -142,14 +142,7 @@
       return { ...existing, ...patch, plan: effectivePlan };
     }
 
-    // 3) якщо нема — створюємо
-    const payload = {
-      id: user.id,
-      email,
-      plan: localPlan,
-      name: localName,
-    };
-
+    const payload = { id: user.id, email, plan: localPlan, name: localName };
     const { data: ins, error: insErr } = await client
       .from("profiles")
       .insert(payload)
@@ -158,18 +151,25 @@
 
     if (insErr) throw insErr;
 
-    localStorage.setItem("selfio_plan", normalizePlan(ins.plan));
-    localStorage.setItem(planKeyForEmail(email), normalizePlan(ins.plan));
+    const p = normalizePlan(ins.plan);
+    localStorage.setItem("selfio_plan", p);
+    localStorage.setItem(planKeyForEmail(email), p);
 
     return ins;
   }
 
-  // ✅ ДОДАЛИ: getMyPlan (це те, чого не вистачало і через що був TypeError)
+  async function getMyProfile() {
+    const user = await getUser();
+    if (!user) throw new Error("Not signed in");
+    const { data, error } = await client.from("profiles").select("*").eq("id", user.id).single();
+    if (error) throw error;
+    return data;
+  }
+
   async function getMyPlan() {
     const user = await getUser();
     if (!user) return null;
 
-    // гарантуємо, що профіль існує
     await ensureProfile();
 
     const { data: row, error } = await client
@@ -188,20 +188,11 @@
     return plan;
   }
 
-  async function getMyProfile() {
-    const user = await getUser();
-    if (!user) throw new Error("Not signed in");
-    const { data, error } = await client.from("profiles").select("*").eq("id", user.id).single();
-    if (error) throw error;
-    return data;
-  }
-
   async function savePlan(plan) {
     plan = normalizePlan(plan);
     const user = await getUser();
     if (!user) throw new Error("Not signed in");
 
-    // гарантуємо профіль
     await ensureProfile();
 
     const { error } = await client.from("profiles").update({ plan }).eq("id", user.id);
@@ -242,19 +233,61 @@
     if (error) throw error;
   }
 
-  async function deleteMyData() {
-    const user = await getUser();
-    if (!user) throw new Error("Not signed in");
+  // ✅ ГОЛОВНЕ: жорстке видалення акаунта через Edge Function
+  async function deleteAccountHard(password) {
+    password = String(password || "").trim();
+    if (!password) {
+      const err = new Error("Password required");
+      err.code = "PASSWORD_REQUIRED";
+      throw err;
+    }
 
-    // це видаляє ДАНІ (профіль/стан), але НЕ видаляє auth.users без серверної частини
-    const { error: e1 } = await client.from("user_state").delete().eq("user_id", user.id);
-    if (e1) throw e1;
+    const session = await getSession().catch(() => null);
+    const token = session?.access_token || "";
 
-    const { error: e2 } = await client.from("profiles").delete().eq("id", user.id);
-    if (e2) throw e2;
+    if (!token) {
+      const err = new Error("No session token");
+      err.code = "NO_SESSION";
+      throw err;
+    }
+
+    const url = `${functionsUrl()}/delete-account`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify({ password }),
+    });
+
+    const body = await res.json().catch(() => ({}));
+
+    if (res.status === 403) {
+      const err = new Error("Wrong password");
+      err.code = "WRONG_PASSWORD";
+      throw err;
+    }
+
+    if (res.status === 401) {
+      const err = new Error(body?.error || "Invalid JWT");
+      err.code = "INVALID_JWT";
+      throw err;
+    }
+
+    if (!res.ok) {
+      const err = new Error(body?.error || `Delete failed (${res.status})`);
+      err.code = "DELETE_FAILED";
+      throw err;
+    }
+
+    // ✅ успіх
+    try { await client.auth.signOut(); } catch (_) {}
+    clearLocalAuthEverywhere();
+    return true;
   }
 
-  // ✅ Тримаємо selfio_token/selfio_email в sync після логіну/логауту
+  // ✅ sync токена в localStorage (якщо тобі це потрібно для app.js)
   client.auth.onAuthStateChange((_event, session) => {
     if (session?.access_token) localStorage.setItem("selfio_token", session.access_token);
     else localStorage.removeItem("selfio_token");
@@ -264,56 +297,18 @@
     else localStorage.removeItem("selfio_email");
   });
 
-  // ✅ Єдиний логаут на всіх сторінках
-  document.addEventListener(
-    "click",
-    async (e) => {
-      const btn = e.target?.closest?.("[data-logout]");
-      if (!btn) return;
+  // ✅ єдиний logout
+  document.addEventListener("click", async (e) => {
+    const btn = e.target?.closest?.("[data-logout]");
+    if (!btn) return;
 
-      e.preventDefault();
-      e.stopPropagation();
+    e.preventDefault();
+    e.stopPropagation();
 
-      try {
-        await client.auth.signOut();
-      } catch (err) {
-        console.warn("[Selfio] signOut error:", err);
-      } finally {
-        clearLocalAuth();
-        location.replace(homeUrl());
-      }
-    },
-    true
-  );
-
-  function functionsUrl() {
-  const u = String(cfg.supabaseUrl || "");
-  return u.replace(".supabase.co", ".functions.supabase.co");
-}
-
-async function deleteAccountHard(accessToken) {
-    if (!accessToken) {
-      const { data } = await client.auth.getSession();
-      accessToken = data?.session?.access_token || "";
-    }
-    if (!accessToken) throw new Error("No session token");
-
-    const url = `${functionsUrl()}/delete-account`;
-
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${accessToken}`,
-      },
-    });
-
-    let body = null;
-    try { body = await res.json(); } catch {}
-    if (!res.ok) throw new Error(body?.error || `Delete failed (${res.status})`);
-
-    return true;
-  }
+    try { await client.auth.signOut(); } catch (_) {}
+    clearLocalAuthEverywhere();
+    location.replace(homeUrl());
+  }, true);
 
   window.Selfio.cloud = {
     client,
@@ -321,11 +316,11 @@ async function deleteAccountHard(accessToken) {
     getUser,
     requireUser,
     ensureProfile,
-    getMyPlan,
     getMyProfile,
+    getMyPlan,
     savePlan,
     loadState,
     saveState,
-    deleteMyData,
+    deleteAccountHard,
   };
 })();

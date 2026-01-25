@@ -8,7 +8,6 @@ const corsHeaders: Record<string, string> = {
 };
 
 serve(async (req) => {
-  // CORS preflight
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   if (req.method !== "POST") {
@@ -19,7 +18,6 @@ serve(async (req) => {
   }
 
   try {
-    // 1) беремо access token з Authorization: Bearer ...
     const auth = req.headers.get("Authorization") || "";
     const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
 
@@ -30,19 +28,18 @@ serve(async (req) => {
       });
     }
 
-    // 2) secrets (НЕ SUPABASE_*)
+    // ✅ secrets (не SUPABASE_*)
     const projectUrl = Deno.env.get("PROJECT_URL");
     const anonKey = Deno.env.get("ANON_KEY");
     const serviceRoleKey = Deno.env.get("SERVICE_ROLE_KEY");
 
     if (!projectUrl || !anonKey || !serviceRoleKey) {
-      return new Response(JSON.stringify({ error: "Missing function secrets (PROJECT_URL/ANON_KEY/SERVICE_ROLE_KEY)" }), {
+      return new Response(JSON.stringify({ error: "Missing secrets (PROJECT_URL/ANON_KEY/SERVICE_ROLE_KEY)" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // 3) admin клієнт (service role) + public клієнт (anon)
     const admin = createClient(projectUrl, serviceRoleKey, {
       auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
     });
@@ -51,7 +48,7 @@ serve(async (req) => {
       auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
     });
 
-    // 4) перевіряємо JWT і дістаємо користувача
+    // ✅ витягаємо користувача з JWT
     const { data: userRes, error: userErr } = await admin.auth.getUser(token);
     if (userErr || !userRes.user) {
       return new Response(JSON.stringify({ error: "Invalid JWT" }), {
@@ -63,7 +60,6 @@ serve(async (req) => {
     const uid = userRes.user.id;
     const email = userRes.user.email || "";
 
-    // 5) читаємо пароль з body
     const body = await req.json().catch(() => ({}));
     const password = String(body?.password || "").trim();
 
@@ -74,7 +70,7 @@ serve(async (req) => {
       });
     }
 
-    // 6) перевірка пароля (якщо не той — 403)
+    // ✅ перевірка пароля
     const { error: pwErr } = await publicClient.auth.signInWithPassword({ email, password });
     if (pwErr) {
       return new Response(JSON.stringify({ error: "Wrong password" }), {
@@ -83,15 +79,14 @@ serve(async (req) => {
       });
     }
 
-    // 7) видаляємо дані з таблиць
-    // (якщо додаси нові таблиці — додай сюди)
+    // 1) видаляємо дані
     const d1 = await admin.from("user_state").delete().eq("user_id", uid);
     if (d1.error) throw d1.error;
 
     const d2 = await admin.from("profiles").delete().eq("id", uid);
     if (d2.error) throw d2.error;
 
-    // 8) видаляємо AUTH юзера (головне)
+    // 2) видаляємо auth користувача
     const { error: delErr } = await admin.auth.admin.deleteUser(uid);
     if (delErr) throw delErr;
 
