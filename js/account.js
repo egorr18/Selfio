@@ -227,28 +227,78 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  // Delete (data only)
-  btnDelete?.addEventListener("click", async () => {
-    const ok = confirm("Delete your Selfio data from database? (Auth account may remain)");
-    if (!ok) return;
+document.addEventListener("DOMContentLoaded", async () => {
+  const delBtn = document.querySelector("[data-delete]");
+  const passInput = document.querySelector("[data-delete-password]");
+  const msg = document.querySelector("[data-delete-msg]");
 
-    // пароль тут не використовується для Supabase delete (без сервера), але поле лишаємо як “підтвердження”
-    const pwd = String(delPassword?.value || "").trim();
-    if (!pwd) {
-      toast("Enter current password to confirm.");
-      delPassword?.focus();
-      return;
-    }
+  function show(text) {
+    if (!msg) return alert(String(text));
+    msg.textContent = String(text);
+    msg.style.display = "";
+  }
+  function hide() {
+    if (!msg) return;
+    msg.style.display = "none";
+    msg.textContent = "";
+  }
 
-    try {
-      await cloud.deleteMyData();
-      toast("Data deleted ✅ (now signing out)");
-      await cloud.client.auth.signOut();
-      location.replace("../index.html");
-    } catch (e) {
-      console.error(e);
-      toast("Delete failed. Check RLS/table.");
-    }
+  delBtn?.addEventListener("click", async () => {
+      hide();
+
+      const password = String(passInput?.value || "").trim();
+      if (!password) return show("Enter your current password.");
+
+      // 1) беремо email поточного юзера
+      let user = null;
+      try { user = await window.Selfio.cloud.getUser(); } catch (e) {}
+      if (!user?.email) {
+        location.replace("signin.html?mode=login&next=" + encodeURIComponent("account.html"));
+        return;
+      }
+
+      // 2) ПЕРЕВІРКА ПАРОЛЯ:
+      // пробуємо перелогінитись тим самим email+password
+      let token = "";
+      try {
+        const { data, error } = await window.Selfio.supabase.auth.signInWithPassword({
+          email: user.email,
+          password,
+        });
+        if (error) throw error;
+        token = data?.session?.access_token || "";
+        if (!token) throw new Error("No session token after sign-in");
+      } catch (e) {
+        return show("Password is incorrect.");
+      }
+
+      // 3) confirm
+      const ok = confirm("Delete account forever? This cannot be undone.");
+      if (!ok) return;
+
+      // 4) ВИДАЛЕННЯ: Edge Function -> delete auth user + data
+      try {
+        await window.Selfio.cloud.deleteAccountHard(token);
+
+        // 5) чистимо локальне
+        const emailLow = String(user.email).toLowerCase();
+        localStorage.removeItem("selfio_auth");
+        localStorage.removeItem("selfio_token");
+        localStorage.removeItem("selfio_email");
+        localStorage.removeItem("selfio_plan");
+        localStorage.removeItem("selfio_app_v1");
+        localStorage.removeItem(`selfio_plan:${emailLow}`);
+
+        try { await window.Selfio.supabase.auth.signOut(); } catch {}
+
+        // на головну
+        const p = location.pathname || "";
+        location.replace(p.includes("/pages/") ? "../index.html" : "index.html");
+      } catch (e) {
+        console.error(e);
+        show("Delete failed. Check Edge Function logs & service role secret.");
+      }
+    });
   });
 
   // init

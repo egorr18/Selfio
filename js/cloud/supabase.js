@@ -286,7 +286,35 @@
     true
   );
 
-  // ✅ Експорт (додали requireUser + getMyPlan)
+  function functionsUrl() {
+  const u = String(cfg.supabaseUrl || "");
+  return u.replace(".supabase.co", ".functions.supabase.co");
+}
+
+async function deleteAccountHard(accessToken) {
+    if (!accessToken) {
+      const { data } = await client.auth.getSession();
+      accessToken = data?.session?.access_token || "";
+    }
+    if (!accessToken) throw new Error("No session token");
+
+    const url = `${functionsUrl()}/delete-account`;
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${accessToken}`,
+      },
+    });
+
+    let body = null;
+    try { body = await res.json(); } catch {}
+    if (!res.ok) throw new Error(body?.error || `Delete failed (${res.status})`);
+
+    return true;
+  }
+
   window.Selfio.cloud = {
     client,
     getSession,
