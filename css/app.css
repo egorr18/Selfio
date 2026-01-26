@@ -395,7 +395,7 @@ button.card[disabled]{
 }
 
 /* === Today layout polish === */
-[data-page="today"] .container {
+[data-page="today"] .app .container {
     max-width: 980px;
     margin: 0 auto;
     padding: 28px 16px;
