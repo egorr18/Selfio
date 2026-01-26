@@ -68,66 +68,51 @@ img { max-width: 100%; display: block; }
 }
 
 /* ===== HEADER ===== */
-.header {
-  background: var(--white);
-  border-bottom: 1px solid #eee;
-  background: var(--header-bg);
-  border-bottom: 1px solid var(--border);
+.header{
+  /* щоб було видно заокруглення у .header__inner */
+  background: transparent;
+  padding: 12px 0;
 }
 
-.header__inner {
+.header__inner{
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  height: 80px;
+
   position: relative; /* for drawer on mobile */
+
+  /* замість height:80px — щоб padding + radius виглядали нормально */
+  min-height: 80px;
+  padding: 12px 14px;
+
+  background: var(--header-bg, var(--card-bg, rgba(255,255,255,.04)));
+  border: 1px solid var(--border, rgba(255,255,255,.10));
+  border-radius: var(--header-radius);
+  overflow: hidden; /* щоб drawer/фон не “вилазив” за radius */
 }
 
-.logo {
+.logo{
   font-weight: 700;
   font-size: 20px;
   color: var(--green-main);
   line-height: 1;
 }
 
-/* Desktop: right side wrapper (nav + actions) */
-.header__drawer {
+.header__drawer{
   margin-left: auto;
   display: flex;
   align-items: center;
   gap: 28px;
 }
 
-.nav {
-  display: flex;
-  gap: 32px;
+/* (опціонально) трохи менший радіус на мобілці */
+@media (max-width: 520px){
+  :root{ --header-radius: 16px; }
+  .header{ padding: 10px 0; }
+  .header__inner{ padding: 10px 12px; }
 }
 
-.nav a {
-  font-size: 15px;
-  position: relative;
-  padding: 6px 0;
-}
-
-.nav a::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  bottom: -6px;
-  width: 0;
-  height: 2px;
-  background: var(--green-main);
-  transition: width 0.2s ease;
-}
-.nav a:hover::after { width: 100%; }
-.nav a.is-active::after { width: 100%; }
-
-.header__actions {
-  display: flex;
-  gap: 18px;
-  align-items: center;
-}
 
 /* ===== BURGER ===== */
 .nav-toggle {

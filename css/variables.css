@@ -27,6 +27,7 @@
   --input-bg: #ffffff;
   --input-border: rgba(0,0,0,0.22);
 
+  --header-radius: 18px;
 }
 
 /* System dark (якщо користувач не обрав вручну) */
