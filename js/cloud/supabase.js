@@ -11,6 +11,12 @@
     return p.includes("/pages/") ? "../index.html" : "index.html";
   }
 
+  function signinUrl() {
+    const p = location.pathname || "";
+    // якщо ти вже у /pages/* — то signin.html поруч
+    return p.includes("/pages/") ? "signin.html?mode=login" : "pages/signin.html?mode=login";
+  }
+
   function safeJsonParse(s) {
     try { return JSON.parse(s); } catch { return null; }
   }
@@ -25,7 +31,10 @@
 
   function syncLocalFromStoredSession() {
     const legacyKey = findLegacySbAuthKey();
-    const raw = localStorage.getItem(AUTH_STORAGE_KEY) || (legacyKey ? localStorage.getItem(legacyKey) : null);
+    const raw =
+      localStorage.getItem(AUTH_STORAGE_KEY) ||
+      (legacyKey ? localStorage.getItem(legacyKey) : null);
+
     const j = raw ? safeJsonParse(raw) : null;
 
     const session =
@@ -38,7 +47,7 @@
   }
 
   function clearAllLocalAuth() {
-    // прибрати все selfio_* (крім теми) + supabase session keys
+    // ❗️ Використовуй для DELETE ACCOUNT (повна зачистка).
     const keep = new Set(["selfio_theme", "theme"]);
     for (const k of Object.keys(localStorage)) {
       if (k.startsWith("selfio_") && !keep.has(k)) localStorage.removeItem(k);
@@ -46,6 +55,24 @@
       if (k.startsWith("sb-") && k.endsWith("-auth-token")) localStorage.removeItem(k);
     }
     localStorage.removeItem(AUTH_STORAGE_KEY);
+  }
+
+  // logout: чистимо ТІЛЬКИ сесію, але НЕ user_state/plan в БД
+  function clearLocalAuthOnly() {
+    localStorage.removeItem("selfio_token");
+    localStorage.removeItem("selfio_email");
+
+    // краще прибрати глобальні кеші, щоб інший юзер не підхопив
+    localStorage.removeItem("selfio_plan");
+    localStorage.removeItem("selfio_name");
+
+    // прибираємо реальний storageKey Supabase
+    localStorage.removeItem(AUTH_STORAGE_KEY);
+
+    // на всяк випадок — старі ключі, якщо колись було по-іншому
+    Object.keys(localStorage)
+      .filter((k) => k.startsWith("sb-") && k.endsWith("-auth-token"))
+      .forEach((k) => localStorage.removeItem(k));
   }
 
   if (!window.supabase || typeof window.supabase.createClient !== "function") {
@@ -98,6 +125,7 @@
     p = String(p || "").trim().toLowerCase();
     return (p === "free" || p === "pro" || p === "premium") ? p : "free";
   }
+
   function planKeyForEmail(email) {
     return `selfio_plan:${(email || "anon").toLowerCase()}`;
   }
@@ -133,6 +161,7 @@
       const effectivePlan = normalizePlan(existing.plan || patch.plan || "free");
       localStorage.setItem("selfio_plan", effectivePlan);
       localStorage.setItem(planKeyForEmail(email), effectivePlan);
+
       return { ...existing, ...patch, plan: effectivePlan };
     }
 
@@ -147,6 +176,7 @@
 
     localStorage.setItem("selfio_plan", normalizePlan(ins.plan));
     localStorage.setItem(planKeyForEmail(email), normalizePlan(ins.plan));
+
     return ins;
   }
 
@@ -176,6 +206,7 @@
     const email = String(user.email || "").toLowerCase();
     localStorage.setItem("selfio_plan", plan);
     localStorage.setItem(planKeyForEmail(email), plan);
+
     return plan;
   }
 
@@ -192,6 +223,7 @@
     const email = String(user.email || "").toLowerCase();
     localStorage.setItem("selfio_plan", plan);
     localStorage.setItem(planKeyForEmail(email), plan);
+
     return plan;
   }
 
@@ -209,12 +241,27 @@
     return data?.data || null;
   }
 
+  async function saveState(state) {
+    const user = await getUser();
+    if (!user) throw new Error("Not signed in");
+
+    const { error } = await client
+      .from("user_state")
+      .upsert(
+        { user_id: user.id, data: state, updated_at: new Date().toISOString() },
+        { onConflict: "user_id" }
+      );
+
+    if (error) throw error;
+  }
+
   async function deleteAccountViaFunction(password) {
     // ✅ гарантуємо, що токен реальний
     await client.auth.refreshSession().catch(() => {});
 
     const session = await getSession();
     const token = session?.access_token;
+
     if (!token) {
       const err = new Error("SESSION_EXPIRED");
       err.code = "SESSION_EXPIRED";
@@ -251,7 +298,17 @@
     return true;
   }
 
-  // logout
+  // Тримаємо selfio_token/selfio_email в sync після логіну/логауту
+  client.auth.onAuthStateChange((_event, session) => {
+    if (session?.access_token) localStorage.setItem("selfio_token", session.access_token);
+    else localStorage.removeItem("selfio_token");
+
+    const email = session?.user?.email ? String(session.user.email).toLowerCase() : "";
+    if (email) localStorage.setItem("selfio_email", email);
+    else localStorage.removeItem("selfio_email");
+  });
+
+  // Logout кнопка
   document.addEventListener("click", async (e) => {
     const btn = e.target?.closest?.("[data-logout]");
     if (!btn) return;
@@ -260,8 +317,8 @@
     e.stopPropagation();
 
     try { await client.auth.signOut(); } catch (_) {}
-    clearAllLocalAuth();
-    location.replace(homeUrl());
+    clearLocalAuthOnly();
+    location.replace(signinUrl());
   }, true);
 
   window.Selfio.cloud = {
@@ -275,7 +332,9 @@
     getMyProfile,
     savePlan,
     loadState,
+    saveState,
     deleteAccountViaFunction,
+    clearLocalAuthOnly,
     clearAllLocalAuth,
   };
 })();
