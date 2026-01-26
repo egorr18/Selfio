@@ -1,173 +1,145 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title>Account — Selfio</title>
-    <meta name="description" content="Manage your Selfio account, preferences, and plan." />
-    <link rel="icon" href="../images/favicon.ico">
+  <title>Account — Selfio</title>
+  <meta name="description" content="Manage your Selfio account, preferences, and plan." />
+  <link rel="icon" href="../images/favicon.ico">
 
-    <link rel="stylesheet" href="../css/variables.css">
-    <link rel="stylesheet" href="../css/global.css">
-    <link rel="stylesheet" href="../css/app.css">
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/global.css">
+  <link rel="stylesheet" href="../css/app.css">
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 
 <body data-app data-page="account">
 <header class="header">
-    <div class="container header__inner">
-        <a href="../index.html" class="logo">Selfio</a>
+  <div class="container header__inner">
+    <a href="../index.html" class="logo">Selfio</a>
 
-        <button class="nav-toggle" type="button"
-                aria-label="Open menu"
-                aria-expanded="false"
-                aria-controls="site-menu"
-                data-nav-toggle>
-            <span></span><span></span><span></span>
-        </button>
+    <button class="nav-toggle" type="button"
+            aria-label="Open menu"
+            aria-expanded="false"
+            aria-controls="site-menu"
+            data-nav-toggle>
+      <span></span><span></span><span></span>
+    </button>
 
-        <div class="header__drawer" id="site-menu" data-nav-drawer>
-            <nav class="nav nav--collapsible" aria-label="Primary">
-                <a href="app.html">Today</a>
-                <a href="weekly.html">Weekly</a>
-                <a href="habits.html">Habits</a>
-                <a href="account.html" class="is-active" aria-current="page">Account</a>
-            </nav>
+    <div class="header__drawer" id="site-menu" data-nav-drawer>
+      <nav class="nav nav--collapsible" aria-label="Primary">
+        <a href="app.html">Today</a>
+        <a href="weekly.html">Weekly</a>
+        <a href="habits.html">Habits</a>
+        <a href="account.html" class="is-active" aria-current="page">Account</a>
+      </nav>
 
-            <div class="header__actions header__actions--app">
-                <button class="theme-toggle" type="button"
-                        data-theme-toggle
-                        aria-label="Toggle theme"
-                        aria-pressed="false">🌙</button>
+      <div class="header__actions header__actions--app">
+        <button class="theme-toggle" type="button"
+                data-theme-toggle
+                aria-label="Toggle theme"
+                aria-pressed="false">🌙</button>
 
-                <span class="link" data-app-meta>—</span>
-            </div>
-        </div>
+        <span class="link" data-app-meta>—</span>
+      </div>
     </div>
+  </div>
 </header>
 
 <main class="app" role="main">
-    <div class="container">
-        <div class="app__top">
-            <div class="app__title">
-                <h1>Account</h1>
-                <p>Manage your profile, preferences, and plan.</p>
-            </div>
-        </div>
-
-        <div class="app__grid account__grid">
-            <div class="account__left">
-                <section class="card">
-                    <h2>Profile</h2>
-
-                    <div class="account__field">
-                        <label class="account__label" for="acc-name">Name</label>
-                        <input id="acc-name" class="text" type="text" autocomplete="name"
-                               placeholder="Your name" value="" data-account-name />
-                        <p class="mini">Used for a more personal experience (optional).</p>
-                    </div>
-
-                    <div class="account__field">
-                        <label class="account__label" for="acc-email">Email</label>
-
-                        <div class="account__inputWrap">
-                            <input id="acc-email" class="text" type="email" autocomplete="email" readonly
-                                   value="" data-account-email />
-                            <button class="btn btn--ghost btn--sm account__copyBtn" type="button" data-copy-email>Copy</button>
-                        </div>
-
-                        <p class="mini">Email is read-only for now.</p>
-                        <p class="mini" data-copy-toast style="display:none;"></p>
-                    </div>
-
-                    <p class="mini">Member since: <b data-member-since>—</b></p>
-                </section>
-
-                <section class="card">
-                    <h2>Security</h2>
-                    <p class="mini">Change your password for your account.</p>
-
-                    <form class="account__form" data-pass-form>
-                        <label class="account__label" for="acc-pass-current">Current password</label>
-                        <input id="acc-pass-current" class="text" type="password" autocomplete="current-password"
-                               data-pass-current required />
-
-                        <label class="account__label" for="acc-pass-new">New password</label>
-                        <input id="acc-pass-new" class="text" type="password" autocomplete="new-password"
-                               data-pass-new required />
-
-                        <label class="account__label" for="acc-pass-confirm">Confirm new password</label>
-                        <input id="acc-pass-confirm" class="text" type="password" autocomplete="new-password"
-                               data-pass-confirm required />
-
-                        <div class="actions" style="margin-top:12px;">
-                            <button class="btn btn--primary" type="submit" data-pass-save>Save password</button>
-                        </div>
-
-                        <p class="mini" data-pass-msg aria-live="polite" style="margin-top:10px; display:none;"></p>
-                    </form>
-                </section>
-
-                <section class="card">
-                    <h2>Data</h2>
-                    <p class="mini">Export and delete options.</p>
-
-                    <div class="actions" style="margin-top:12px;">
-                        <button class="btn btn--secondary" type="button" data-export>Export data</button>
-                        <button class="btn btn--secondary" type="button" data-delete>Delete account</button>
-                    </div>
-
-                    <p class="mini" style="margin-top:10px;">Delete requires your current password.</p>
-                    <input class="text" type="password" autocomplete="current-password"
-                           placeholder="Current password" data-delete-password />
-                </section>
-            </div>
-
-            <aside class="account__right">
-                <section class="card">
-                    <h2>Plan</h2>
-
-                    <div class="account__plan">
-                        <div class="account__planLabel">Current plan</div>
-                        <div class="account__planValue" data-plan-badge>—</div>
-                        <div class="mini">Upgrade any time.</div>
-                    </div>
-
-                    <div class="actions">
-                        <a class="btn btn--ghost" href="my-plan.html">My plan</a>
-                        <a class="btn btn--primary" href="choose-plan.html?mode=upgrade&next=account.html">Upgrade</a>
-                    </div>
-
-                    <div class="mini" data-plan-perks style="margin-top:6px;">—</div>
-                </section>
-
-                <section class="card">
-                    <h2>What you unlock</h2>
-
-                    <div class="actions" style="margin-top:12px;">
-                        <a class="btn btn--secondary" href="weekly.html">Open Weekly</a>
-                    </div>
-                </section>
-
-                <section class="card">
-                    <h2>Session</h2>
-                    <p class="mini">Sign out from this device.</p>
-                    <div class="actions">
-                        <button class="btn btn--secondary" type="button" data-logout>Logout</button>
-                    </div>
-                </section>
-            </aside>
-        </div>
+  <div class="container">
+    <div class="app__top">
+      <div class="app__title">
+        <h1>Account</h1>
+        <p>Manage your profile, preferences, and plan.</p>
+      </div>
     </div>
+
+    <div class="app__grid account__grid">
+      <div class="account__left">
+        <section class="card">
+          <h2>Profile</h2>
+
+          <div class="account__field">
+            <label class="account__label" for="acc-name">Name</label>
+            <input id="acc-name" class="text" type="text" autocomplete="name"
+                   placeholder="Your name" value="" data-account-name />
+            <p class="mini">Used for a more personal experience (optional).</p>
+          </div>
+
+          <div class="account__field">
+            <label class="account__label" for="acc-email">Email</label>
+
+            <div class="account__inputWrap">
+              <input id="acc-email" class="text" type="email" autocomplete="email" readonly
+                     value="" data-account-email />
+              <button class="btn btn--ghost btn--sm account__copyBtn" type="button" data-copy-email>Copy</button>
+            </div>
+
+            <p class="mini">Email is read-only for now.</p>
+            <p class="mini" data-copy-toast style="display:none;"></p>
+          </div>
+
+          <p class="mini">Member since: <b data-member-since>—</b></p>
+        </section>
+
+        <section class="card">
+          <h2>Data</h2>
+          <p class="mini">Export your data as JSON.</p>
+
+          <div class="actions" style="margin-top:12px;">
+            <button class="btn btn--secondary" type="button" data-export>Export data</button>
+          </div>
+        </section>
+      </div>
+
+      <aside class="account__right">
+        <section class="card">
+          <h2>Plan</h2>
+
+          <div class="account__plan">
+            <div class="account__planLabel">Current plan</div>
+            <div class="account__planValue" data-plan-badge>—</div>
+            <div class="mini">Upgrade any time.</div>
+          </div>
+
+          <div class="actions">
+            <a class="btn btn--ghost" href="my-plan.html">My plan</a>
+            <a class="btn btn--primary" href="choose-plan.html?mode=upgrade&next=account.html">Upgrade</a>
+          </div>
+
+          <div class="mini" data-plan-perks style="margin-top:6px;">—</div>
+        </section>
+
+        <section class="card">
+          <h2>What you unlock</h2>
+
+          <div class="actions" style="margin-top:12px;">
+            <a class="btn btn--secondary" href="weekly.html">Open Weekly</a>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>Session</h2>
+          <p class="mini">Sign out from this device.</p>
+          <div class="actions">
+            <button class="btn btn--secondary" type="button" data-logout>Logout</button>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </div>
 </main>
 <script src="../js/core/config.js" defer></script>
 <script src="../js/cloud/supabase.js" defer></script>
+<script src="../js/core/auth.js" defer></script>
 <script src="../js/core/store.js" defer></script>
 
 <script src="../js/nav.js" defer></script>
 <script src="../js/theme.js" defer></script>
+<script src="../js/api.js" defer></script>
 <script src="../js/app.js" defer></script>
 <script src="../js/account.js" defer></script>
 </body>
