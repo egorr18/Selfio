@@ -40,17 +40,15 @@
       </nav>
 
       <div class="header__actions">
-        <div class="header__actions">
-          <button class="theme-toggle" type="button"
-                  data-theme-toggle
-                  aria-label="Toggle theme"
-                  aria-pressed="false">🌙
-          </button>
-        <a class="btn" href="signin.html?mode=login">Sign in</a>
-        <a class="btn" href="signin.html?mode=register">Create account</a>
+        <button class="theme-toggle" type="button"
+                data-theme-toggle
+                aria-label="Toggle theme"
+                aria-pressed="false">🌙
+        </button>
+        <a class="btn" href="signin.html#login">Sign in</a>
+        <a class="btn" href="signin.html#register">Create account</a>
       </div>
     </div>
-  </div>
   </div>
 </header>
 
@@ -79,10 +77,6 @@
       to go deeper into self-reflection.
     </p>
 
-    <!-- Back button (pricing.js заповнить href, якщо mode=view або back=...) -->
-    <div style="margin-top:14px;">
-      <a class="btn btn--ghost" data-back href="../index.html" style="display:none;">Back</a>
-    </div>
   </div>
 </section>
 
@@ -91,7 +85,6 @@
 
     <div class="pricing-grid">
 
-      <!-- додаємо data-pricing-plan -->
       <div class="pricing-card" data-plan="free">
         <h3>Free</h3>
 
@@ -141,7 +134,7 @@
 
 <footer class="footer">
   <div class="container footer__grid">
-    <a href="../" class="footer__brand" class="logo">Selfio</a>
+    <a href="../" class="footer__brand logo">Selfio</a>
     <nav class="footer__nav">
       <a href="why-selfio.html">Why Selfio</a>
       <a href="solutions.html">Solutions</a>
