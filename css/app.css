@@ -669,12 +669,6 @@ button.card[disabled]{
     word-break: break-word;
 }
 
-/* Optional privacy: hide/mask email when user is on My Plan
-   Add data-hide-email="1" on <body> to enable */
-body[data-hide-email="1"][data-page="my-plan"] .card{
-    /* nothing here; just a hook */
-}
-
 /* If you can mark email span with class="account__email" OR data-user-email */
 body[data-hide-email="1"][data-page="my-plan"] .account__email,
 body[data-hide-email="1"][data-page="my-plan"] [data-user-email]{
