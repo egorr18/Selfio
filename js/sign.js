@@ -16,9 +16,12 @@
     if (!v) return "app.html";
 
     const low = v.toLowerCase();
-    if (low.startsWith("http:") || low.startsWith("https:") || low.startsWith("//") || low.startsWith("javascript:")) {
-      return "app.html";
-    }
+    if (
+      low.startsWith("http:") ||
+      low.startsWith("https:") ||
+      low.startsWith("//") ||
+      low.startsWith("javascript:")
+    ) return "app.html";
 
     try { v = decodeURIComponent(v); } catch {}
     const base = v.split(/[?#]/)[0];
@@ -44,7 +47,7 @@
     const el = ensureMsgEl();
     if (!el) return;
     el.textContent = text || "";
-    el.dataset.kind = kind; // можеш стилізувати по [data-kind="error"]
+    el.dataset.kind = kind;
   }
 
   function setModeUI(mode) {
@@ -56,12 +59,16 @@
     const isReg = mode === "register";
 
     if (title) title.textContent = isReg ? "Create account" : "Welcome back";
-    if (text) text.textContent = isReg
-      ? "Create an account to continue your journaling journey."
-      : "Sign in to continue your journaling journey.";
-    if (note) note.innerHTML = isReg
-      ? 'Already have an account? Select <b>Sign in</b>.'
-      : 'New here? Select <b>Create account</b>.';
+    if (text) {
+      text.textContent = isReg
+        ? "Create an account to continue your journaling journey."
+        : "Sign in to continue your journaling journey.";
+    }
+    if (note) {
+      note.innerHTML = isReg
+        ? 'Already have an account? Select <b>Sign in</b>.'
+        : 'New here? Select <b>Create account</b>.';
+    }
     if (submit) submit.textContent = isReg ? "Create account" : "Sign in";
 
     document.querySelectorAll(".auth__switch [data-mode]").forEach((b) => {
@@ -71,8 +78,26 @@
     });
   }
 
+  // читаємо mode з #hash або з ?mode= (fallback)
+  function getMode() {
+    const qs = new URLSearchParams(location.search);
+    const fromQuery = (qs.get("mode") || "").toLowerCase();
+    const fromHash = (location.hash || "").replace("#", "").toLowerCase();
+
+    if (fromHash === "login" || fromHash === "register") return fromHash;
+    if (fromQuery === "login" || fromQuery === "register") return fromQuery;
+    return "login";
+  }
+
+  // записуємо mode у hash (SEO-дружньо: без ?mode=)
+  function setMode(mode) {
+    mode = mode === "register" ? "register" : "login";
+    if (location.hash.replace("#", "") !== mode) {
+      history.replaceState({}, "", `${location.pathname}${location.search}#${mode}`);
+    }
+  }
+
   async function afterAuthRedirect(next) {
-    // якщо план вже вибрано — йдемо на next, інакше на choose-plan
     const email = (localStorage.getItem("selfio_email") || "").toLowerCase();
     const perUserPlan = localStorage.getItem(`selfio_plan:${email || "anon"}`);
     const hasPlan = !!perUserPlan;
@@ -97,19 +122,29 @@
       return;
     }
 
-    let mode = (qs.get("mode") || "login").toLowerCase();
-    if (mode !== "register") mode = "login";
+    // mode тепер з hash/query
+    let mode = getMode();
     setModeUI(mode);
+
+    // якщо mode прийшов через ?mode= — підчистимо UI на hash
+    // (не обов'язково, але гарно)
+    setMode(mode);
 
     document.querySelectorAll(".auth__switch [data-mode]").forEach((b) => {
       b.addEventListener("click", () => {
         mode = b.getAttribute("data-mode") === "register" ? "register" : "login";
         setModeUI(mode);
+        setMode(mode);
         msg("");
-        const url = new URL(location.href);
-        url.searchParams.set("mode", mode);
-        history.replaceState({}, "", url.toString());
       });
+    });
+
+    // якщо користувач руками поміняв hash (або прийшов по лінку #register)
+    window.addEventListener("hashchange", () => {
+      const m = getMode();
+      mode = m;
+      setModeUI(mode);
+      msg("");
     });
 
     const form = $(".auth__form");
@@ -134,9 +169,7 @@
           await auth.signIn(email, password);
         }
 
-        // створимо/оновимо профіль
         await cloud.ensureProfile();
-
         await afterAuthRedirect(next);
       } catch (err) {
         console.error(err);
