@@ -286,10 +286,7 @@
   padding: 24px;
   border-radius: 16px;
   border: 1px solid transparent;
-  transition:
-          background 0.25s ease,
-          border 0.25s ease,
-          transform 0.25s ease;
+  transition: border 0.25s ease, transform 0.25s ease;
 }
 
 .why-community__item span {
@@ -333,16 +330,12 @@
 }
 
 .pricing-card {
-  background: var(--surface);
+  background: var(--surface) 0.25s ease;
   border: 1px solid var(--border);
   border-radius: 20px;
   padding: 48px 32px;
   text-align: center;
-  transition:
-          transform 0.25s ease,
-          box-shadow 0.25s ease,
-          border-color 0.25s ease,
-          background 0.25s ease;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
 .pricing-card:hover {
@@ -498,125 +491,26 @@
   color: var(--muted);
 }
 
-/* ===== AUTH ===== */
-.auth {
-  padding: 140px 0;
-  background: var(--bg-soft);
-  text-align: center;
-}
-
-.auth__content{
-  max-width: 520px;
-  margin: 0 auto;
-}
-
-/* switch + form однакова ширина */
-.auth__switch,
-.auth__form{
-  width: 100%;
-  max-width: 520px;
-  margin: 0 auto;
-}
-
-/* щоб 2 верхні кнопки були такої ж ширини як submit */
-.auth__switch{
-  display: flex;
-  flex-direction: column; /* важливо: тоді вони 100% як submit */
-  gap: 12px;
-  margin-top: 18px;
-}
-
-/* поля теж робимо “по сітці”, щоб виглядало ідеально */
-.auth__form{
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  margin-top: 14px;
-}
-
-.auth__form input{
-  width: 100%;
-  height: var(--ui-btn-h);
-  padding: 0 18px;
-  border-radius: 4px;
-  background: var(--input-bg);
-  color: var(--text);
-  border: 1px solid var(--input-border);
-  box-sizing: border-box;
-}
-
-/* 2 кнопки в signin (Sign in / Create account) */
-.auth__switch .btn{
-  width: 100%;
-  min-height: var(--ui-btn-h);
-  padding: 0 18px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* submit теж такий самий */
-.auth__form .btn{
-  width: 100%;
-  min-height: var(--ui-btn-h);
-  padding: 0 18px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* =========================================================
-   AUTH – FIX: inputs == buttons (same width/height everywhere)
-   Paste at the VERY END of pages.css
-   ========================================================= */
-
-.auth__content{
-  max-width: 520px;
-  margin: 0 auto;
-  padding: 0 8px;           /* однаковий “внутрішній” відступ для ВСЬОГО */
-  text-align: center;
-}
-
-/* прибираємо різні paddings які робили input вужчим */
-.auth__switch,
-.auth__form{
-  width: 100%;
-  margin: 0;
-  padding: 0;              /* <-- ключовий фікс */
-  max-width: 100%;
-}
-
-.auth__switch{
-  display: flex;
-  flex-direction: column;  /* щоб 2 кнопки були 100% як submit */
-  gap: 12px;
-  margin-top: 18px;
-}
-
-.auth__form{
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  margin-top: 14px;
-}
-
-/* inputs */
-.auth__form input{
-  width: 100%;
-  height: var(--ui-btn-h);     /* та сама висота що й кнопки */
-  padding: 0 18px;             /* такий самий горизонт padding */
-  border-radius: 4px;
-  border: 1px solid var(--input-border);
-  background: var(--input-bg);
-  color: var(--text);
-  box-sizing: border-box;
-}
-
-/* buttons (both top switch + submit) */
-.auth .btn{
-  width: 100%;
-  height: var(--ui-btn-h);
-  padding: 0 18px;
+/* Small phones */
+@media (max-width: 480px) {
+  .page-hero { 
+    padding: 64px 0; 
+  }
+  .page-content {
+     padding: 64px 0;
+  }
+  .why-matters,
+  .social-proof,
+  .solutions-list,
+  .why-community,
+  .pricing-plans,
+  .start-trial,
+  .page-hero h1 {
+    font-size: 28px;
+  }
+  .page-hero p {
+    font-size: 16px;
+  }
 }
 
 @media (max-width: 520px){
@@ -624,68 +518,18 @@
   .page-block__number{ font-size: 56px; }
 }
 
-/* iOS: щоб не зумило input при фокусі */
-@media (max-width: 480px){
-  .auth__form input{ font-size: 16px; }
-  .auth__content{ padding: 0 6px; }
-}
-
-/* якщо на мобілці хочеш дві верхні кнопки в стовпчик */
-@media (max-width: 480px){
-  .auth__switch{
-    flex-direction: column;
-  }
-}
-
-@media (max-width: 900px) {
-  .page-hero h1 {
-    font-size: 36px;
+@media (max-width: 768px){
+  /* plan cards spacing on mobile */
+  .pricing-card{
+    padding: 28px 20px;
   }
 
-  .page-grid {
-    grid-template-columns: 1fr;
-    gap: 40px;
-  }
-}
-
-@media (max-width: 900px) {
-  .why-matters__grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 900px) {
-  .social-proof__grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 900px) {
-  .solutions-grid {
-    grid-template-columns: 1fr;
+  .start-trial__form{
+    max-width: 520px;
+    width: 100%;
+    padding: 0 8px;
   }
 
-  .section-title {
-    font-size: 36px;
-  }
-}
-
-@media (max-width: 900px) {
-  .why-community__grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 900px) {
-  .pricing-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* RESPONSIVE: PAGES (marketing)*/
-
-@media (max-width: 768px) {
-  /* секції — менші відступи */
   .page-hero { padding: 80px 0; }
   .page-content { padding: 80px 0; }
   .why-matters { padding: 90px 0; }
@@ -694,17 +538,13 @@
   .why-community { padding: 90px 0; }
   .pricing-plans { padding: 90px 0; }
   .start-trial { padding: 90px 0; }
-  .auth { padding: 90px 0; }
-
   .page-hero h1 { font-size: 34px; }
   .why-matters h2,
   .social-proof h2,
   .section-title,
   .why-community__content h2,
   .start-trial h1,
-  .auth h1 { font-size: 34px; }
 
-  /* start trial form -> колонка */
   .start-trial__form {
     flex-direction: column;
     align-items: stretch;
@@ -718,71 +558,37 @@
   }
 }
 
-/* Small phones */
-@media (max-width: 480px) {
-  .page-hero { padding: 64px 0; }
-  .page-content { padding: 64px 0; }
-  .why-matters,
-  .social-proof,
-  .solutions-list,
-  .why-community,
-  .pricing-plans,
-  .start-trial,
-  .auth { padding: 72px 0; }
-
-  .page-hero h1 { font-size: 28px; }
-  .page-hero p { font-size: 16px; }
-
-  /* auth form — ширше, і кнопки зручні */
-  .auth__form {
-    max-width: 100%;
-    padding: 0 2px;
+@media (max-width: 900px) {
+  .why-community__grid {
+    grid-template-columns: 1fr;
   }
 
-  .auth__form input{
-    background: var(--input-bg);
-    color: var(--text);
-    border: 1px solid var(--input-border);
+  .solutions-grid {
+    grid-template-columns: 1fr;
   }
 
-  .auth__switch {
-    flex-direction: column;
-    align-items: stretch;
+  .section-title {
+    font-size: 36px;
   }
 
-  .auth__switch .btn {
-    width: 100%;
+  .social-proof__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .why-matters__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .page-hero h1 {
+    font-size: 36px;
+  }
+
+  .page-grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .pricing-grid {
+    grid-template-columns: 1fr;
   }
 }
-
-/* Responsive: Pages (marketing) */
-
-@media (max-width: 768px){
-  /* plan cards spacing on mobile */
-  .pricing-card{
-    padding: 28px 20px;
-  }
-
-  /* Forms: max-width + comfy paddings */
-  .auth__form{
-    max-width: 520px;
-    width: 100%;
-    padding: 0 8px;
-  }
-
-  .start-trial__form{
-    max-width: 520px;
-    width: 100%;
-    padding: 0 8px;
-  }
-}
-
-/* Auth message */
-#auth-msg {
-  margin-top: 10px;
-  font-size: 14px;
-  color: var(--muted);
-}
-
-#auth-msg[data-kind="error"] { color: #c62828; }
-#auth-msg[data-kind="ok"] { color: #2e7d32; }

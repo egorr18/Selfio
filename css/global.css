@@ -33,24 +33,6 @@ aside h1 {
   margin: 0 0 16px;
 }
 
-@media (max-width: 768px) {
-  section h1,
-  article h1,
-  nav h1,
-  aside h1 {
-    font-size: 34px;
-  }
-}
-
-@media (max-width: 480px) {
-  section h1,
-  article h1,
-  nav h1,
-  aside h1 {
-    font-size: 28px;
-  }
-}
-
 /* ===== CONTAINER ===== */
 .container {
   max-width: var(--container-width);
@@ -63,17 +45,14 @@ aside h1 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
   padding: 14px 28px;
   border-radius: 4px;
   font-weight: 500;
   cursor: pointer;
-
   border: 1px solid transparent;
   background: transparent;
   color: inherit;
-
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
 }
 
 .btn--primary { background: var(--green-main); color: var(--white); }
@@ -264,14 +243,84 @@ section.animate.visible > .container {
   }
 }
 
-/* =========================
-   MOBILE: Drawer menu
-   ========================= */
+.theme-toggle{
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+}
+.theme-toggle:hover{
+  box-shadow: 0 8px 20px var(--shadow);
+}
+
+@media (max-width: 480px) {
+  section h1,
+  article h1,
+  nav h1,
+  aside h1 {
+    font-size: 28px;
+  }
+.btn {
+  padding: 12px 16px; }
+
+/* utility: horizontal scroll wrapper for tables */
+.scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.scroll-x > table { min-width: 720px; }
+
+/* iOS Safari: normalize form controls */
+button, input, select, textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-text-fill-color: currentColor;
+}
+
+/* Make btn--secondary green everywhere (light + dark) */
+.btn--secondary{
+  background: var(--green-main) !important;
+  color: var(--white) !important;
+  border: 1px solid var(--green-main) !important;
+  -webkit-text-fill-color: currentColor;
+}
+
+.btn--secondary:hover{
+  background: var(--green-dark) !important;
+  border-color: var(--green-dark) !important;
+}
+
+.btn--primary{
+  box-shadow: 0 10px 26px rgba(47,111,98,0.22);
+}
+.btn--primary:hover{
+  box-shadow: 0 14px 32px rgba(47,111,98,0.28);
+}
+}
+
 @media (max-width: 768px) {
-  .container { padding: 0 16px; }
+  section h1,
+  article h1,
+  nav h1,
+  aside h1 {
+    font-size: 34px;
+  }
+
+    .container { padding: 0 16px; }
 
   .header{
-    background: transparent; /* щоб було видно rounded inner */
+    background: transparent;
     border-bottom: 0;
     padding: 12px 0;
   }
@@ -282,7 +331,7 @@ section.animate.visible > .container {
   }
 
   .header__inner{
-    height: auto;        /* щоб padding виглядав нормально */
+    height: auto;
     min-height: 80px;
     padding: 12px 14px;
 
@@ -310,7 +359,7 @@ section.animate.visible > .container {
     box-shadow: 0 18px 50px rgba(0,0,0,0.35);
     z-index: 50;
 
-    overflow: hidden; /* щоб нічого не “вилазило” за радиус */
+    overflow: hidden;
   }
 
   .nav-open .header__drawer { display: flex; }
@@ -357,67 +406,3 @@ section.animate.visible > .container {
     background: rgba(255,255,255,0.12);
   }
 }
-
-.theme-toggle{
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: transparent;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  user-select: none;
-}
-.theme-toggle:hover{
-  box-shadow: 0 8px 20px var(--shadow);
-}
-
-@media (max-width: 480px) {
-  .btn { padding: 12px 16px; }
-}
-
-/* utility: horizontal scroll wrapper for tables */
-.scroll-x {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-.scroll-x > table { min-width: 720px; }
-
-/* iOS Safari: normalize form controls */
-button, input, select, textarea {
-  font: inherit;
-  color: inherit;
-}
-
-button {
-  -webkit-appearance: none;
-  appearance: none;
-  -webkit-text-fill-color: currentColor;
-}
-
-/* =========================
-   Make btn--secondary green everywhere (light + dark)
-   Paste at VERY END of global.css
-   ========================= */
-
-.btn--secondary{
-  background: var(--green-main) !important;
-  color: var(--white) !important;
-  border: 1px solid var(--green-main) !important;
-  -webkit-text-fill-color: currentColor;
-}
-
-.btn--secondary:hover{
-  background: var(--green-dark) !important;
-  border-color: var(--green-dark) !important;
-}
-
-.btn--primary{
-  box-shadow: 0 10px 26px rgba(47,111,98,0.22);
-}
-.btn--primary:hover{
-  box-shadow: 0 14px 32px rgba(47,111,98,0.28);
-}
-

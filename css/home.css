@@ -186,70 +186,13 @@
   border-radius: 24px;
 }
 
-/* ===== RESPONSIVE ===== */
-@media (max-width: 900px) {
-  /* HERO */
-  .hero {
-    padding: 0 16px;
-    min-height: 72vh;
-  }
-
-  /* STORY + PRODUCT -> 1 column */
-  .story__grid,
-  .product__grid {
-    grid-template-columns: 1fr;
-    gap: 22px;
-  }
-
-  .story {
-    text-align: center;
-  }
-
-  /* STEPS */
-  .steps {
-    padding: 80px 0;
-  }
-
-  .steps__top {
-    grid-template-columns: 1fr;
-    gap: 40px;
-  }
-
-  .steps__grid {
-    grid-template-columns: 1fr;
-    gap: 96px;
+@media (max-width: 420px) {
+  .step__number {
+    font-size: 66px;
   }
 
   .step {
-    margin-top: 0 !important;
-  }
-
-  /* головний фікс: однаковий розмір картинок на мобілці */
-  .step__image {
-    height: auto !important;
-    aspect-ratio: 16 / 10; /* 4/3 якщо хочеш вищі */
-    overflow: hidden;
-  }
-
-  .step__image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  /* product image не робимо гігантським блоком */
-  .product__image {
-    width: 100%;
-    height: auto;
-    aspect-ratio: 4 / 5;
-    max-width: 560px;
-    margin: 0 auto;
-  }
-}
-
-@media (max-width: 768px){
-  .product{
-    padding: 56px 0;
+    padding-top: 64px;
   }
 }
 
@@ -283,12 +226,11 @@
     left: 0;
   }
 
-  /* важливо: щоб текст не був “вузьким” на телефоні */
+  /* щоб текст не був вузьким на телефоні */
   .step p {
     max-width: 100%;
   }
 
-  /* STORY */
   .story {
     padding: 64px 0;
   }
@@ -298,7 +240,6 @@
     line-height: 1.12;
   }
 
-  /* PRODUCT */
   .product {
     padding: 64px 0;
   }
@@ -309,12 +250,65 @@
   }
 }
 
-@media (max-width: 420px) {
-  .step__number {
-    font-size: 66px;
+@media (max-width: 768px){
+  .product{
+    padding: 56px 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .hero {
+    padding: 0 16px;
+    min-height: 72vh;
+  }
+
+  .story__grid,
+  .product__grid {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+
+  .story {
+    text-align: center;
+  }
+
+  .steps {
+    padding: 80px 0;
+  }
+
+  .steps__top {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .steps__grid {
+    grid-template-columns: 1fr;
+    gap: 96px;
   }
 
   .step {
-    padding-top: 64px;
+    margin-top: 0 !important;
+  }
+
+  /* однаковий розмір картинок на мобілці */
+  .step__image {
+    height: auto !important;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+  }
+
+  .step__image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* не робимо гігантським блоком */
+  .product__image {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 5;
+    max-width: 560px;
+    margin: 0 auto;
   }
 }
