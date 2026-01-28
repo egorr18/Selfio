@@ -3,21 +3,50 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="robots" content="noindex, follow">
+  <meta name="robots" content="noindex, follow" />
 
   <title>Account — Selfio</title>
   <meta name="description" content="Manage your Selfio account, preferences, and plan." />
-  
-  <link rel="icon" href="../images/favicon.ico">
-  <link rel="canonical" href="https://egorr18.github.io/Selfio/pages/account.html">
-  
-  <script src="../js/core/bootstrap.js"></script>
-  
-  <link rel="stylesheet" href="../css/variables.css">
-  <link rel="stylesheet" href="../css/global.css">
-  <link rel="stylesheet" href="../css/app.css">
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <link rel="icon" href="../images/favicon.ico" />
+  <link rel="canonical" href="https://egorr18.github.io/Selfio/pages/account.html" />
+
+  <!-- Performance: warm up connections -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
+
+  <link rel="preconnect" href="https://duvgdgzbjrkkcxddfpvm.supabase.co" crossorigin />
+  <link rel="dns-prefetch" href="https://duvgdgzbjrkkcxddfpvm.supabase.co" />
+
+  <!-- Bootstrap (theme/early init) -->
+  <script src="../js/core/bootstrap.js" defer></script>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="../css/variables.css" />
+  <link rel="stylesheet" href="../css/global.css" />
+  <link rel="stylesheet" href="../css/app.css" />
+
+  <!-- Supabase SDK -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"
+    defer
+    crossorigin
+  ></script>
+
+  <!-- Core app scripts -->
+  <script src="../js/core/config.js" defer></script>
+  <script src="../js/cloud/supabase.js" defer></script>
+  <script src="../js/core/auth.js" defer></script>
+  <script src="../js/core/store.js" defer></script>
+
+  <!-- UI / app -->
+  <script src="../js/nav.js" defer></script>
+  <script src="../js/theme.js" defer></script>
+
+  <!-- Business logic -->
+  <script src="../js/api.js" defer></script>
+  <script src="../js/app.js" defer></script>
+  <script src="../js/account.js" defer></script>
 </head>
 
 <body data-app data-page="account">
@@ -135,15 +164,5 @@
     </div>
   </div>
 </main>
-<script src="../js/core/config.js" defer></script>
-<script src="../js/cloud/supabase.js" defer></script>
-<script src="../js/core/auth.js" defer></script>
-<script src="../js/core/store.js" defer></script>
-
-<script src="../js/nav.js" defer></script>
-<script src="../js/theme.js" defer></script>
-<script src="../js/api.js" defer></script>
-<script src="../js/app.js" defer></script>
-<script src="../js/account.js" defer></script>
 </body>
 </html>
