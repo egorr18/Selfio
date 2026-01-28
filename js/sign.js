@@ -38,16 +38,37 @@
     el = document.createElement("p");
     el.id = "auth-msg";
     el.className = "mini";
-    el.style.marginTop = "10px";
+    el.setAttribute("aria-live", "polite");
+    el.setAttribute("role", "status");
     form.appendChild(el);
     return el;
   }
+
 
   function msg(text, kind = "") {
     const el = ensureMsgEl();
     if (!el) return;
     el.textContent = text || "";
     el.dataset.kind = kind;
+  }
+
+    function setNote(noteEl, isReg) {
+    if (!noteEl) return;
+    noteEl.textContent = "";
+
+    if (isReg) {
+      noteEl.append(document.createTextNode("Already have an account? Select "));
+      const b = document.createElement("b");
+      b.textContent = "Sign in";
+      noteEl.append(b);
+      noteEl.append(document.createTextNode("."));
+    } else {
+      noteEl.append(document.createTextNode("New here? Select "));
+      const b = document.createElement("b");
+      b.textContent = "Create account";
+      noteEl.append(b);
+      noteEl.append(document.createTextNode("."));
+    }
   }
 
   function setModeUI(mode) {
@@ -64,11 +85,7 @@
         ? "Create an account to continue your journaling journey."
         : "Sign in to continue your journaling journey.";
     }
-    if (note) {
-      note.innerHTML = isReg
-        ? 'Already have an account? Select <b>Sign in</b>.'
-        : 'New here? Select <b>Create account</b>.';
-    }
+    if (note) setNote(note, isReg);
     if (submit) submit.textContent = isReg ? "Create account" : "Sign in";
 
     document.querySelectorAll(".auth__switch [data-mode]").forEach((b) => {

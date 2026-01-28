@@ -23,6 +23,34 @@ img { max-width: 100%; display: block; }
   border-radius: 8px;
 }
 
+/* ===== Lighthouse fix: don't rely on UA styles for H1 in sections ===== */
+section h1,
+article h1,
+nav h1,
+aside h1 {
+  font-size: 42px;
+  line-height: 1.2;
+  margin: 0 0 16px;
+}
+
+@media (max-width: 768px) {
+  section h1,
+  article h1,
+  nav h1,
+  aside h1 {
+    font-size: 34px;
+  }
+}
+
+@media (max-width: 480px) {
+  section h1,
+  article h1,
+  nav h1,
+  aside h1 {
+    font-size: 28px;
+  }
+}
+
 /* ===== CONTAINER ===== */
 .container {
   max-width: var(--container-width);

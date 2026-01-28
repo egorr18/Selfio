@@ -776,3 +776,13 @@
     padding: 0 8px;
   }
 }
+
+/* Auth message */
+#auth-msg {
+  margin-top: 10px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+#auth-msg[data-kind="error"] { color: #c62828; }
+#auth-msg[data-kind="ok"] { color: #2e7d32; }
