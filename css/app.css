@@ -1,6 +1,5 @@
 /* 1) Theme tokens (APP only) */
 body[data-app]{
-  /* Let browser render native controls correctly for the theme */
   color-scheme: light;
 
   --app-bg: var(--bg, #EAF4F1);
@@ -35,14 +34,30 @@ html[data-theme="dark"] body[data-app]{
   --app-progress-track: rgba(255,255,255,0.10);
 }
 
+/* Utilities used in APP pages */
+body[data-app] .sr-only{
+  position:absolute;
+  width:1px;
+  height:1px;
+  padding:0;
+  margin:-1px;
+  overflow:hidden;
+  clip:rect(0,0,0,0);
+  white-space:nowrap;
+  border:0;
+}
+
+body[data-app] .stack{ display:grid; gap:10px; margin-top:8px; }
+body[data-app] .mt-12{ margin-top:12px; }
+
 /* 2) Base layout */
-.app{
+body[data-app] .app{
   padding: 24px 0 60px;
   background: var(--app-bg);
   min-height: calc(100vh - 80px);
 }
 
-.app__top{
+body[data-app] .app__top{
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -50,27 +65,27 @@ html[data-theme="dark"] body[data-app]{
   margin: 20px 0;
 }
 
-.app__title h1{
+body[data-app] .app__title h1{
   margin: 0;
   font-size: 34px;
   line-height: 1.05;
   color: var(--green, #2D6A5C);
 }
 
-.app__title p{
+body[data-app] .app__title p{
   margin: 10px 0 0;
   color: var(--app-muted);
   max-width: 520px;
 }
 
-.app__meta{
-  display: none; /* mobile: hide */
+body[data-app] .app__meta{
+  display: none;
   color: var(--app-muted);
   font-size: 12px;
   white-space: nowrap;
 }
 
-.app__meta--saved{
+body[data-app] .app__meta--saved{
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -80,23 +95,21 @@ html[data-theme="dark"] body[data-app]{
   background: var(--app-chip-bg);
 }
 
-.app__meta--saved::before{
+body[data-app] .app__meta--saved::before{
   content: "✓";
   font-weight: 700;
   opacity: 0.85;
 }
 
-.app__grid{
+body[data-app] .app__grid{
   display: grid;
-  grid-template-columns: 1fr; /* mobile */
+  grid-template-columns: 1fr;
   gap: 12px;
 }
-
-/* prevent overflow in grids */
-.app__grid > *{ min-width: 0; }
+body[data-app] .app__grid > *{ min-width: 0; }
 
 /* Components */
-.card{
+body[data-app] .card{
   background: var(--app-surface);
   border: 1px solid var(--app-border);
   border-radius: 16px;
@@ -105,26 +118,26 @@ html[data-theme="dark"] body[data-app]{
   box-shadow: 0 10px 26px var(--app-shadow);
 }
 
-.card h2{
+body[data-app] .card h2{
   margin: 0 0 12px;
   font-size: 18px;
   color: var(--app-text);
 }
 
-.row{
+body[data-app] .row{
   display: grid;
-  grid-template-columns: 1fr; /* mobile */
+  grid-template-columns: 1fr;
   gap: 12px;
 }
-.row > *{ min-width: 0; }
+body[data-app] .row > *{ min-width: 0; }
 
-.mood{
+body[data-app] .mood{
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
 }
 
-.mood button{
+body[data-app] .mood button{
   border: 1px solid var(--app-border);
   background: var(--app-surface);
   border-radius: 12px;
@@ -134,13 +147,13 @@ html[data-theme="dark"] body[data-app]{
   color: var(--app-text);
 }
 
-.mood button[data-active="true"]{
+body[data-app] .mood button[data-active="true"]{
   border-color: rgba(45,106,92,0.55);
   box-shadow: 0 6px 18px rgba(45,106,92,0.12);
 }
 
-.select,
-.text{
+body[data-app] .select,
+body[data-app] .text{
   width: 100%;
   max-width: 100%;
   padding: 12px 12px;
@@ -151,18 +164,18 @@ html[data-theme="dark"] body[data-app]{
   color: var(--app-text);
 }
 
-.mini{
+body[data-app] .mini{
   font-size: 13px;
   color: var(--app-muted);
 }
 
-.list{
+body[data-app] .list{
   display: grid;
   gap: 10px;
   margin-top: 8px;
 }
 
-.item{
+body[data-app] .item{
   display: flex;
   align-items: center;
   gap: 10px;
@@ -172,16 +185,16 @@ html[data-theme="dark"] body[data-app]{
   background: transparent;
 }
 
-.item input[type="checkbox"]{
+body[data-app] .item input[type="checkbox"]{
   width: 18px;
   height: 18px;
   accent-color: var(--green-main);
 }
 
-.item input[type="text"],
-.item input[type="password"],
-.item input[type="email"],
-.item textarea{
+body[data-app] .item input[type="text"],
+body[data-app] .item input[type="password"],
+body[data-app] .item input[type="email"],
+body[data-app] .item textarea{
   flex: 1;
   border: 0;
   outline: none;
@@ -197,32 +210,32 @@ body[data-app] textarea::placeholder{
   opacity: 0.85;
 }
 
-.actions{
+body[data-app] .actions{
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
   margin-top: 12px;
 }
 
-.btn--ghost{
+body[data-app] .btn--ghost{
   background: transparent;
   border: 1px solid var(--app-border);
   color: var(--app-text);
 }
 
-button.card[disabled]{
+body[data-app] button.card[disabled]{
   opacity: 0.55;
   cursor: not-allowed;
 }
 
-/* 4) Week / day blocks */
-.week{
+/* Week / day blocks */
+body[data-app] .week{
   display: grid;
-  grid-template-columns: 1fr; /* mobile */
+  grid-template-columns: 1fr;
   gap: 10px;
 }
 
-.day{
+body[data-app] .day{
   background: var(--app-surface);
   border: 1px solid var(--app-border);
   border-radius: 16px;
@@ -231,7 +244,7 @@ button.card[disabled]{
   color: var(--app-text);
 }
 
-.day__head{
+body[data-app] .day__head{
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -239,18 +252,18 @@ button.card[disabled]{
   margin-bottom: 10px;
 }
 
-.day__name{
+body[data-app] .day__name{
   font-weight: 800;
   color: var(--app-text);
 }
 
-.day__date{
+body[data-app] .day__date{
   font-size: 12px;
   color: var(--app-muted);
 }
 
 /* pills */
-.pill{
+body[data-app] .pill{
   font-size: 12px;
   border-radius: 999px;
   padding: 6px 10px;
@@ -260,43 +273,39 @@ button.card[disabled]{
   color: var(--app-text);
 }
 
-.pill--today{
-  border-color: rgba(45,106,92,0.45);
-}
+body[data-app] .pill--today{ border-color: rgba(45,106,92,0.45); }
+body[data-app] .pill--badge{ font-weight: 800; }
 
-.pill--badge{ font-weight: 800; }
-
-.badge--elite  { border-color: rgba(45,106,92,0.55); background: rgba(45,106,92,0.08); }
-.badge--growth { border-color: rgba(45,106,92,0.35); background: rgba(45,106,92,0.05); }
-.badge--stable { border-color: rgba(0,0,0,0.14); background: rgba(0,0,0,0.03); }
-.badge--reset  { border-color: rgba(0,0,0,0.10); background: transparent; opacity: 0.9; }
-.badge--muted  { border-color: rgba(0,0,0,0.10); opacity: 0.6; }
+body[data-app] .badge--elite  { border-color: rgba(45,106,92,0.55); background: rgba(45,106,92,0.08); }
+body[data-app] .badge--growth { border-color: rgba(45,106,92,0.35); background: rgba(45,106,92,0.05); }
+body[data-app] .badge--stable { border-color: rgba(0,0,0,0.14); background: rgba(0,0,0,0.03); }
+body[data-app] .badge--reset  { border-color: rgba(0,0,0,0.10); background: transparent; opacity: 0.9; }
+body[data-app] .badge--muted  { border-color: rgba(0,0,0,0.10); opacity: 0.6; }
 
 /* inline helpers */
-.inline{
+body[data-app] .inline{
   display: flex;
   gap: 10px;
   align-items: center;
 }
-.inline > *{ min-width: 0; }
+body[data-app] .inline > *{ min-width: 0; }
+body[data-app] .inline--between{ justify-content: space-between; }
 
-.inline--between{ justify-content: space-between; }
+body[data-app] .text--sm{ padding: 10px 12px; }
 
-.text--sm{ padding: 10px 12px; }
-
-.btn--sm{
+body[data-app] .btn--sm{
   padding: 10px 12px;
   border-radius: 12px;
 }
 
-.select--sm{
+body[data-app] .select--sm{
   padding: 10px 12px;
   border-radius: 12px;
   width: 90px;
 }
 
 /* progress */
-.progress{
+body[data-app] .progress{
   width: 100%;
   height: 10px;
   border-radius: 999px;
@@ -304,7 +313,7 @@ button.card[disabled]{
   overflow: hidden;
 }
 
-.progress > span{
+body[data-app] .progress > span{
   display: block;
   height: 100%;
   width: 0%;
@@ -313,8 +322,8 @@ button.card[disabled]{
   transition: width 180ms ease;
 }
 
-/* 5) Week plan (Pro/Premium) */
-.weekplan__head{
+/* Week plan (Pro/Premium) */
+body[data-app] .weekplan__head{
   display:flex;
   align-items:flex-start;
   justify-content:space-between;
@@ -322,47 +331,45 @@ button.card[disabled]{
   flex-wrap:wrap;
 }
 
-.weekplan__range{ color: var(--app-muted); margin-top: 4px; }
+body[data-app] .weekplan__range{ color: var(--app-muted); margin-top: 4px; }
 
-.weekplan__actions{
+body[data-app] .weekplan__actions{
   display:flex;
   gap:8px;
   flex-wrap:wrap;
   align-items:center;
 }
 
-.weekplan__hint,
-.weekplan__locked,
-.weekplan__tools,
-.weekplan__fields,
-.weekplan__goals,
-.weekplan__goal-actions,
-.weekplan__footer{ margin-top: 10px; }
+body[data-app] .weekplan__hint,
+body[data-app] .weekplan__locked,
+body[data-app] .weekplan__tools,
+body[data-app] .weekplan__fields,
+body[data-app] .weekplan__goals,
+body[data-app] .weekplan__goal-actions,
+body[data-app] .weekplan__footer{ margin-top: 10px; }
 
-.weekplan__tools{
+body[data-app] .weekplan__tools{
   display:flex;
   gap:10px;
   align-items:center;
   flex-wrap:wrap;
 }
 
-.weekplan__fields{
+body[data-app] .weekplan__fields{
   display:grid;
   gap:10px;
 }
 
-.weekplan__fields .item input,
-.weekplan__fields .item textarea{
-  width:100%;
-}
+body[data-app] .weekplan__fields .item input,
+body[data-app] .weekplan__fields .item textarea{ width:100%; }
 
-.weekplan__note{
+body[data-app] .weekplan__note{
   width:100%;
   min-height:140px;
   resize:vertical;
 }
 
-.weekplan__footer{
+body[data-app] .weekplan__footer{
   display:flex;
   gap:12px;
   align-items:center;
@@ -370,18 +377,18 @@ button.card[disabled]{
   flex-wrap:wrap;
 }
 
-.weekplan__copy{
+body[data-app] .weekplan__copy{
   display:flex;
   gap:10px;
   align-items:center;
 }
 
-.weekplan__toast,
-[data-quick-toast]{ color: var(--app-muted); }
+body[data-app] .weekplan__toast,
+body[data-app] [data-quick-toast]{ color: var(--app-muted); }
 
-.weekplan--locked{ opacity:0.7; }
+body[data-app] .weekplan--locked{ opacity:0.7; }
 
-.weekmini{
+body[data-app] .weekmini{
   margin-top:10px;
   padding:12px;
   border-radius:16px;
@@ -389,10 +396,9 @@ button.card[disabled]{
   background: var(--app-field);
   color: var(--app-text);
 }
+body[data-app] .weekmini ul{ margin:6px 0 0; }
 
-.weekmini ul{ margin:6px 0 0; }
-
-.weekplan__select{
+body[data-app] .weekplan__select{
   padding:10px 12px;
   border-radius:12px;
   border:1px solid var(--app-border);
@@ -400,33 +406,28 @@ button.card[disabled]{
   color: var(--app-text);
 }
 
-/* dynamic goals */
-.weekplan__goals{
-  display:grid;
-  gap:10px;
-}
+body[data-app] .weekplan__goals{ display:grid; gap:10px; }
 
-.weekplan__goal-row{
+body[data-app] .weekplan__goal-row{
   display:flex;
   gap:10px;
   align-items:center;
   flex-wrap: wrap;
 }
 
-.weekplan__goal-row input{
+body[data-app] .weekplan__goal-row input{
   flex:1;
   width:100%;
 }
 
 /* Today page (polish) */
-[data-page="today"] .app .container{
+body[data-app][data-page="today"] .app .container{
   max-width: 980px;
   margin: 0 auto;
   padding: 28px 16px;
 }
 
-/* tasks/habits rows (keep consistent) */
-[data-page="today"] .item{
+body[data-app][data-page="today"] .item{
   margin: 10px 0;
   border-color: rgba(0,0,0,0.07);
 }
@@ -434,13 +435,12 @@ html[data-theme="dark"] body[data-app][data-page="today"] .item{
   border-color: var(--app-border);
 }
 
-[data-page="today"] [data-tasks-bar]{
+body[data-app][data-page="today"] [data-tasks-bar]{
   height: 8px;
   border-radius: 999px;
 }
 
-/* quick add row — mobile default = column */
-[data-page="today"] .quickAddRow{
+body[data-app][data-page="today"] .quickAddRow{
   display:flex;
   flex-direction: column;
   gap:10px;
@@ -448,50 +448,50 @@ html[data-theme="dark"] body[data-app][data-page="today"] .item{
   margin-top: 12px;
 }
 
-[data-page="today"] .actionsRow{
+body[data-app][data-page="today"] .actionsRow{
   display:flex;
   flex-wrap: wrap;
   gap:10px;
   margin-top:12px;
 }
 
-/* Choose plan*/
-.chooseplan__grid{ grid-template-columns: 1fr; }
+/* Choose plan */
+body[data-app] .chooseplan__grid{ grid-template-columns: 1fr; }
 
-.chooseplan__heading{ margin-bottom: 10px; }
-.chooseplan__subtitle{ margin-bottom: 14px; }
+body[data-app] .chooseplan__heading{ margin-bottom: 10px; }
+body[data-app] .chooseplan__subtitle{ margin-bottom: 14px; }
 
-.chooseplan__plans{
+body[data-app] .chooseplan__plans{
+  display: grid;
   grid-template-columns: 1fr;
   gap: 12px;
 }
 
-.chooseplan__plan{
+body[data-app] .chooseplan__plan{
   text-align: left;
   cursor: pointer;
 }
 
-.chooseplan__planTop{
+body[data-app] .chooseplan__planTop{
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 10px;
 }
 
-.chooseplan__planTitle{ margin-bottom: 6px; }
+body[data-app] .chooseplan__planTitle{ margin-bottom: 6px; }
+body[data-app] .chooseplan__price{ text-align: right; }
 
-.chooseplan__price{ text-align: right; }
-
-.chooseplan__priceValue{
+body[data-app] .chooseplan__priceValue{
   font-weight: 700;
   font-size: 16px;
   line-height: 1.1;
 }
 
-.chooseplan__priceUnit{ opacity: 0.85; }
-.chooseplan__bullet{ margin-top: 10px; }
+body[data-app] .chooseplan__priceUnit{ opacity: 0.85; }
+body[data-app] .chooseplan__bullet{ margin-top: 10px; }
 
-.chooseplan__topright{
+body[data-app] .chooseplan__topright{
   display:flex;
   align-items:center;
   justify-content:flex-start;
@@ -500,14 +500,13 @@ html[data-theme="dark"] body[data-app][data-page="today"] .item{
   width: 100%;
 }
 
-/* don’t force dark text (works in dark mode too) */
 body[data-app] .card.chooseplan__plan{
   color: var(--app-text);
   -webkit-text-fill-color: currentColor;
 }
 
-/* 8) My plan */
-.myplan__grid{
+/* My plan */
+body[data-app] .myplan__grid{
   max-width: 980px;
   margin: 0 auto;
   display: grid;
@@ -515,9 +514,9 @@ body[data-app] .card.chooseplan__plan{
   gap: 12px;
 }
 
-.myplan__card{ padding: 22px; }
+body[data-app] .myplan__card{ padding: 22px; }
 
-.myplan__badge{
+body[data-app] .myplan__badge{
   display: inline-flex;
   padding: 6px 10px;
   border-radius: 999px;
@@ -527,20 +526,20 @@ body[data-app] .card.chooseplan__plan{
   margin-bottom: 12px;
 }
 
-.myplan__name{ margin: 0 0 8px; }
+body[data-app] .myplan__name{ margin: 0 0 8px; }
 
-.myplan__price{
+body[data-app] .myplan__price{
   font-size: 32px;
   font-weight: 800;
   margin: 4px 0 12px;
 }
 
-.myplan__desc{
+body[data-app] .myplan__desc{
   margin: 0 0 14px;
   color: var(--app-muted);
 }
 
-.myplan__features{
+body[data-app] .myplan__features{
   margin: 0;
   padding-left: 18px;
   display: grid;
@@ -548,59 +547,58 @@ body[data-app] .card.chooseplan__plan{
   color: var(--app-muted);
 }
 
-/* prevent long text (email) from breaking layout */
-[data-page="my-plan"] .card,
-[data-page="my-plan"] .card *{
+body[data-app][data-page="my-plan"] .card,
+body[data-app][data-page="my-plan"] .card *{
   min-width: 0;
   overflow-wrap: anywhere;
   word-break: break-word;
 }
 
-/* optional blur email */
-body[data-hide-email="1"][data-page="my-plan"] .account__email,
-body[data-hide-email="1"][data-page="my-plan"] [data-user-email]{
+body[data-app][data-hide-email="1"][data-page="my-plan"] .account__email,
+body[data-app][data-hide-email="1"][data-page="my-plan"] [data-user-email]{
   filter: blur(6px);
   user-select: none;
 }
-body[data-hide-email="1"][data-page="my-plan"] .account__email:hover,
-body[data-hide-email="1"][data-page="my-plan"] [data-user-email]:hover{
+body[data-app][data-hide-email="1"][data-page="my-plan"] .account__email:hover,
+body[data-app][data-hide-email="1"][data-page="my-plan"] [data-user-email]:hover{
   filter: none;
 }
 
 /* Account page */
-.account__grid{ align-items: start; }
+body[data-app] .account__grid{ align-items: start; }
 
-.account__field{ margin-top: 12px; }
-.account__label{
+body[data-app] .account__field{ margin-top: 12px; }
+
+body[data-app] .account__label{
   display:block;
   font-size: 13px;
   color: var(--app-muted);
   margin-bottom: 6px;
 }
 
-.account__row{
+body[data-app] .account__row{
   display:flex;
   align-items:center;
   justify-content:space-between;
   gap:12px;
 }
 
-.account__plan{ margin-top: 6px; }
-.account__planLabel{ font-size: 13px; color: var(--app-muted); }
+body[data-app] .account__plan{ margin-top: 6px; }
+body[data-app] .account__planLabel{ font-size: 13px; color: var(--app-muted); }
 
-.account__planValue{
+body[data-app] .account__planValue{
   font-size: 28px;
   font-weight: 800;
   margin: 6px 0;
   color: var(--green, #2D6A5C);
 }
 
-.account__row--compact{ align-items:center; }
+body[data-app] .account__row--compact{ align-items:center; }
 
-.account__inputWrap{ position: relative; }
-.account__inputWrap .text{ padding-right: 90px; }
+body[data-app] .account__inputWrap{ position: relative; }
+body[data-app] .account__inputWrap .text{ padding-right: 90px; }
 
-.account__copyBtn{
+body[data-app] .account__copyBtn{
   position: absolute;
   right: 10px;
   top: 50%;
@@ -608,53 +606,38 @@ body[data-hide-email="1"][data-page="my-plan"] [data-user-email]:hover{
   height: 36px;
 }
 
-[data-copy-toast]{ margin-top: 8px; color: var(--app-muted); }
+body[data-app] [data-copy-toast]{ margin-top: 8px; color: var(--app-muted); }
 
-/* header chip */
-.header__actions--app{
+body[data-app] .header__actions--app{
   display:flex;
   align-items:center;
   gap:12px;
 }
 
-.account-chip{
-  display:flex;
-  flex-direction:column;
-  line-height:1.1;
-  font-size: 14px;
-}
-.account-chip__email{ font-weight: 500; }
-.account-chip__plan{ font-weight: 800; opacity:.9; }
-
-/* consistent gaps in account columns */
-[data-page="account"] .app__grid{ gap: 12px; }
-[data-page="account"] .account__left,
-[data-page="account"] .account__right{
+body[data-app][data-page="account"] .app__grid{ gap: 12px; }
+body[data-app][data-page="account"] .account__left,
+body[data-app][data-page="account"] .account__right{
   display: grid;
   gap: 12px;
 }
-[data-page="account"] .account__left .card,
-[data-page="account"] .account__right .card{
-  margin: 0;
-}
+body[data-app][data-page="account"] .account__left .card,
+body[data-app][data-page="account"] .account__right .card{ margin: 0; }
 
-/* Theme toggle in app header (override global) */
+/* Theme toggle in app header */
 body[data-app] .theme-toggle{
   background: var(--app-surface);
   color: var(--app-text);
   border-color: var(--app-border);
 }
 
-/* 10) Buttons / interactions (APP) */
+/* Buttons / interactions (APP) */
 body[data-app] .btn--secondary{
   background: var(--green-main) !important;
   color: #fff !important;
   border-color: transparent !important;
 }
 
-body[data-app] .btn--secondary:hover{
-  background: var(--green-dark) !important;
-}
+body[data-app] .btn--secondary:hover{ background: var(--green-dark) !important; }
 
 body[data-app] .btn--secondary:active{
   background: #fff !important;
@@ -662,7 +645,6 @@ body[data-app] .btn--secondary:active{
   border: 1px solid var(--green-main) !important;
 }
 
-/* Account page: "My plan" (ghost) → green outline */
 body[data-app][data-page="account"] .account__right .actions .btn--ghost{
   border-color: var(--green-main) !important;
   color: var(--green-main) !important;
@@ -684,36 +666,33 @@ html[data-theme="dark"] body[data-app] select optgroup{
 }
 
 @media (min-width: 520px){
-  .card{ padding: 18px; }
+  body[data-app] .card{ padding: 18px; }
 
-  /* Today quickAddRow -> row on larger screens */
-  [data-page="today"] .quickAddRow{
+  body[data-app][data-page="today"] .quickAddRow{
     flex-direction: row;
     align-items: center;
   }
-  [data-page="today"] .quickAddRow select{ width: 160px; }
-  [data-page="today"] .quickAddRow button{ width: 120px; }
+  body[data-app][data-page="today"] .quickAddRow select{ width: 160px; }
+  body[data-app][data-page="today"] .quickAddRow button{ width: 120px; }
 
-  .week{ grid-template-columns: repeat(2, 1fr); }
+  body[data-app] .week{ grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (min-width: 640px){
-  .row{ grid-template-columns: 1fr 1fr; }
+  body[data-app] .row{ grid-template-columns: 1fr 1fr; }
 
-  .app__meta{
+  body[data-app] .app__meta{
     display: block;
     text-align: left;
   }
 
-  .myplan__price{ font-size: 40px; }
+  body[data-app] .myplan__price{ font-size: 40px; }
 }
 
 @media (min-width: 768px){
-  .app{
-    padding: 40px 0 80px;
-  }
+  body[data-app] .app{ padding: 40px 0 80px; }
 
-  .app__top{
+  body[data-app] .app__top{
     flex-direction: row;
     align-items: flex-end;
     justify-content: space-between;
@@ -721,35 +700,26 @@ html[data-theme="dark"] body[data-app] select optgroup{
     margin: 24px 0;
   }
 
-  .app__title h1{
-    font-size: 44px;
-  }
-
-  .header__actions--app{
-    align-items: center;
-  }
+  body[data-app] .app__title h1{ font-size: 44px; }
+  body[data-app] .header__actions--app{ align-items: center; }
 }
 
 @media (min-width: 900px){
-  .chooseplan__plans{
+  body[data-app] .chooseplan__plans{
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
-  .chooseplan__priceValue{ font-size: 18px; }
+  body[data-app] .chooseplan__priceValue{ font-size: 18px; }
 }
 
 @media (min-width: 980px){
-  .app__grid{
+  body[data-app] .app__grid{
     grid-template-columns: 1.25fr 0.75fr;
     gap: 18px;
   }
 
-  .app__meta{
-    text-align: right;
-  }
+  body[data-app] .app__meta{ text-align: right; }
 }
 
 @media (min-width: 1100px){
-  .week{
-    grid-template-columns: repeat(7, 1fr);
-  }
+  body[data-app] .week{ grid-template-columns: repeat(7, 1fr); }
 }

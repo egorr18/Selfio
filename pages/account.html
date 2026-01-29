@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="robots" content="noindex, follow" />
+  <meta name="robots" content="noindex, nofollow" />
 
   <title>Account — Selfio</title>
   <meta name="description" content="Manage your Selfio account, preferences, and plan." />
@@ -11,74 +11,67 @@
   <link rel="icon" href="../images/favicon.ico" />
   <link rel="canonical" href="https://egorr18.github.io/Selfio/pages/account.html" />
 
-  <!-- Performance: warm up connections -->
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
   <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
 
   <link rel="preconnect" href="https://duvgdgzbjrkkcxddfpvm.supabase.co" crossorigin />
   <link rel="dns-prefetch" href="https://duvgdgzbjrkkcxddfpvm.supabase.co" />
 
-  <!-- Bootstrap (theme/early init) -->
   <script src="../js/core/bootstrap.js" defer></script>
 
-  <!-- Styles -->
   <link rel="stylesheet" href="../css/variables.css" />
   <link rel="stylesheet" href="../css/global.css" />
   <link rel="stylesheet" href="../css/app.css" />
 
-  <!-- Supabase SDK -->
   <script
     src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"
     defer
     crossorigin
   ></script>
 
-  <!-- Core app scripts -->
   <script src="../js/core/config.js" defer></script>
   <script src="../js/cloud/supabase.js" defer></script>
   <script src="../js/core/auth.js" defer></script>
   <script src="../js/core/store.js" defer></script>
 
-  <!-- UI / app -->
   <script src="../js/nav.js" defer></script>
   <script src="../js/theme.js" defer></script>
 
-  <!-- Business logic -->
   <script src="../js/api.js" defer></script>
   <script src="../js/app.js" defer></script>
   <script src="../js/account.js" defer></script>
 </head>
 
 <body data-app data-page="account">
-<header class="header">
-  <div class="container header__inner">
-    <button class="nav-toggle" type="button"
-            aria-label="Open menu"
-            aria-expanded="false"
-            aria-controls="site-menu"
-            data-nav-toggle>
-      <span></span><span></span><span></span>
-    </button>
+  <header class="header">
+    <div class="container header__inner">
+      <button class="nav-toggle" type="button"
+              aria-label="Open menu"
+              aria-expanded="false"
+              aria-controls="site-menu"
+              data-nav-toggle>
+        <span></span><span></span><span></span>
+      </button>
 
-    <div class="header__drawer" id="site-menu" data-nav-drawer>
-      <nav class="nav nav--collapsible" aria-label="Primary">
-        <a href="app.html">Today</a>
-        <a href="weekly.html">Weekly</a>
-        <a href="habits.html">Habits</a>
-        <a href="account.html" class="is-active" aria-current="page">Account</a>
-      </nav>
+      <div class="header__drawer" id="site-menu" data-nav-drawer>
+        <nav class="nav nav--collapsible" aria-label="Primary">
+          <a href="app.html">Today</a>
+          <a href="weekly.html">Weekly</a>
+          <a href="habits.html">Habits</a>
+          <a href="account.html" class="is-active" aria-current="page">Account</a>
+        </nav>
 
-      <div class="header__actions header__actions--app">
-        <button class="theme-toggle" type="button"
-                data-theme-toggle
-                aria-label="Toggle theme"
-                aria-pressed="false">🌙</button>
+        <div class="header__actions header__actions--app">
+          <button class="theme-toggle" type="button"
+                  data-theme-toggle
+                  aria-label="Toggle theme"
+                  aria-pressed="false">🌙</button>
 
-        <span class="link" data-app-meta>—</span>
+          <span class="link" data-app-meta>—</span>
+        </div>
       </div>
     </div>
-  </div>
-</header>
+  </header>
 
 <main class="app" role="main">
   <div class="container">
