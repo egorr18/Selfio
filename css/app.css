@@ -607,6 +607,21 @@ html[data-theme="dark"] body[data-app] select optgroup{
   color: rgba(255,255,255,0.92);
 }
 
+@media (max-width: 480px){
+  body[data-app][data-page="account"] .account__copyBtn{
+    height: 34px;
+    min-height: 34px;
+    padding: 8px 10px;
+    font-size: 13px;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  body[data-app][data-page="account"] .account__inputWrap .text{
+    padding-right: 78px; /* щоб текст не залазив під кнопку */
+  }
+}
+
 /* Responsive */
 @media (min-width: 520px){
   body[data-app] .card{ padding: 18px; }
