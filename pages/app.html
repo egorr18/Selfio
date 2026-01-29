@@ -16,17 +16,21 @@
   <link rel="preconnect" href="https://duvgdgzbjrkkcxddfpvm.supabase.co" crossorigin />
   <link rel="dns-prefetch" href="https://duvgdgzbjrkkcxddfpvm.supabase.co" />
 
-  <script src="../js/core/bootstrap.js" defer></script>
-
   <link rel="stylesheet" href="../css/variables.css" />
   <link rel="stylesheet" href="../css/global.css" />
   <link rel="stylesheet" href="../css/app.css" />
 
-  <script
-    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"
-    defer
-    crossorigin
-  ></script>
+  <script src="../js/core/bootstrap.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer crossorigin></script>
+
+  <script src="../js/core/config.js" defer></script>
+  <script src="../js/cloud/supabase.js" defer></script>
+  <script src="../js/core/store.js" defer></script>
+
+  <script src="../js/app.js" defer></script>
+  <script src="../js/nav.js" defer></script>
+  <script src="../js/theme.js" defer></script>
+  <script src="../js/api.js" defer></script>
 </head>
 
 <body data-app data-page="today">
@@ -61,6 +65,7 @@
 
 <main class="app" role="main">
   <div class="container">
+    
     <div class="app__top">
       <div class="app__title">
         <h1>Today</h1>
@@ -68,28 +73,26 @@
     </div>
 
     <div class="app__grid">
-      <!-- LEFT COLUMN -->
-      <section class="card" aria-label="Check-in">
+      <section class="card" aria-label="Daily check-in">
         <h2>Check-in (30 seconds)</h2>
 
-        <!-- Week mini -->
         <div class="weekmini" data-weekmini>
-          <div class="inline inline--between today__weekminiHead">
+          <div class="inline inline--between" style="gap:10px; flex-wrap:wrap;">
             <div>
               <div class="mini"><b>This week plan</b></div>
               <div class="mini" data-weekmini-range>—</div>
             </div>
-            <a class="pill" href="weekly.html">Open</a>
+            <a class="pill" href="weekly.html" aria-label="Open Weekly plan">Open</a>
           </div>
 
-          <div class="mini today__weekminiLocked" data-weekmini-locked style="display:none;">
+          <div class="mini" data-weekmini-locked style="display:none; margin-top:8px;">
             <b>PRO feature.</b> Plan weeks ahead + push goals to Today.
           </div>
 
-          <div class="today__weekminiBody" data-weekmini-body>
+          <div data-weekmini-body style="margin-top:8px;">
             <div class="mini" data-weekmini-goals>—</div>
 
-            <div class="inline today__weekminiActions">
+            <div class="inline" style="margin-top:10px; gap:10px; flex-wrap:wrap;">
               <button class="btn btn--primary btn--sm" type="button" data-weekmini-push>
                 Push goals to Today
               </button>
@@ -98,57 +101,53 @@
           </div>
         </div>
 
-        <!-- Mood + Focus -->
-        <div class="row today__block">
+        <div class="row" style="margin-top:14px;">
           <div>
-            <div class="mini">Mood</div>
-            <div class="mood today__mood">
-              <button type="button" data-mood="1" aria-label="Mood 1">😣</button>
-              <button type="button" data-mood="2" aria-label="Mood 2">😕</button>
-              <button type="button" data-mood="3" aria-label="Mood 3">😐</button>
-              <button type="button" data-mood="4" aria-label="Mood 4">🙂</button>
-              <button type="button" data-mood="5" aria-label="Mood 5">😁</button>
+            <div class="mini" id="mood-label">Mood</div>
+            <div class="mood" style="margin-top:8px;" role="group" aria-labelledby="mood-label">
+              <button type="button" data-mood="1" aria-label="Mood 1: very bad">😣</button>
+              <button type="button" data-mood="2" aria-label="Mood 2: bad">😕</button>
+              <button type="button" data-mood="3" aria-label="Mood 3: neutral">😐</button>
+              <button type="button" data-mood="4" aria-label="Mood 4: good">🙂</button>
+              <button type="button" data-mood="5" aria-label="Mood 5: very good">😁</button>
             </div>
           </div>
 
           <div>
             <label class="mini" for="focusSelect">Focus today</label>
-            <select id="focusSelect" class="select today__selectTop" data-focus></select>
+            <select id="focusSelect" class="select" data-focus style="margin-top:8px;"></select>
 
-            <div class="inline today__focusAdd">
-              <label class="sr-only" for="focusNew">Add your focus</label>
-              <input id="focusNew" class="text text--sm" data-focus-new
-                     placeholder="Add your focus (e.g. Exams)" />
+            <div class="inline" style="margin-top:8px;">
+              <label class="sr-only" for="focusNew">Add a new focus</label>
+              <input id="focusNew" class="text text--sm" data-focus-new placeholder="Add your focus (e.g. Exams)" />
               <button class="btn btn--ghost btn--sm" type="button" data-focus-add>Add</button>
             </div>
           </div>
         </div>
 
-        <!-- Tasks -->
-        <div class="today__block">
+        <div style="margin-top:14px;">
           <div class="inline inline--between">
-            <div class="mini">Tasks</div>
+            <div class="mini" id="tasksLabel">Tasks</div>
 
-            <div class="inline">
+            <div class="inline" aria-labelledby="tasksLabel">
               <label class="mini" for="tasksCount">Per day</label>
               <select id="tasksCount" class="select select--sm" data-tasks-count></select>
             </div>
           </div>
 
-          <div class="mini today__progressText" data-tasks-progress>Tasks: 0/0 (0%)</div>
+          <div class="mini" data-tasks-progress style="margin-top:8px;">Tasks: 0/0 (0%)</div>
 
-          <div class="progress today__progress">
+          <div class="progress" style="margin-top:8px;">
             <span data-tasks-bar></span>
           </div>
 
-          <div class="list today__list" data-tasks></div>
+          <div class="list" data-tasks style="margin-top:10px;"></div>
 
-          <!-- Quick add -->
           <div class="quickAddRow">
             <label class="sr-only" for="quickTask">Quick add task</label>
             <input id="quickTask" class="text text--sm" data-quick-task placeholder="Quick add task..." />
 
-            <label class="sr-only" for="quickWhen">When</label>
+            <label class="sr-only" for="quickWhen">When to schedule</label>
             <select id="quickWhen" class="select select--sm" data-quick-when>
               <option value="0">Today</option>
               <option value="1">Tomorrow</option>
@@ -158,16 +157,14 @@
             <button class="btn btn--primary btn--sm" type="button" data-quick-add>Add</button>
           </div>
 
-          <div class="mini" data-quick-toast style="display:none;"></div>
+          <div class="mini" data-quick-toast style="display:none; margin-top:8px;"></div>
         </div>
 
-        <!-- Note -->
-        <div class="today__block">
-          <label class="mini" for="todayNote">1 sentence (optional)</label>
-          <input id="todayNote" class="text today__selectTop" data-note placeholder="What matters today?" />
+        <div style="margin-top:14px;">
+          <label class="mini" for="noteInput">1 sentence (optional)</label>
+          <input id="noteInput" class="text" data-note placeholder="What matters today?" style="margin-top:8px;" />
         </div>
 
-        <!-- Actions -->
         <div class="actionsRow">
           <a class="btn btn--secondary" href="weekly.html">Open weekly</a>
           <button class="btn btn--ghost" type="button" data-carry-tomorrow>Move undone → tomorrow</button>
@@ -175,29 +172,19 @@
         </div>
       </section>
 
-      <!-- RIGHT COLUMN -->
-      <aside class="card" aria-label="Habits">
-        <h2>Habits (tap &amp; done)</h2>
+      <aside class="card" aria-label="Habits section">
+        <h2>Habits (tap & done)</h2>
         <div class="mini">Edit names прямо тут. Список береться з Today.</div>
 
-        <div class="list today__list" data-habits></div>
+        <div class="list" data-habits style="margin-top:10px;"></div>
 
         <div class="actionsRow">
           <a class="btn btn--primary" href="habits.html">Manage habits</a>
-          <a class="btn btn--secondary" href="account.html">Account</a>
+          <a class="btn btn--secondary" href="settings.html">Settings</a>
         </div>
       </aside>
     </div>
   </div>
 </main>
-
-<script src="../js/core/config.js" defer></script>
-<script src="../js/cloud/supabase.js" defer></script>
-<script src="../js/core/store.js" defer></script>
-
-<script src="../js/app.js" defer></script>
-<script src="../js/nav.js" defer></script>
-<script src="../js/theme.js" defer></script>
-<script src="../js/api.js" defer></script>
 </body>
 </html>

@@ -245,7 +245,7 @@ body[data-app] .day{
   border: 1px solid var(--app-border);
   border-radius: 16px;
   padding: 14px;
-  min-height: 170px;
+  min-height: 200px;
   color: var(--app-text);
 }
 
@@ -615,6 +615,22 @@ html[data-theme="dark"] body[data-app] select optgroup{
     font-size: 13px;
     line-height: 1;
     white-space: nowrap;
+
+  body[data-app][data-page="account"] .account__inputWrap{
+    display: grid;
+    gap: 8px;
+  }
+
+  body[data-app][data-page="account"] .account__inputWrap .text{
+    padding-right: 12px; /* прибираємо “місце під абсолютну кнопку” */
+  }
+
+  body[data-app][data-page="account"] .account__copyBtn{
+    position: static;
+    transform: none;
+    width: 100%;
+    height: 40px;
+  }
   }
 
   body[data-app][data-page="account"] .account__inputWrap .text{
@@ -622,7 +638,6 @@ html[data-theme="dark"] body[data-app] select optgroup{
   }
 }
 
-/* Responsive */
 @media (min-width: 520px){
   body[data-app] .card{ padding: 18px; }
 
