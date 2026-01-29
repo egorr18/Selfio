@@ -553,7 +553,7 @@ body[data-app] .account__inputWrap .text{ padding-right: 90px; }
 
 body[data-app] .account__copyBtn{
   position: absolute;
-  right: 0px;
+  right: -4px;
   top: 50%;
   transform: translateY(-50%);
   height: 40px;
