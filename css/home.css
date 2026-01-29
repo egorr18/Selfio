@@ -37,7 +37,7 @@
 }
 
 .hero__content p {
-  font-size: clamp(15px, 2.4vw, 18px);
+  font-size: clamp(16px, 2.4vw, 18px);
   color: rgba(32, 39, 36, 0.95);
   max-width: 44ch;
   margin: 0;
@@ -72,7 +72,7 @@
 }
 
 .steps__heading h2 {
-  font-size: 42px;
+  font-size: 36px;
   line-height: 1.2;
   color: var(--green-main);
 }
