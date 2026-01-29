@@ -129,7 +129,7 @@
 }
 
 .why-matters h2 {
-  font-size: 42px;
+  font-size: 36px;
   color: var(--green-main);
   line-height: 1.2;
   margin-bottom: 24px;
@@ -175,7 +175,7 @@
 }
 
 .social-proof h2 {
-  font-size: 42px;
+  font-size: 36px;
   color: var(--green-main);
   margin-bottom: 64px;
 }
@@ -506,7 +506,7 @@
   .pricing-plans,
   .start-trial,
   .page-hero h1 {
-    font-size: 28px;
+    font-size: 16px;
   }
   .page-hero p {
     font-size: 16px;
