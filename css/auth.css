@@ -50,6 +50,7 @@
   width: 100%;
   min-height: var(--ui-btn-h);
   padding: 0 18px;
+  font-weight: 500;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -157,7 +158,6 @@
 
 .auth__switch .btn {
   width: 100%;
-  font-weight: 500;
 }
 }
 
