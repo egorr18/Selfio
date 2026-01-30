@@ -609,10 +609,10 @@ html[data-theme="dark"] body[data-app] select optgroup{
 
 @media (max-width: 480px){
   body[data-app][data-page="account"] .account__copyBtn{
-    height: 34px;
-    min-height: 34px;
+    height: 52px;
+    min-height: 52px;
     padding: 8px 10px;
-    font-size: 13px;
+    font-size: 14px;
     line-height: 1;
     white-space: nowrap;
 
