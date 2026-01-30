@@ -258,6 +258,21 @@ section.animate.visible > .container {
   box-shadow: 0 8px 20px var(--shadow);
 }
 
+/* LANGUAGE SWITCHER */
+.lang-switch{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  font-weight:600;
+  font-size:14px;
+}
+
+.lang-link[aria-current="true"]{
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+
 @media (max-width: 480px) {
   section h1,
   article h1,

@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Рішення — Selfio</title>
+  <meta name="description" content="Дізнайтеся, як Selfio допомагає керувати стресом, тривогою та емоційним перевантаженням." />
+
+  <link rel="canonical" href="https://egorr18.github.io/Selfio/uk/pages/solutions.html" />
+  <link rel="alternate" hreflang="en" href="https://egorr18.github.io/Selfio/en/pages/solutions.html" />
+  <link rel="alternate" hreflang="uk" href="https://egorr18.github.io/Selfio/uk/pages/solutions.html" />
+  <link rel="alternate" hreflang="x-default" href="https://egorr18.github.io/Selfio/" />
+
+  <link rel="icon" href="../../images/favicon.ico" />
+
+  <link rel="stylesheet" href="../../css/variables.css" />
+  <link rel="stylesheet" href="../../css/global.css" />
+  <link rel="stylesheet" href="../../css/pages.css" />
+
+  <script src="../../js/core/bootstrap.js" defer></script>
+</head>
+
+<body>
+
+<header class="header">
+  <div class="container header__inner">
+    <a href="index.html" class="logo">Selfio</a>
+
+    <button class="nav-toggle" type="button"
+            aria-label="Open menu"
+            aria-expanded="false"
+            aria-controls="site-menu"
+            data-nav-toggle>
+      <span></span><span></span><span></span>
+    </button>
+
+    <div class="header__drawer" id="site-menu" data-nav-drawer>
+      <nav class="nav nav--collapsible" aria-label="Primary">
+        <a href="why-selfio.html">Чому Selfio</a>
+        <a href="solutions.html" class="is-active" aria-current="page">Рішення</a>
+        <a href="community.html">Команда</a>
+        <a href="pricing.html">Прайс</a>
+      </nav>
+
+      <div class="header__actions">
+        <button class="theme-toggle" type="button"
+                data-theme-toggle
+                aria-label="Toggle theme"
+                aria-pressed="false">🌙</button>
+
+        <div class="lang-switch">
+          <a class="lang-link" href="../../en/pages/solutions.html" data-lang="en" aria-label="Switch to English">EN</a>
+          <span aria-hidden="true">/</span>
+          <a class="lang-link" href="solutions.html" data-lang="uk" aria-label="Перемкнути на українську">UA</a>
+        </div>
+
+        <a class="btn" href="signin.html#login">Увійти</a>
+        <a class="btn" href="signin.html#register">Створити обліковий запис</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="page-hero">
+  <div class="container page-hero__content">
+    <h1>
+      Інструменти для вашої<br />
+      емоційної ясності
+    </h1>
+
+    <p>
+      Selfio допомагає керувати стресом, тривогою
+      та емоційним перевантаженням через керовану рефлексію.
+    </p>
+  </div>
+</section>
+
+<section class="solutions-list animate">
+  <div class="container">
+    <h2 class="section-title">
+      Рішення для щоденних<br />
+      емоційних викликів
+    </h2>
+
+    <div class="solutions-grid">
+      <article class="solution-card">
+        <h3>Стрес</h3>
+        <p>
+          Зрозумійте, що саме запускає ваш стрес,
+          і навчіться керувати ним усвідомлено.
+        </p>
+      </article>
+
+      <article class="solution-card">
+        <h3>Тривога</h3>
+        <p>
+          Розкладіть тривожні думки по поличках
+          і зменшуйте внутрішній тиск крок за кроком.
+        </p>
+      </article>
+
+      <article class="solution-card">
+        <h3>Нав’язливі думки</h3>
+        <p>
+          Упорядкуйте думки та зупиніть
+          нескінченне прокручування одних і тих самих переживань.
+        </p>
+      </article>
+
+      <article class="solution-card">
+        <h3>Емоційна ясність</h3>
+        <p>
+          Зрозумійте, що ви насправді відчуваєте,
+          замість здогадок або придушення емоцій.
+        </p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container footer__grid">
+    <a href="index.html" class="footer__brand logo">Selfio</a>
+    <nav class="footer__nav" aria-label="Footer">
+      <a href="why-selfio.html">Чому Selfio</a>
+      <a href="solutions.html">Рішення</a>
+      <a href="community.html">Команда</a>
+      <a href="pricing.html">Прайс</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+  document.querySelectorAll(".lang-link").forEach(a => {
+    a.addEventListener("click", () => localStorage.setItem("selfio_lang", a.dataset.lang));
+  });
+</script>
+
+<script src="../../js/nav.js" defer></script>
+<script src="../../js/main.js" defer></script>
+<script src="../../js/theme.js" defer></script>
+</body>
+</html>

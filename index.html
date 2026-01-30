@@ -1,217 +1,46 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <title>Selfio — Be aware. Manage well.</title>
-  <meta name="description" content="Selfio is a personalized journaling experience that helps you understand and manage stress." />
-  <meta name="theme-color" content="#0f1513" />
-
-  <link rel="icon" href="images/favicon.ico" />
+  <title>Selfio</title>
+  <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://egorr18.github.io/Selfio/" />
 
-  <meta property="og:title" content="Selfio — Be aware. Manage well." />
-  <meta property="og:description" content="A personalized journaling experience to understand and manage stress." />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://egorr18.github.io/Selfio/" />
-  <meta property="og:image" content="https://egorr18.github.io/Selfio/images/og.jpg" />
-
-  <script src="js/core/bootstrap.js"></script>
+  <script>
+    (function () {
+      const saved = localStorage.getItem("selfio_lang"); // "en" | "uk"
+      if (saved === "en") location.replace("en/pages/index.html");
+      if (saved === "uk") location.replace("uk/pages/index.html");
+    })();
+  </script>
 
   <link rel="stylesheet" href="css/variables.css" />
   <link rel="stylesheet" href="css/global.css" />
-  <link rel="stylesheet" href="css/home.css" />
+  <style>
+    .langPick{min-height:100vh;display:grid;place-items:center;padding:24px}
+    .langCard{max-width:520px;width:100%;border:1px solid rgba(0,0,0,.12);border-radius:16px;padding:18px}
+    .langBtns{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px}
+    .langBtns a{flex:1}
+  </style>
 </head>
-
 <body>
-<header class="header">
-  <div class="container header__inner">
-    <a href="./" class="logo">Selfio</a>
+  <main class="langPick">
+    <div class="langCard">
+      <h1 style="margin:0 0 8px;">Choose language</h1>
+      <p class="mini" style="margin:0;">Select your language. You can change it later.</p>
 
-    <button class="nav-toggle" type="button"
-            aria-label="Open menu"
-            aria-expanded="false"
-            aria-controls="site-menu"
-            data-nav-toggle>
-      <span></span><span></span><span></span>
-    </button>
-
-    <div class="header__drawer" id="site-menu" data-nav-drawer>
-      <nav class="nav nav--collapsible" aria-label="Primary">
-        <a href="pages/why-selfio.html">Why Selfio</a>
-        <a href="pages/solutions.html">Solutions</a>
-        <a href="pages/community.html">Community</a>
-        <a href="pages/pricing.html">Pricing</a>
-      </nav>
-
-      <div class="header__actions">
-        <button class="theme-toggle" type="button"
-                data-theme-toggle
-                aria-label="Toggle theme"
-                aria-pressed="false">🌙</button>
-
-        <a class="btn" href="pages/signin.html#login">Sign in</a>
-        <a class="btn" href="pages/signin.html#register">Create account</a>
+      <div class="langBtns">
+        <a class="btn btn--primary" href="en/pages/index.html" data-lang="en">English</a>
+        <a class="btn btn--secondary" href="uk/pages/index.html" data-lang="uk">Українська</a>
       </div>
     </div>
-  </div>
-</header>
+  </main>
 
-<main id="content">
-  <section class="hero" aria-label="Intro">
-    <picture class="hero__media">
-      <source type="image/avif" srcset="images/hero.avif" />
-      <source type="image/webp" srcset="images/hero.webp" />
-
-      <img
-        src="images/hero.jpg"
-        width="2800"
-        height="1744"
-        alt=""
-        fetchpriority="high"
-        decoding="async"
-        loading="eager"
-      />
-    </picture>
-
-    <div class="container hero__inner">
-      <div class="hero__content">
-        <h1>Be aware,<br />Manage well.</h1>
-        <p>
-          Everyone experiences stress in different ways.
-          Let Selfio guide you in a personalized journal experience.
-        </p>
-      </div>
-    </div>
-  </section>
-
-  <section class="steps animate">
-    <div class="container">
-      <div class="steps__top">
-        <div class="steps__heading">
-          <h2>Understand & Release<br />the stress in 3 steps</h2>
-        </div>
-
-        <p class="steps__text">
-          Selfio offers as many journals it takes, tackling different areas such as
-          anxiety, overwhelmedness, sadness, or anger, and a variety of personal
-          causes, to help you become aware of your emotions, and guide you in how
-          to manage stress.
-        </p>
-      </div>
-
-      <div class="steps__grid">
-        <article class="step">
-          <span class="step__number">01</span>
-          <h3>Personalize</h3>
-          <p>Answer a quick survey about how you express yourself, what causes you stress, and what area would you like to work on. This way, we can fully personalize your journal!</p>
-          <div class="step__image">
-            <img
-              src="images/step-1.jpg"
-              width="900"
-              height="560"
-              alt="Personalize your journal"
-              loading="lazy"
-              decoding="async"
-            />
-          </div>
-        </article>
-
-        <article class="step">
-          <span class="step__number">02</span>
-          <h3>Write & Understand</h3>
-          <p>Write, reflect, and spot patterns. Selfio gives you gentle prompts and helps you understand what triggers your stress.</p>
-          <div class="step__image">
-            <img
-              src="images/step-2.png"
-              width="900"
-              height="560"
-              alt="Write and understand emotions"
-              loading="lazy"
-              decoding="async"
-            />
-          </div>
-        </article>
-
-        <article class="step">
-          <span class="step__number">03</span>
-          <h3>Manage stress</h3>
-          <p>Turn awareness into action: choose your focus, set your top tasks, and keep habits on track. Start with Selfio today.</p>
-          <div class="step__image">
-            <img
-              src="images/step-3.jpg"
-              width="900"
-              height="560"
-              alt="Manage stress"
-              loading="lazy"
-              decoding="async"
-            />
-          </div>
-        </article>
-      </div>
-    </div>
-  </section>
-
-  <section class="story animate">
-    <div class="container story__grid">
-      <div class="story__content">
-        <h2>Start your first check-in today</h2>
-        <p>Sign in, choose a plan, and open Today to set your focus, tasks, and habits in under a minute.</p>
-      </div>
-
-      <div class="story__video">
-        <img
-          src="images/story.jpg"
-          width="2086"
-          height="1391"
-          alt="Selfio preview"
-          loading="lazy"
-          decoding="async"
-        />
-      </div>
-    </div>
-  </section>
-
-  <section class="product animate">
-    <div class="container product__grid">
-      <div class="product__content">
-        <h2>You tell us your stress,<br />We make your diary</h2>
-        <p>
-          Selfio creates a personalized journaling experience
-          to help you understand and manage stress.
-        </p>
-      </div>
-
-      <div class="product__image">
-        <div class="product__bg" aria-hidden="true"></div>
-        <img
-          src="images/product.png"
-          width="2731"
-          height="3411"
-          alt="Selfio personalized journal"
-          loading="lazy"
-          decoding="async"
-        />
-      </div>
-    </div>
-  </section>
-</main>
-
-<footer class="footer">
-  <div class="container footer__grid">
-    <a href="./" class="footer__brand logo">Selfio</a>
-    <nav class="footer__nav" aria-label="Footer">
-      <a href="pages/why-selfio.html">Why Selfio</a>
-      <a href="pages/solutions.html">Solutions</a>
-      <a href="pages/community.html">Community</a>
-      <a href="pages/pricing.html">Pricing</a>
-    </nav>
-  </div>
-</footer>
-
-<script src="js/theme.js" defer></script>
-<script src="js/nav.js" defer></script>
-<script src="js/main.js" defer></script>
+  <script>
+    document.querySelectorAll("[data-lang]").forEach(a=>{
+      a.addEventListener("click", () => localStorage.setItem("selfio_lang", a.dataset.lang));
+    });
+  </script>
 </body>
 </html>

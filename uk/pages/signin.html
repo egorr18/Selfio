@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, follow">
+
+  <title>Вхід — Selfio</title>
+  <meta name="description" content="Увійдіть у свій обліковий запис Selfio." />
+
+  <link rel="canonical" href="https://egorr18.github.io/Selfio/uk/pages/signin.html" />
+  <link rel="alternate" hreflang="en" href="https://egorr18.github.io/Selfio/en/pages/signin.html" />
+  <link rel="alternate" hreflang="uk" href="https://egorr18.github.io/Selfio/uk/pages/signin.html" />
+  <link rel="alternate" hreflang="x-default" href="https://egorr18.github.io/Selfio/" />
+
+  <link rel="icon" href="../../images/favicon.ico" />
+
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https:; font-src 'self' data:; style-src 'self'; script-src 'self' https://cdn.jsdelivr.net; connect-src 'self' https://*.supabase.co wss://*.supabase.co; upgrade-insecure-requests; require-trusted-types-for 'script'; trusted-types default selfio;">
+
+  <link rel="stylesheet" href="../../css/variables.css" />
+  <link rel="stylesheet" href="../../css/global.css" />
+  <link rel="stylesheet" href="../../css/auth.css" />
+
+  <script src="../../js/core/security.js" defer></script>
+  <script src="../../js/core/bootstrap.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer></script>
+</head>
+
+<body data-page="signin">
+
+<header class="header">
+  <div class="container header__inner">
+    <a href="index.html" class="logo">Selfio</a>
+
+    <button class="nav-toggle" type="button"
+            aria-label="Open menu"
+            aria-expanded="false"
+            aria-controls="site-menu"
+            data-nav-toggle>
+      <span></span><span></span><span></span>
+    </button>
+
+    <div class="header__drawer" id="site-menu" data-nav-drawer>
+      <nav class="nav nav--collapsible" aria-label="Primary">
+        <a href="why-selfio.html">Чому Selfio</a>
+        <a href="solutions.html">Рішення</a>
+        <a href="community.html">Команда</a>
+        <a href="pricing.html">Прайс</a>
+      </nav>
+
+      <div class="header__actions">
+        <button class="theme-toggle" type="button"
+                data-theme-toggle
+                aria-label="Toggle theme"
+                aria-pressed="false">🌙
+        </button>
+
+        <div class="lang-switch">
+          <a class="lang-link" href="../../en/pages/signin.html" data-lang="en" aria-label="Switch to English">EN</a>
+          <span aria-hidden="true">/</span>
+          <a class="lang-link" href="signin.html" data-lang="uk" aria-label="Перемкнути на українську">UA</a>
+        </div>
+
+        <a class="btn" href="signin.html#login">Увійти</a>
+        <a class="btn" href="signin.html#register">Створити акаунт</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="auth">
+  <div class="container auth__content">
+
+    <h1 data-auth-title>З поверненням</h1>
+
+    <p class="auth__text" data-auth-text>
+      Увійдіть або створіть акаунт, щоб продовжити ваш шлях у journaling.
+    </p>
+
+    <div class="auth__switch">
+      <button type="button" class="btn btn--primary" data-mode="login">Увійти</button>
+      <button type="button" class="btn btn--secondary" data-mode="register">Створити акаунт</button>
+    </div>
+
+    <form class="auth__form" novalidate>
+      <input type="email" name="email" autocomplete="email" placeholder="Електронна пошта" required />
+      <input type="password" name="password" autocomplete="current-password" placeholder="Пароль" required />
+      <button type="submit" class="btn btn--primary" data-submit>Увійти</button>
+    </form>
+
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container footer__grid">
+    <a href="index.html" class="footer__brand logo">Selfio</a>
+    <nav class="footer__nav" aria-label="Footer">
+      <a href="why-selfio.html">Чому Selfio</a>
+      <a href="solutions.html">Рішення</a>
+      <a href="community.html">Команда</a>
+      <a href="pricing.html">Прайс</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+  document.querySelectorAll(".lang-link").forEach(a => {
+    a.addEventListener("click", () => localStorage.setItem("selfio_lang", a.dataset.lang));
+  });
+</script>
+
+<script src="../../js/core/config.js" defer></script>
+<script src="../../js/cloud/supabase.js" defer></script>
+<script src="../../js/core/auth.js" defer></script>
+
+<script src="../../js/nav.js" defer></script>
+<script src="../../js/sign.js" defer></script>
+<script src="../../js/theme.js" defer></script>
+</body>
+</html>

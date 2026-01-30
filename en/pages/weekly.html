@@ -8,19 +8,19 @@
   <title>Weekly — Selfio</title>
   <meta name="description" content="Weekly planner: tasks + habits, simple and clean." />
 
-  <link rel="icon" href="../images/favicon.ico" />
-  <link rel="canonical" href="https://egorr18.github.io/Selfio/pages/weekly.html" />
+  <link rel="icon" href="../../images/favicon.ico" />
+  <link rel="canonical" href="https://egorr18.github.io/Selfio/en/pages/weekly.html" />
 
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
   <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
   <link rel="preconnect" href="https://duvgdgzbjrkkcxddfpvm.supabase.co" crossorigin />
   <link rel="dns-prefetch" href="https://duvgdgzbjrkkcxddfpvm.supabase.co" />
 
-  <script src="../js/core/bootstrap.js" defer></script>
+  <script src="../../js/core/bootstrap.js" defer></script>
 
-  <link rel="stylesheet" href="../css/variables.css" />
-  <link rel="stylesheet" href="../css/global.css" />
-  <link rel="stylesheet" href="../css/app.css" />
+  <link rel="stylesheet" href="../../css/variables.css" />
+  <link rel="stylesheet" href="../../css/global.css" />
+  <link rel="stylesheet" href="../../css/app.css" />
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer crossorigin></script>
 </head>
@@ -48,7 +48,14 @@
         <button class="theme-toggle" type="button"
                 data-theme-toggle
                 aria-label="Toggle theme"
-                aria-pressed="false">🌙</button>
+                aria-pressed="false">🌙
+        </button>
+
+        <div class="lang-switch">
+          <a class="lang-link" href="weekly.html" data-lang="en" aria-label="Switch to English">EN</a>
+          <span aria-hidden="true">/</span>
+          <a class="lang-link" href="../../uk/pages/weekly.html" data-lang="uk" aria-label="Перемкнути на українську">UA</a>
+        </div>
 
         <span class="link" data-app-meta>—</span>
       </div>
@@ -111,7 +118,6 @@
           <option value="study">Study Sprint</option>
         </select>
 
-
         <button class="pill" type="button" data-weekplan-template-apply>Apply template</button>
         <button class="pill" type="button" data-weekplan-clear>Clear</button>
       </div>
@@ -157,13 +163,14 @@
     <div class="week" data-week style="margin-top:12px;"></div>
   </div>
 </main>
-<script src="../js/core/config.js" defer></script>
-<script src="../js/cloud/supabase.js" defer></script>
-<script src="../js/core/auth.js" defer></script>
-<script src="../js/core/store.js" defer></script>
 
-<script src="../js/nav.js" defer></script>
-<script src="../js/theme.js" defer></script>
-<script src="../js/app.js" defer></script>
+<script src="../../js/core/config.js" defer></script>
+<script src="../../js/cloud/supabase.js" defer></script>
+<script src="../../js/core/auth.js" defer></script>
+<script src="../../js/core/store.js" defer></script>
+
+<script src="../../js/nav.js" defer></script>
+<script src="../../js/theme.js" defer></script>
+<script src="../../js/app.js" defer></script>
 </body>
 </html>
