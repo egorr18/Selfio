@@ -8,11 +8,11 @@
   --text-dark: #1c1c1c;
   --text-muted: #6b6b6b;
   --white: #ffffff;
-  /* UI sizing */
+  /* UI sizing  */
   --container-width: 1200px;
   --ui-btn-h: 56px;
 
-  /* ===== THEME TOKENS (LIGHT default) ===== */
+  /* THEME TOKENS (LIGHT default) */
   --bg: #EAF4F1;            /* page background */
   --bg-soft: #eaf7f3;       /* section background (hero, auth, etc.) */
   --surface: #ffffff;       /* cards, header */
