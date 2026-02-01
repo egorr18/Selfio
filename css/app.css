@@ -119,7 +119,6 @@ body[data-app] .card{
   padding: 12px;
   color: var(--app-text);
   box-shadow: 0 10px 26px var(--app-shadow);
-  margin: 8px;
 }
 
 body[data-app] .card h2{
@@ -610,8 +609,8 @@ html[data-theme="dark"] body[data-app] select optgroup{
   body[data-app][data-page="account"] .account__copyBtn{
     height: 52px;
     min-height: 52px;
-    padding: 8px 2px;
-    font-size: 12px;
+    padding: 8px 8px;
+    font-size: 13px;
     line-height: 1;
     white-space: nowrap;
 
