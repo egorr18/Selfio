@@ -121,7 +121,7 @@
 
 /* ===== STORY ===== */
 .story{
-  background: var(--green-dark);
+  background: var(--green);
   color: var(--white);
   padding: 120px 0;
 }

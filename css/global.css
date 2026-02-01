@@ -80,6 +80,13 @@ aside h1 {
   padding: 0; /* як раніше */
 }
 
+/* ховаємо у верхній смузі */
+.header__inner > .lang-switch,
+.header__inner > .theme-toggle {
+  display: none;
+}
+
+
 .header__inner{
   display: flex;
   align-items: center;
