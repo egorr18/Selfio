@@ -402,7 +402,6 @@ body[data-app] .weekplan__goal-row input{ flex:1; width:100%; }
 body[data-app][data-page="today"] .app .container{
   max-width: 980px;
   margin: 0 auto;
-  padding: 28px 16px;
 }
 
 body[data-app][data-page="today"] .item{
