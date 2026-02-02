@@ -1,4 +1,3 @@
-// js/sign.js
 (function () {
   function $(sel) { return document.querySelector(sel); }
 
