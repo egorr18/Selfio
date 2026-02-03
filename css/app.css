@@ -526,11 +526,28 @@ body[data-app][data-page="my-plan"] .card *{
 }
 
 /* Account */
-body[data-app] .account__grid{ align-items: start; }
+body[data-app] .account__grid{
+  align-items: start;
+}
+
+/* Spacing між card-секціями зліва і справа (тільки на сторінці account) */
+body[data-app][data-page="account"] .account__left,
+body[data-app][data-page="account"] .account__right{
+  display: flex;
+  flex-direction: column;
+  gap: 12px; /* зроби 8-16px як хочеш */
+}
+
+/* Safety: щоб gap працював чисто і нічого не “злипалось” */
+body[data-app][data-page="account"] .account__left > section.card,
+body[data-app][data-page="account"] .account__right > section.card{
+  margin: 0;
+}
 
 body[data-app] .account__field{ margin-top: 12px; }
+
 body[data-app] .account__label{
-  display:block;
+  display: block;
   font-size: 13px;
   color: var(--app-muted);
   margin-bottom: 6px;
@@ -560,9 +577,9 @@ body[data-app] .account__copyBtn{
 body[data-app] [data-copy-toast]{ margin-top: 8px; color: var(--app-muted); }
 
 body[data-app] .header__actions--app{
-  display:flex;
-  align-items:center;
-  gap:12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 /* Theme toggle override */
@@ -578,7 +595,9 @@ body[data-app] .btn--secondary{
   color: #fff !important;
   border-color: transparent !important;
 }
+
 body[data-app] .btn--secondary:hover{ background: var(--green-dark) !important; }
+
 body[data-app] .btn--secondary:active{
   background: #fff !important;
   color: var(--green-main) !important;
@@ -589,9 +608,11 @@ body[data-app][data-page="account"] .account__right .actions .btn--ghost{
   border-color: var(--green-main) !important;
   color: var(--green-main) !important;
 }
+
 body[data-app][data-page="account"] .account__right .actions .btn--ghost:hover{
   background: rgba(47,111,98,0.14) !important;
 }
+
 body[data-app][data-page="account"] .account__right .actions .btn--ghost:active{
   background: #fff !important;
   color: var(--green-main) !important;
@@ -604,6 +625,7 @@ html[data-theme="dark"] body[data-app] select optgroup{
   background: #121a17;
   color: rgba(255,255,255,0.92);
 }
+
 
 @media (max-width: 480px){
   body[data-app][data-page="account"] .account__copyBtn{
