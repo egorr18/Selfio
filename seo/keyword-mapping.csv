@@ -1,0 +1,12 @@
+Lang,Page,H1,Primary keyword,Secondary keywords,Internal links OUT,Internal links IN,Indexing,Status/Notes
+EN,/en/pages/index.html,Be aware. Manage well.,guided journaling app,stress journal; mood check-in; habit tracker,pricing; solutions; why-selfio; signin,From: why-selfio; solutions; community; pricing,index,OK
+EN,/en/pages/why-selfio.html,Understand your stress. Build clarity.,guided journaling app,self-awareness journaling; reflection prompts; journaling prompts,solutions; pricing; signin,From: index; solutions; pricing,index,OK
+EN,/en/pages/solutions.html,Tools for your emotional clarity,journaling for stress,journaling for anxiety; overthinking journal; emotional clarity journal,pricing; why-selfio; signin,From: index; why-selfio; community; pricing,index,Add FAQ block later
+EN,/en/pages/community.html,You are not alone. Grow together.,journaling community,reflection community; share experiences journaling,pricing; solutions; signin,From: index; solutions; pricing,index,Add internal anchors later
+EN,/en/pages/pricing.html,Simple plans for mindful growth,journaling app pricing,free plan; pro plan; premium plan,signin; solutions; why-selfio,From: index; why-selfio; solutions; community,index,OK
+
+UK,/uk/pages/index.html,Будь усвідомленим. Керуй краще.,щоденник з підказками,щоденник від стресу; трекер настрою; трекер звичок,ціни; рішення; чому-selfio; вхід,From: why-selfio; solutions; community; pricing,index,OK
+UK,/uk/pages/why-selfio.html,Зрозумій свій стрес. Створи ясність.,керований щоденник,самоусвідомлення; питання для рефлексії; щоденник з підказками,рішення; ціни; вхід,From: index; solutions; pricing,index,OK
+UK,/uk/pages/solutions.html,Інструменти для емоційної ясності,щоденник від стресу,щоденник від тривоги; щоденник від навʼязливих думок; емоційна ясність,ціни; чому-selfio; вхід,From: index; why-selfio; community; pricing,index,Add FAQ block later
+UK,/uk/pages/community.html,Ти не один. Зростай разом.,спільнота для рефлексії,підтримка та досвід; історії людей; спільнота щоденника,ціни; рішення; вхід,From: index; solutions; pricing,index,Add internal anchors later
+UK,/uk/pages/pricing.html,Прості плани для усвідомленого росту,ціна Selfio,безкоштовний план; Pro план; Premium план,вхід; рішення; чому-selfio,From: index; why-selfio; solutions; community,index,OK

@@ -1,22 +1,18 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="robots" content="noindex, follow">
+  <meta name="robots" content="noindex, follow" />
 
-  <title>Вхід — Selfio</title>
-  <meta name="description" content="Увійдіть у свій обліковий запис Selfio." />
-
-  <link rel="canonical" href="https://egorr18.github.io/Selfio/uk/pages/signin.html" />
-  <link rel="alternate" hreflang="en" href="https://egorr18.github.io/Selfio/en/pages/signin.html" />
-  <link rel="alternate" hreflang="uk" href="https://egorr18.github.io/Selfio/uk/pages/signin.html" />
-  <link rel="alternate" hreflang="x-default" href="https://egorr18.github.io/Selfio/" />
+  <title>Sign in — Selfio</title>
+  <meta name="description" content="Sign in to your Selfio account." />
 
   <link rel="icon" href="../../images/favicon.ico" />
+  <link rel="canonical" href="https://egorr18.github.io/Selfio/uk/pages/signin.html" />
 
   <meta http-equiv="Content-Security-Policy"
-    content="default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https:; font-src 'self' data:; style-src 'self'; script-src 'self' https://cdn.jsdelivr.net; connect-src 'self' https://*.supabase.co wss://*.supabase.co; upgrade-insecure-requests; require-trusted-types-for 'script'; trusted-types default selfio;">
+    content="default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https:; font-src 'self' data:; style-src 'self'; script-src 'self' https://cdn.jsdelivr.net; connect-src 'self' https://*.supabase.co wss://*.supabase.co; upgrade-insecure-requests; require-trusted-types-for 'script'; trusted-types default selfio;" />
 
   <link rel="stylesheet" href="../../css/variables.css" />
   <link rel="stylesheet" href="../../css/global.css" />
@@ -53,13 +49,12 @@
         <button class="theme-toggle" type="button"
                 data-theme-toggle
                 aria-label="Toggle theme"
-                aria-pressed="false">🌙
-        </button>
+                aria-pressed="false">🌙</button>
 
         <div class="lang-switch">
           <a class="lang-link" href="../../en/pages/signin.html" data-lang="en" aria-label="Switch to English">EN</a>
           <span aria-hidden="true">/</span>
-          <a class="lang-link" href="signin.html" data-lang="uk" aria-label="Перемкнути на українську">UA</a>
+          <a class="lang-link" href="signin.html" data-lang="uk" aria-label="Перемкнути на українську">UK</a>
         </div>
 
         <a class="btn" href="signin.html#login">Увійти</a>
@@ -72,21 +67,21 @@
 <section class="auth">
   <div class="container auth__content">
 
-    <h1 data-auth-title>З поверненням</h1>
+    <h1 data-auth-title>Welcome back</h1>
 
     <p class="auth__text" data-auth-text>
-      Увійдіть або створіть акаунт, щоб продовжити ваш шлях у journaling.
+      Sign in or create an account to continue your journaling journey.
     </p>
 
     <div class="auth__switch">
-      <button type="button" class="btn btn--primary" data-mode="login">Увійти</button>
-      <button type="button" class="btn btn--secondary" data-mode="register">Створити акаунт</button>
+      <button type="button" class="btn btn--primary" data-mode="login">Sign in</button>
+      <button type="button" class="btn btn--secondary" data-mode="register">Create account</button>
     </div>
 
     <form class="auth__form" novalidate>
-      <input type="email" name="email" autocomplete="email" placeholder="Електронна пошта" required />
-      <input type="password" name="password" autocomplete="current-password" placeholder="Пароль" required />
-      <button type="submit" class="btn btn--primary" data-submit>Увійти</button>
+      <input type="email" name="email" autocomplete="email" placeholder="Email address" required />
+      <input type="password" name="password" autocomplete="current-password" placeholder="Password" required />
+      <button type="submit" class="btn btn--primary" data-submit>Sign in</button>
     </form>
 
   </div>

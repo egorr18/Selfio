@@ -1,0 +1,30 @@
+Lang,Cluster,Primary keyword,Secondary keywords (comma-separated),Search intent,Target page,Priority,Notes
+EN,Brand,Selfio,"Selfio app, Selfio journal",Navigational,/en/pages/index.html,High,Brand queries
+EN,Guided journaling,guided journaling app,"prompted journaling, structured journaling, journal prompts app",Informational,/en/pages/why-selfio.html,High,Explain guided approach
+EN,Self-awareness,build self awareness,"track feelings, mood reflection, self-awareness journal",Informational,/en/pages/why-selfio.html,High,Positioning
+EN,Stress,journaling for stress,"stress journal, manage stress writing, stress relief diary",Informational,/en/pages/solutions.html,High,Solutions cluster
+EN,Anxiety,journaling for anxiety,"anxiety journal, reduce anxiety prompts, calming journal",Informational,/en/pages/solutions.html,High,Solutions cluster
+EN,Overthinking,journaling for overthinking,"stop overthinking journal, thought dumping prompts, mental clarity journal",Informational,/en/pages/solutions.html,High,Solutions cluster
+EN,Emotional clarity,emotional clarity journal,"understand emotions journaling, reflection prompts",Informational,/en/pages/solutions.html,Medium,Add clarity angle in copy later
+EN,Mood tracking,mood tracker journal,"mood check-in, track mood daily",Informational,/en/pages/index.html,Medium,Feature mention
+EN,Habit tracker,habit tracker simple,"habit list app, daily habit tracking",Informational,/en/pages/index.html,Medium,Feature mention
+EN,Weekly planner,weekly planner app,"plan your week, weekly goals planner",Informational,/en/pages/index.html,Low,Keep in copy but app pages are noindex
+EN,Pricing,Selfio pricing,"journaling app pricing, free vs pro journaling app",Commercial,/en/pages/pricing.html,High,Conversion page
+EN,Upgrade,upgrade to pro,"pro plan features, premium plan features",Commercial,/en/pages/pricing.html,High,Plan comparison
+EN,Community,journaling community,"reflection community, share experiences journaling",Informational,/en/pages/community.html,Medium,Community angle
+EN,CTA,start journaling free,"create account journaling app, sign in journaling app",Transactional,/en/pages/pricing.html,Medium,CTA lives on pricing/index but signup is noindex
+
+UK,Brand,Selfio,"додаток Selfio, щоденник Selfio",Navigational,/uk/pages/index.html,High,Брендові запити
+UK,Guided journaling,щоденник з підказками,"керований щоденник, структурований щоденник, питання для рефлексії",Informational,/uk/pages/why-selfio.html,High,Пояснити підхід
+UK,Self-awareness,самоусвідомлення,"усвідомленість щодня, відстеження настрою, рефлексія",Informational,/uk/pages/why-selfio.html,High,Позиціонування
+UK,Stress,щоденник від стресу,"як зняти стрес щоденник, записи проти стресу, керована рефлексія стрес",Informational,/uk/pages/solutions.html,High,Кластер Solutions
+UK,Anxiety,щоденник від тривоги,"запитання від тривоги, як зменшити тривожність щоденник",Informational,/uk/pages/solutions.html,High,Кластер Solutions
+UK,Overthinking,щоденник від навʼязливих думок,"як перестати накручувати себе, скинути думки на папір, навʼязливі думки щоденник",Informational,/uk/pages/solutions.html,High,Кластер Solutions
+UK,Emotional clarity,емоційна ясність,"як зрозуміти свої емоції, рефлексія емоцій",Informational,/uk/pages/solutions.html,Medium,Підсилити сенс у копі пізніше
+UK,Mood tracking,трекер настрою,"щоденний чек-ін, оцінка настрою",Informational,/uk/pages/index.html,Medium,Згадати чек-ін
+UK,Habit tracker,трекер звичок,"звички щодня, список звичок",Informational,/uk/pages/index.html,Medium,Згадати фічу
+UK,Weekly planner,тижневий планер,"план на тиждень, цілі на тиждень",Informational,/uk/pages/index.html,Low,App pages noindex
+UK,Pricing,ціна Selfio,"плани підписки, безкоштовний та Pro план",Commercial,/uk/pages/pricing.html,High,Конверсія
+UK,Upgrade,оновити до Pro,"що дає Pro, преміум можливості",Commercial,/uk/pages/pricing.html,High,Порівняння планів
+UK,Community,спільнота для рефлексії,"підтримка та досвід, спільнота щоденника",Informational,/uk/pages/community.html,Medium,Про спільноту
+UK,CTA,почати безкоштовно,"створити акаунт, увійти в щоденник",Transactional,/uk/pages/pricing.html,Medium,Signup noindex, CTA stays on indexed pages

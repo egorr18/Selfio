@@ -3,21 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="robots" content="noindex, follow">
+  <meta name="robots" content="noindex, follow" />
 
   <title>Sign in — Selfio</title>
   <meta name="description" content="Sign in to your Selfio account." />
- 
-  <link rel="icon" href="../../images/favicon.ico">
-  <link rel="canonical" href="https://egorr18.github.io/Selfio/en/pages/signin.html">
-  
-  <meta http-equiv="Content-Security-Policy" 
-    content="default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https:; font-src 'self' data:; style-src 'self'; script-src 'self' https://cdn.jsdelivr.net; connect-src 'self' https://*.supabase.co wss://*.supabase.co; upgrade-insecure-requests; require-trusted-types-for 'script'; trusted-types default selfio;">
-  
-  <link rel="stylesheet" href="../../css/variables.css">
-  <link rel="stylesheet" href="../../css/global.css">
-  <link rel="stylesheet" href="../../css/auth.css">
-  
+
+  <link rel="icon" href="../../images/favicon.ico" />
+  <link rel="canonical" href="https://egorr18.github.io/Selfio/en/pages/signin.html" />
+
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https:; font-src 'self' data:; style-src 'self'; script-src 'self' https://cdn.jsdelivr.net; connect-src 'self' https://*.supabase.co wss://*.supabase.co; upgrade-insecure-requests; require-trusted-types-for 'script'; trusted-types default selfio;" />
+
+  <link rel="stylesheet" href="../../css/variables.css" />
+  <link rel="stylesheet" href="../../css/global.css" />
+  <link rel="stylesheet" href="../../css/auth.css" />
+
   <script src="../../js/core/security.js" defer></script>
   <script src="../../js/core/bootstrap.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer></script>
@@ -38,7 +38,7 @@
     </button>
 
     <div class="header__drawer" id="site-menu" data-nav-drawer>
-      <nav class="nav nav--collapsible">
+      <nav class="nav nav--collapsible" aria-label="Primary">
         <a href="why-selfio.html">Why Selfio</a>
         <a href="solutions.html">Solutions</a>
         <a href="community.html">Community</a>
@@ -49,15 +49,16 @@
         <button class="theme-toggle" type="button"
                 data-theme-toggle
                 aria-label="Toggle theme"
-                aria-pressed="false">🌙
-        </button>
+                aria-pressed="false">🌙</button>
+
         <div class="lang-switch">
-            <a class="lang-link" href="signin.html" data-lang="en" aria-label="Switch to English">EN</a>
-            <span aria-hidden="true">/</span>
-            <a class="lang-link" href="../../uk/pages/signin.html" data-lang="uk" aria-label="Перемкнути на українську">UA</a>
-        </div>  
-            <a class="btn" href="signin.html#login">Sign in</a>
-          <a class="btn" href="signin.html#register">Create account</a>
+          <a class="lang-link" href="signin.html" data-lang="en" aria-label="Switch to English">EN</a>
+          <span aria-hidden="true">/</span>
+          <a class="lang-link" href="../../uk/pages/signin.html" data-lang="uk" aria-label="Перемкнути на українську">UK</a>
+        </div>
+
+        <a class="btn" href="signin.html#login">Sign in</a>
+        <a class="btn" href="signin.html#register">Create account</a>
       </div>
     </div>
   </div>
@@ -89,7 +90,7 @@
 <footer class="footer">
   <div class="container footer__grid">
     <a href="index.html" class="footer__brand logo">Selfio</a>
-    <nav class="footer__nav">
+    <nav class="footer__nav" aria-label="Footer">
       <a href="why-selfio.html">Why Selfio</a>
       <a href="solutions.html">Solutions</a>
       <a href="community.html">Community</a>
@@ -97,6 +98,12 @@
     </nav>
   </div>
 </footer>
+
+<script>
+  document.querySelectorAll(".lang-link").forEach(a => {
+    a.addEventListener("click", () => localStorage.setItem("selfio_lang", a.dataset.lang));
+  });
+</script>
 
 <script src="../../js/core/config.js" defer></script>
 <script src="../../js/cloud/supabase.js" defer></script>
