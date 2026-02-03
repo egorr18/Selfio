@@ -37,7 +37,7 @@ aside h1 {
 .container {
   max-width: var(--container-width);
   padding: 0 20px;
-  margin: 6px;
+  margin: 0 auto;
 }
 
 /* ===== BUTTONS ===== */
