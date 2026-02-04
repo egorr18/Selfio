@@ -17,3 +17,5 @@ Product (noindex): signin / app / weekly / habits / account / choose-plan / my-p
 
 ## Notes
 This is designed as a production-like SEO foundation for a small SaaS on GitHub Pages.
+
+## Learnt SEO
