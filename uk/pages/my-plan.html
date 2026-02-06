@@ -3,19 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <meta name="robots" content="noindex, nofollow" />
+
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EZM00G7BDP"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-
     gtag('config', 'G-EZM00G7BDP');
   </script>
+
   <title>Мій план — Selfio</title>
+  <meta name="description" content="Перегляньте свій поточний план і можливості Selfio." />
 
   <link rel="icon" href="../../images/favicon.ico" />
+
   <link rel="canonical" href="https://egorr18.github.io/Selfio/uk/pages/my-plan.html" />
   <link rel="alternate" hreflang="en" href="https://egorr18.github.io/Selfio/en/pages/my-plan.html" />
   <link rel="alternate" hreflang="uk" href="https://egorr18.github.io/Selfio/uk/pages/my-plan.html" />
@@ -26,13 +30,21 @@
   <link rel="preconnect" href="https://duvgdgzbjrkkcxddfpvm.supabase.co" crossorigin />
   <link rel="dns-prefetch" href="https://duvgdgzbjrkkcxddfpvm.supabase.co" />
 
-  <script src="../../js/core/bootstrap.js" defer></script>
-
   <link rel="stylesheet" href="../../css/variables.css" />
   <link rel="stylesheet" href="../../css/global.css" />
   <link rel="stylesheet" href="../../css/app.css" />
 
+  <script src="../../js/core/bootstrap.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer crossorigin></script>
+
+  <script src="../../js/core/config.js" defer></script>
+  <script src="../../js/cloud/supabase.js" defer></script>
+  <script src="../../js/core/auth.js" defer></script>
+  <script src="../../js/core/store.js" defer></script>
+
+  <script src="../../js/nav.js" defer></script>
+  <script src="../../js/theme.js" defer></script>
+  <script src="../../js/my-plan.js" defer></script>
 </head>
 
 <body data-app data-page="my-plan">
@@ -108,14 +120,5 @@
     a.addEventListener("click", () => localStorage.setItem("selfio_lang", a.dataset.lang));
   });
 </script>
-
-<script src="../../js/core/config.js" defer></script>
-<script src="../../js/cloud/supabase.js" defer></script>
-<script src="../../js/core/auth.js" defer></script>
-<script src="../../js/core/store.js" defer></script>
-
-<script src="../../js/nav.js" defer></script>
-<script src="../../js/theme.js" defer></script>
-<script src="../../js/my-plan.js" defer></script>
 </body>
 </html>
