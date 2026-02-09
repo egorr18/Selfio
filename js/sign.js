@@ -113,17 +113,51 @@
     }
   }
 
-  async function afterAuthRedirect(next) {
-    const email = (localStorage.getItem("selfio_email") || "").toLowerCase();
-    const perUserPlan = localStorage.getItem(`selfio_plan:${email || "anon"}`);
-    const hasPlan = !!perUserPlan;
+// ДОДАЙ зверху біля інших helper-функцій
+function needChooseKey(email) {
+  return `selfio_need_choose_plan:${(email || "anon").toLowerCase()}`;
+}
 
-    if (!hasPlan) {
-      location.href = `choose-plan.html?next=${encodeURIComponent(next)}`;
-      return;
-    }
-    location.href = next;
+function markNeedChoose(email) {
+  localStorage.setItem("selfio_need_choose_plan", "1"); // fallback
+  localStorage.setItem(needChooseKey(email), "1");       // per-user
+}
+
+function needsChoosePlan(email) {
+  return (
+    localStorage.getItem("selfio_need_choose_plan") === "1" ||
+    localStorage.getItem(needChooseKey(email)) === "1"
+  );
+}
+
+// ЗАМІНИ afterAuthRedirect на цю
+async function afterAuthRedirect(next, email, mode) {
+  const emailLower = (email || localStorage.getItem("selfio_email") || "").toLowerCase();
+
+  // ✅ 1) Якщо це реєстрація — ЗАВЖДИ на choose-plan
+  if (mode === "register") {
+    markNeedChoose(emailLower);
+    location.href = `choose-plan.html?next=${encodeURIComponent(next || "app.html")}`;
+    return;
   }
+
+  // ✅ 2) Якщо є флаг "треба вибрати план" — теж на choose-plan
+  if (needsChoosePlan(emailLower)) {
+    location.href = `choose-plan.html?next=${encodeURIComponent(next || "app.html")}`;
+    return;
+  }
+
+  // ✅ 3) Для login — якщо плану немає, то choose-plan
+  const perUserPlan = localStorage.getItem(`selfio_plan:${emailLower || "anon"}`);
+  if (!perUserPlan) {
+    location.href = `choose-plan.html?next=${encodeURIComponent(next || "app.html")}`;
+    return;
+  }
+
+  // ✅ 4) Інакше — на next
+  location.href = next || "app.html";
+}
+
 
   document.addEventListener("DOMContentLoaded", async () => {
     const qs = new URLSearchParams(location.search);
@@ -186,7 +220,7 @@
         }
 
         await cloud.ensureProfile();
-        await afterAuthRedirect(next);
+        await afterAuthRedirect(next, email, mode);
       } catch (err) {
         console.error(err);
         msg(err?.message || "Auth failed", "error");

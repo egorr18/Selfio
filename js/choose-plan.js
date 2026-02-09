@@ -118,6 +118,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   const email = String(user.email || "").toLowerCase();
   if (email) localStorage.setItem(EMAIL_KEY, email);
 
+  // ✅ флаг "це перший вибір плану після реєстрації"
+  const NEED_KEY = `selfio_need_choose_plan:${email || "anon"}`;
+  const needChoose =
+    localStorage.getItem("selfio_need_choose_plan") === "1" ||
+    localStorage.getItem(NEED_KEY) === "1";
+
   // meta в хедері
   const meta = document.querySelector("[data-app-meta]");
   if (meta) meta.textContent = `${email || "Signed user"} • —`;
@@ -129,27 +135,34 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.error(e);
   }
 
-  // визначимо поточний план (і покажемо в UI)
-  let currentPlan = normalizePlan(localStorage.getItem(planKeyForEmail(email)) || localStorage.getItem(PLAN_KEY) || "");
-  try {
-    const p = await cloud.getMyPlan?.();
-    if (p) currentPlan = normalizePlan(p);
-  } catch (_) {}
+  // ✅ визначимо поточний план:
+  // - якщо це перший вибір (needChoose=true) → НЕ вважаємо "free" як вже вибраний (щоб кнопка free не була disabled)
+  // - якщо це не перший вибір → показуємо реальний поточний план
+  let currentPlan = "";
+  if (!needChoose) {
+    currentPlan = normalizePlan(
+      localStorage.getItem(planKeyForEmail(email)) || localStorage.getItem(PLAN_KEY) || ""
+    );
+    try {
+      const p = await cloud.getMyPlan?.();
+      if (p) currentPlan = normalizePlan(p);
+    } catch (_) {}
+  }
 
-  if (meta) meta.textContent = `${email || "Signed user"} • ${currentPlan.toUpperCase()}`;
+  if (meta) meta.textContent = `${email || "Signed user"} • ${currentPlan ? currentPlan.toUpperCase() : "CHOOSE PLAN"}`;
 
   const btns = Array.from(document.querySelectorAll("[data-plan]"));
 
   function renderButtons() {
     btns.forEach((btn) => {
       const plan = normalizePlan(btn.getAttribute("data-plan"));
-      const isCurrent = plan === currentPlan;
+
+      // ✅ якщо це перший вибір — не блокуємо нічого як "current"
+      const isCurrent = !needChoose && currentPlan && plan === currentPlan;
 
       btn.dataset.current = isCurrent ? "1" : "0";
       btn.classList.toggle("is-current", isCurrent);
 
-      // Підпис на кнопці (акуратно: не ламаємо дизайн)
-      // Якщо хочеш — можеш стилізувати .is-current в CSS
       if (isCurrent) {
         btn.disabled = true;
         btn.setAttribute("aria-current", "true");
@@ -167,8 +180,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   async function setPlan(plan, clickedBtn) {
     plan = normalizePlan(plan);
 
-    // якщо вже цей план — просто повертаємось
-    if (plan === currentPlan) {
+    // ✅ якщо це не перший вибір і план вже такий самий — просто йдемо далі
+    if (!needChoose && currentPlan && plan === currentPlan) {
       toast("This plan is already active ✅");
       location.replace(nextUrlWithMsg(next));
       return;
@@ -186,8 +199,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         localStorage.setItem(PLAN_KEY, plan);
       }
 
+      // ✅ прибираємо флаг "потрібно вибрати план" (глобальний і per-user)
+      localStorage.removeItem("selfio_need_choose_plan");
+      localStorage.removeItem(NEED_KEY);
+
       currentPlan = plan;
-      renderButtons();
 
       toast(`Plan updated: ${plan.toUpperCase()} ✅`);
 
