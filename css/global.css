@@ -77,7 +77,7 @@ aside h1 {
 .header{
   background: var(--header-bg, transparent);
   border-bottom: 1px solid var(--border, rgba(255,255,255,.10));
-  padding: 0; /* як раніше */
+  padding: 0;
 }
 
 /* ховаємо у верхній смузі */
