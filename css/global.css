@@ -165,7 +165,7 @@ aside h1 {
 
 .nav-toggle span {
   width: 22px;
-  height: 2px;
+  height: 3px;
   border-radius: 2px;
   background: var(--green-main);
   display: block;
