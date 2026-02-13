@@ -1,6 +1,6 @@
 # SEO package (Selfio)
 
-This project includes a complete SEO setup for a bilingual (EN/UK) SaaS landing:
+This project includes a complete SEO setup for a bilingual (EN/UK) SaaS landing: 
 
 ## What’s implemented
 - Separate semantic core for EN and UK (see `seo/semantic-core.csv`)
