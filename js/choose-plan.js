@@ -1,12 +1,9 @@
-// js/choose-plan.js
 document.addEventListener("DOMContentLoaded", async () => {
   const cloud = window.Selfio?.cloud;
 
-  // Fallback toast (без alert по дефолту — тільки якщо зовсім нема іншого)
   const toast = (msg, type = "info") => {
     if (typeof window.Selfio?.toast === "function") return window.Selfio.toast(msg, type);
 
-    // inline fallback (створюємо маленький блок зверху)
     let el = document.querySelector("[data-toast]");
     if (!el) {
       el = document.createElement("div");
@@ -76,7 +73,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     return p === "free" || p === "pro" || p === "premium" ? p : "free";
   }
 
-  // Коректний URL на signin залежно від того, де ти зараз (root чи /pages/)
   function signinUrl(nextUrl) {
     const inPages = (location.pathname || "").includes("/pages/");
     const base = inPages ? "signin.html" : "pages/signin.html";
@@ -84,7 +80,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function nextUrlWithMsg(next) {
-    // Додаємо msg=plan_updated і plan=... БЕЗ повних URL
     try {
       const u = new URL(next, location.href);
       return u.pathname.split("/").pop() + (u.search || "") + (u.hash || "");
@@ -100,7 +95,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  // треба бути залогіненим
   let user = null;
   try {
     user = await cloud.getUser();
@@ -109,7 +103,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   if (!user) {
-    // повертаємо назад на choose-plan (з next усередині)
     const backToChoose = `choose-plan.html?next=${encodeURIComponent(next)}`;
     location.replace(signinUrl(backToChoose));
     return;
@@ -118,26 +111,20 @@ document.addEventListener("DOMContentLoaded", async () => {
   const email = String(user.email || "").toLowerCase();
   if (email) localStorage.setItem(EMAIL_KEY, email);
 
-  // ✅ флаг "це перший вибір плану після реєстрації"
   const NEED_KEY = `selfio_need_choose_plan:${email || "anon"}`;
   const needChoose =
     localStorage.getItem("selfio_need_choose_plan") === "1" ||
     localStorage.getItem(NEED_KEY) === "1";
 
-  // meta в хедері
   const meta = document.querySelector("[data-app-meta]");
   if (meta) meta.textContent = `${email || "Signed user"} • —`;
 
-  // гарантуємо профіль
   try {
     await cloud.ensureProfile();
   } catch (e) {
     console.error(e);
   }
 
-  // ✅ визначимо поточний план:
-  // - якщо це перший вибір (needChoose=true) → НЕ вважаємо "free" як вже вибраний (щоб кнопка free не була disabled)
-  // - якщо це не перший вибір → показуємо реальний поточний план
   let currentPlan = "";
   if (!needChoose) {
     currentPlan = normalizePlan(
@@ -157,7 +144,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     btns.forEach((btn) => {
       const plan = normalizePlan(btn.getAttribute("data-plan"));
 
-      // ✅ якщо це перший вибір — не блокуємо нічого як "current"
       const isCurrent = !needChoose && currentPlan && plan === currentPlan;
 
       btn.dataset.current = isCurrent ? "1" : "0";
@@ -180,26 +166,22 @@ document.addEventListener("DOMContentLoaded", async () => {
   async function setPlan(plan, clickedBtn) {
     plan = normalizePlan(plan);
 
-    // ✅ якщо це не перший вибір і план вже такий самий — просто йдемо далі
     if (!needChoose && currentPlan && plan === currentPlan) {
       toast("This plan is already active ✅");
       location.replace(nextUrlWithMsg(next));
       return;
     }
 
-    // блокуємо всі кнопки на час збереження
     btns.forEach((b) => setLoading(b, true, b === clickedBtn ? "Saving..." : "…"));
 
     try {
       await cloud.savePlan(plan);
 
-      // додатково синхронізуємо localStorage (щоб app.js одразу бачив)
       if (email) {
         localStorage.setItem(planKeyForEmail(email), plan);
         localStorage.setItem(PLAN_KEY, plan);
       }
 
-      // ✅ прибираємо флаг "потрібно вибрати план" (глобальний і per-user)
       localStorage.removeItem("selfio_need_choose_plan");
       localStorage.removeItem(NEED_KEY);
 
@@ -207,7 +189,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       toast(`Plan updated: ${plan.toUpperCase()} ✅`);
 
-      // редірект назад
       location.replace(nextUrlWithMsg(next));
     } catch (e) {
       console.error(e);
@@ -224,7 +205,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   });
 
-  // Back
   const backBtn = document.querySelector("[data-back]");
   backBtn?.addEventListener("click", () => {
     if (history.length > 1) history.back();

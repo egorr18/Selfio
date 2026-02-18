@@ -1,7 +1,7 @@
 window.Selfio = window.Selfio || {};
 
 (function () {
-    const KEY = "selfio_app_v1"; // якщо в тебе інший ключ — скажеш, я піджену
+    const KEY = "selfio_app_v1";
 
     function mode() {
         return (window.Selfio.config?.mode || "demo");
@@ -31,7 +31,6 @@ window.Selfio = window.Selfio || {};
         const cloudState = await window.Selfio.cloud.loadState();
         return cloudState ?? localLoad();
         } catch (e) {
-        // якщо не залогінений / нема таблиць / RLS — не ламаємо app
         console.warn("[Selfio.store] cloud load failed, fallback to local:", e?.message || e);
         return localLoad();
         }

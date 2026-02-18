@@ -1,4 +1,3 @@
-// js/my-plan.js
 (() => {
   const VALID_PLANS = new Set(["free", "pro", "premium"]);
   const norm = (s) => String(s || "").trim();
@@ -88,7 +87,6 @@
       return redirectToSignIn();
     }
 
-    // 1) перевіряємо сесію Supabase
     let session = null;
     try {
       session = await auth.getSession();
@@ -97,10 +95,9 @@
     }
     if (!session) return redirectToSignIn();
 
-    // 2) user
     let user = null;
     try {
-      user = await cloud.getUser(); // або auth.getUser()
+      user = await cloud.getUser();
     } catch (e) {
       console.error(e);
     }
@@ -108,12 +105,11 @@
 
     const email = normLower(user.email);
 
-    // 3) гарантуємо профіль і беремо plan з БД
     try { await cloud.ensureProfile(); } catch (e) { console.error(e); }
 
     let plan = "free";
     try {
-      const cloudPlan = await cloud.getMyPlan(); // якщо така функція є в supabase.js
+      const cloudPlan = await cloud.getMyPlan();
       plan = normalizePlan(cloudPlan || "free");
     } catch (e) {
       console.error(e);

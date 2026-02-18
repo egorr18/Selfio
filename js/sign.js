@@ -94,7 +94,6 @@
     });
   }
 
-  // читаємо mode з #hash або з ?mode= (fallback)
   function getMode() {
     const qs = new URLSearchParams(location.search);
     const fromQuery = (qs.get("mode") || "").toLowerCase();
@@ -105,7 +104,6 @@
     return "login";
   }
 
-  // записуємо mode у hash (SEO-дружньо: без ?mode=)
   function setMode(mode) {
     mode = mode === "register" ? "register" : "login";
     if (location.hash.replace("#", "") !== mode) {
@@ -113,14 +111,13 @@
     }
   }
 
-// ДОДАЙ зверху біля інших helper-функцій
 function needChooseKey(email) {
   return `selfio_need_choose_plan:${(email || "anon").toLowerCase()}`;
 }
 
 function markNeedChoose(email) {
-  localStorage.setItem("selfio_need_choose_plan", "1"); // fallback
-  localStorage.setItem(needChooseKey(email), "1");       // per-user
+  localStorage.setItem("selfio_need_choose_plan", "1");
+  localStorage.setItem(needChooseKey(email), "1");
 }
 
 function needsChoosePlan(email) {
@@ -130,31 +127,26 @@ function needsChoosePlan(email) {
   );
 }
 
-// ЗАМІНИ afterAuthRedirect на цю
 async function afterAuthRedirect(next, email, mode) {
   const emailLower = (email || localStorage.getItem("selfio_email") || "").toLowerCase();
 
-  // ✅ 1) Якщо це реєстрація — ЗАВЖДИ на choose-plan
   if (mode === "register") {
     markNeedChoose(emailLower);
     location.href = `choose-plan.html?next=${encodeURIComponent(next || "app.html")}`;
     return;
   }
 
-  // ✅ 2) Якщо є флаг "треба вибрати план" — теж на choose-plan
   if (needsChoosePlan(emailLower)) {
     location.href = `choose-plan.html?next=${encodeURIComponent(next || "app.html")}`;
     return;
   }
 
-  // ✅ 3) Для login — якщо плану немає, то choose-plan
   const perUserPlan = localStorage.getItem(`selfio_plan:${emailLower || "anon"}`);
   if (!perUserPlan) {
     location.href = `choose-plan.html?next=${encodeURIComponent(next || "app.html")}`;
     return;
   }
 
-  // ✅ 4) Інакше — на next
   location.href = next || "app.html";
 }
 
@@ -172,12 +164,8 @@ async function afterAuthRedirect(next, email, mode) {
       return;
     }
 
-    // mode тепер з hash/query
     let mode = getMode();
     setModeUI(mode);
-
-    // якщо mode прийшов через ?mode= — підчистимо UI на hash
-    // (не обов'язково, але гарно)
     setMode(mode);
 
     document.querySelectorAll(".auth__switch [data-mode]").forEach((b) => {
@@ -189,7 +177,6 @@ async function afterAuthRedirect(next, email, mode) {
       });
     });
 
-    // якщо користувач руками поміняв hash (або прийшов по лінку #register)
     window.addEventListener("hashchange", () => {
       const m = getMode();
       mode = m;

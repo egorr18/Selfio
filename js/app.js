@@ -7,7 +7,6 @@
     const DEFAULT_FOCUSES = ["Deep work", "Study", "Health", "Social", "Reset"];
     const DEFAULT_HABITS = ["Drink water", "Study 30 min"];
     
-    // ===== supabase helpers (cloud auth) =====
     function getMode() {
         return (window.Selfio?.store?.mode?.() || window.Selfio?.config?.mode || "demo");
     }
@@ -17,17 +16,15 @@
     function getSupabaseClient() {
         if (__sbClient) return __sbClient;
 
-        // якщо твій js/cloud/supabase.js вже створив client — беремо його
         if (window.Selfio?.cloud?.client) {
             __sbClient = window.Selfio.cloud.client;
             return __sbClient;
         }
 
-        // fallback: пробуємо створити клієнт тут (якщо підключений UMD supabase-js)
         const url = window.Selfio?.config?.supabaseUrl;
         const key = window.Selfio?.config?.supabaseAnonKey;
 
-        const lib = window.supabase || window.Supabase || null; // UMD зазвичай window.supabase
+        const lib = window.supabase || window.Supabase || null;
         const createClient = lib?.createClient;
 
         if (url && key && typeof createClient === "function") {
@@ -58,12 +55,10 @@
     }
 
     function signinUrl(nextFile) {
-        // якщо в тебе sign.js підтримує mode=login — лишай. Якщо ні, прибери mode=login.
         const next = encodeURIComponent(nextFile);
         return `signin.html?mode=login&next=${next}`;
     }
 
-    // ===== utils =====
     function ymd(d = new Date()) {
         const yyyy = d.getFullYear();
         const mm = String(d.getMonth() + 1).padStart(2, "0");
@@ -100,7 +95,7 @@
 
     function startOfWeekMonday(d) {
         const dt = new Date(d);
-        const shift = (dt.getDay() + 6) % 7; // Mon=0
+        const shift = (dt.getDay() + 6) % 7;
         dt.setDate(dt.getDate() - shift);
         dt.setHours(0, 0, 0, 0);
         return dt;
@@ -118,7 +113,6 @@
         return ymd(dt);
     }
 
-    // ===== plan per email helpers =====
     const VALID_PLANS = new Set(["free", "pro", "premium"]);
 
     function normalizePlan(p) {
@@ -137,22 +131,17 @@
     function getPlanSelectedForCurrentUser() {
         const email = currentEmail();
 
-        // 1) головне джерело правди — план, прив’язаний до email
         const perUser = normalizePlan(localStorage.getItem(planKeyForEmail(email)));
         if (perUser) {
-            // синхронізуємо для відображення в хедері
             localStorage.setItem(PLAN_KEY, perUser);
             return perUser;
         }
 
-        // 2) якщо немає — значить план НЕ вибрано
         return "";
     }
 
 
-    // ===== plans =====
     function getPlan() {
-        // для лімітів: якщо план ще не вибрано — вважаємо free
         return getPlanSelectedForCurrentUser() || "free";
     }
 
@@ -168,21 +157,21 @@
     function planLimits(plan) {
         if (plan === "free") return { maxTasksPerDay: 5 };
         if (plan === "pro") return { maxTasksPerDay: 10 };
-        return { maxTasksPerDay: 15 }; // premium
+        return { maxTasksPerDay: 15 };
     }
 
     function weekPlanHorizonWeeks() {
         const p = getPlan();
         if (p === "free") return 0;
         if (p === "pro") return 2;
-        return 8; // premium
+        return 8;
     }
 
     function weekPlanGoalsLimit() {
         const p = getPlan();
         if (p === "free") return 0;
         if (p === "pro") return 3;
-        return 8; // premium
+        return 8;
     }
 
     function ensureWeekPlanState(state, key) {
@@ -190,7 +179,7 @@
         if (!state.weeks[key]) state.weeks[key] = { goals: [], note: "" };
 
         const wp = state.weeks[key];
-        const maxGoals = weekPlanGoalsLimit(); // pro=3, premium=8
+        const maxGoals = weekPlanGoalsLimit();
         const minGoals = maxGoals ? Math.min(3, maxGoals) : 0;
 
         if (!Array.isArray(wp.goals)) wp.goals = [];
@@ -201,7 +190,6 @@
         return wp;
     }
 
-    // ===== stats helpers =====
     function countPlannedTasks(tasks = []) {
         return tasks.map((t) => norm(t)).filter(Boolean).length;
     }
@@ -261,7 +249,6 @@
         return null;
     }
 
-    // stable hash (FNV-1a)
     function hashString(str) {
         let h = 2166136261;
         for (let i = 0; i < str.length; i++) {
@@ -284,7 +271,6 @@
         return "reset";
     }
 
-    // ===== Book library =====
     const BOOKS = {
         reset: {
             general: [
@@ -387,7 +373,6 @@
         return seededPick(pool, seed) || pool[0];
     }
 
-    // ===== storage =====
     function appStorageKey() {
         let email = normLower(localStorage.getItem(EMAIL_KEY));
         if (!email) email = "anon";
@@ -419,7 +404,6 @@
 
         const m = getMode();
 
-        // Cloud (Supabase): джерело правди — session
         if (m === "cloud") {
             const session = await getSupabaseSession();
             const email = session?.user?.email;
@@ -429,13 +413,11 @@
                 return false;
             }
 
-            // синхронізуємо legacy-ключі (щоб твій код нижче не ламався)
             localStorage.setItem(EMAIL_KEY, email);
-            localStorage.setItem(TOKEN_KEY, "sb"); // "маркер" сумісності
+            localStorage.setItem(TOKEN_KEY, "sb");
             return true;
         }
 
-        // Demo/Local: залишаємо стару перевірку по selfio_token
         const token = localStorage.getItem(TOKEN_KEY);
         if (!token) {
             location.replace(signinUrl(nextFile));
@@ -451,7 +433,6 @@
         const meta = document.querySelector("[data-app-meta]");
         if (meta) meta.textContent = `${email} • ${plan}`;
 
-        // optional: якщо десь є окремі місця під email/plan
         document.querySelectorAll("[data-user-email]").forEach(el => (el.textContent = email));
         document.querySelectorAll("[data-user-plan]").forEach(el => (el.textContent = plan));
     }
@@ -467,48 +448,40 @@
 
                 const m = getMode();
 
-                // cloud: корректний logout з Supabase
                 if (m === "cloud") {
                     await supabaseSignOutSafe();
                 }
 
-                // чистимо legacy/local дані
                 localStorage.removeItem(TOKEN_KEY);
                 localStorage.removeItem(EMAIL_KEY);
                 localStorage.removeItem(PLAN_KEY);
 
-                // не залишаємо app-page в history
                 location.replace("../index.html");
             });
         });
 
-        // BFCache (Back) — перевіряємо auth ще раз
         if (window.__selfio_pageshow_bound) return;
         window.__selfio_pageshow_bound = true;
 
         window.addEventListener("pageshow", async () => {
             const ok = await requireAuth();
-            if (!ok) return; // requireAuth сам редіректне
+            if (!ok) return;
         });
     }
 
-    // ===== state normalize / migration =====
     function initState() {
         const state = loadApp();
         state.days = state.days || {};
         state.settings = state.settings || {};
         state.weeks = state.weeks || {};
 
-        // focuses
         if (!Array.isArray(state.settings.focuses) || state.settings.focuses.length === 0) {
             state.settings.focuses = DEFAULT_FOCUSES.slice();
         }
 
-        // tasksCount
         const limits = planLimits(getPlan());
         state.settings.tasksCount = clamp(safeNum(state.settings.tasksCount, 3), 1, limits.maxTasksPerDay);
 
-        // habits master list
         if (!Array.isArray(state.settings.habits) || state.settings.habits.length === 0) {
             const today = state.days[ymd()];
             if (today && Array.isArray(today.habits) && today.habits.length) {
@@ -518,13 +491,11 @@
             }
         }
 
-        // migrate each day to habitDone array
         const masterHabits = state.settings.habits;
 
         Object.keys(state.days).forEach((key) => {
             const day = state.days[key] || {};
 
-            // old format habits -> habitDone
             if (Array.isArray(day.habits) && day.habits.length) {
                 const map = new Map(day.habits.map((h) => [normLower(h.name), !!h.done]));
                 day.habitDone = masterHabits.map((name) => !!map.get(normLower(name)));
@@ -556,7 +527,6 @@
         day.tasksDone = day.tasksDone.slice(0, count);
     }
 
-    // ===== Today page =====
     function todayPage() {
         const page = document.body.getAttribute("data-page");
         if (page !== "today") return;
@@ -581,7 +551,6 @@
         state.settings.tasksCount = clamp(safeNum(state.settings.tasksCount, 3), 1, limits.maxTasksPerDay);
         ensureTasksLen(day, state.settings.tasksCount);
 
-        // mood
         const moodBtns = Array.from(document.querySelectorAll("[data-mood]"));
         function paintMood() {
             moodBtns.forEach((btn) => {
@@ -598,7 +567,6 @@
         });
         paintMood();
 
-        // focus
         const focusSel = document.querySelector("[data-focus]");
         const focusNew = document.querySelector("[data-focus-new]");
         const focusAdd = document.querySelector("[data-focus-add]");
@@ -645,7 +613,6 @@
             });
         }
 
-        // tasks
         const tasksWrap = document.querySelector("[data-tasks]");
         const tasksCountSel = document.querySelector("[data-tasks-count]");
         const tasksProgress = document.querySelector("[data-tasks-progress]");
@@ -726,7 +693,6 @@
 
         renderTasks();
 
-        // Quick add (Today/Tomorrow/+2d) — Pro/Premium for future days
         (function quickAdd() {
             const input = document.querySelector("[data-quick-task]");
             const whenSel = document.querySelector("[data-quick-when]");
@@ -743,7 +709,6 @@
                 setTimeout(() => (toastEl.style.display = "none"), 1600);
             }
 
-            // lock future options in Free (без повторного "(PRO)")
             Array.from(whenSel.options).forEach((opt) => {
                 const v = Number(opt.value);
                 if (v > 0 && !unlocked) {
@@ -807,7 +772,6 @@
             });
         })();
 
-        // Move undone tasks → tomorrow (Pro/Premium)
         (function carryToTomorrow() {
             const btn = document.querySelector("[data-carry-tomorrow]");
             if (!btn) return;
@@ -858,7 +822,6 @@
             });
         })();
 
-        // Week plan mini (PRO/Premium): show goals + push to Today
         (function weekMini() {
             const wm = document.querySelector("[data-weekmini]");
             if (!wm) return;
@@ -942,7 +905,6 @@
             }
         })();
 
-        // habits
         const habitsWrap = document.querySelector("[data-habits]");
         const masterHabits = state.settings.habits;
 
@@ -985,7 +947,6 @@
 
         renderHabits();
 
-        // note
         const note = document.querySelector("[data-note]");
         if (note) {
             note.value = day.note || "";
@@ -995,7 +956,6 @@
             });
         }
 
-        // reset
         const reset = document.querySelector("[data-reset-today]");
         if (reset) {
             reset.addEventListener("click", () => {
@@ -1018,7 +978,6 @@
         saveApp(state);
     }
 
-    // ===== streaks =====
     function getDayStats(state, key) {
         const d = state.days[key] || {};
 
@@ -1056,7 +1015,6 @@
         return { label: "Reset", cls: "badge--reset" };
     }
 
-    // ===== Weekly page =====
     function weeklyPage() {
         const page = document.body.getAttribute("data-page");
         if (page !== "weekly") return;
@@ -1090,7 +1048,6 @@
         const now = new Date();
         const names = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-        // base Monday (this week)
         const shift = (now.getDay() + 6) % 7;
         const baseMonday = new Date(now);
         baseMonday.setDate(now.getDate() - shift);
@@ -1102,7 +1059,6 @@
         let weekOffset = 0;
         let activeWeekKey = null;
 
-        // week plan dom
         const wpCard = document.querySelector("[data-weekplan]");
         const wpRange = document.querySelector("[data-weekplan-range]");
         const wpPrev = document.querySelector("[data-weekplan-prev]");
@@ -1264,7 +1220,7 @@
         function renderWeekGoals(wp) {
             if (!goalsWrap) return;
 
-            const maxGoals = weekPlanGoalsLimit(); // pro=3, premium=8
+            const maxGoals = weekPlanGoalsLimit();
             const minGoals = maxGoals ? Math.min(3, maxGoals) : 0;
 
             wp.goals = Array.isArray(wp.goals) ? wp.goals : [];
@@ -1296,7 +1252,6 @@
 
                 row.appendChild(input);
 
-                // remove тільки для додаткових (4+) і тільки Premium
                 if (premiumUnlocked && i >= 3) {
                     const del = document.createElement("button");
                     del.type = "button";
@@ -1416,7 +1371,6 @@
 
             const weekScore = pct(weekDone, weekPlanned);
 
-            // topTag
             let topTag = null;
             const maxTagVal = Math.max(tagCounts.biz, tagCounts.crypto, tagCounts.sport, tagCounts.growth);
             if (maxTagVal > 0) {
@@ -1446,7 +1400,6 @@
                 weekLinesEl.innerHTML = `${line1}<br>${line2}`;
             }
 
-            // month insights
             if (monthLinesEl) {
                 if (!isPremium()) {
                     monthLinesEl.innerHTML = `Upgrade to <b>Premium</b> to see Month insights.`;
@@ -1530,7 +1483,6 @@
             saveApp(state);
         }
 
-        // buttons
         if (wpPrev && wpPrev.dataset.bound !== "1") {
             wpPrev.dataset.bound = "1";
             wpPrev.addEventListener("click", () => renderForOffset(weekOffset - 1));
@@ -1576,7 +1528,6 @@
             });
         }
 
-        // Premium: Apply template
         if (wpTemplateApply && wpTemplateApply.dataset.bound !== "1") {
             wpTemplateApply.dataset.bound = "1";
             wpTemplateApply.addEventListener("click", () => {
@@ -1601,7 +1552,6 @@
             });
         }
 
-        // Premium: Clear
         if (wpClear && wpClear.dataset.bound !== "1") {
             wpClear.dataset.bound = "1";
             wpClear.addEventListener("click", () => {
@@ -1625,7 +1575,6 @@
         renderForOffset(0);
     }
 
-    // ===== Settings page =====
     function settingsPage() {
         const page = document.body.getAttribute("data-page");
         if (page !== "settings") return;
@@ -1699,7 +1648,6 @@
         }
     }
 
-    // ===== Habits page =====
     function habitsPage() {
         const page = document.body.getAttribute("data-page");
         if (page !== "habits") return;
@@ -1792,7 +1740,6 @@
         render();
     }
 
-    // ===== init =====
     const isAppPage = document.body.hasAttribute("data-app");
     if (!isAppPage) return;
 
@@ -1800,7 +1747,6 @@
 
     if (!(await requireAuth())) return;
 
-    // якщо план не вибрано — пускаємо тільки на choose-plan
     const selected = getPlanSelectedForCurrentUser();
     if (!selected && page !== "choose-plan") {
         const next = encodeURIComponent(pageFileFromDataPage(page));

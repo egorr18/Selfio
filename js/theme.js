@@ -1,12 +1,11 @@
 (() => {
-    const root = document.documentElement; // <html>
-    const key = "theme"; // localStorage key
+    const root = document.documentElement;
+    const key = "theme";
     const btn = document.querySelector("[data-theme-toggle]");
 
-    // apply saved theme if exists
     const saved = localStorage.getItem(key);
     if (saved === "dark" || saved === "light") {
-        root.dataset.theme = saved; // sets <html data-theme="dark">
+        root.dataset.theme = saved;
     }
 
     const systemPrefersDark = () =>
@@ -26,7 +25,6 @@
 
     paintBtn();
 
-    // if user didn't pick manually, react to system changes
     const mq = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
     if (mq && mq.addEventListener) {
         mq.addEventListener("change", () => {

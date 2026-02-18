@@ -1,16 +1,10 @@
-// ======================================
-// MAIN.JS — UI ONLY (no auth here)
-// ======================================
-
 document.addEventListener("DOMContentLoaded", () => {
-  // Prefill email (from signin/start)
   const savedEmail = localStorage.getItem("prefill_email");
   if (savedEmail) {
     const emailInput = document.querySelector("input[type='email']");
     if (emailInput) emailInput.value = savedEmail;
   }
 
-  // Intersection Observer animations
   const observer = new IntersectionObserver(
       entries => {
         entries.forEach(entry => {
@@ -24,7 +18,6 @@ document.addEventListener("DOMContentLoaded", () => {
     observer.observe(section);
   });
 
-  // Pricing toggle logic
   const toggle = document.querySelector(".toggle-switch");
   const labels = document.querySelectorAll(".toggle-label");
   const prices = document.querySelectorAll(".price");

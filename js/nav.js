@@ -1,5 +1,4 @@
 (() => {
-  // ---- active link highlight ----
   const links = document.querySelectorAll(".nav a");
   const currentPage = location.pathname.split("/").pop() || "index.html";
 
@@ -10,7 +9,6 @@
     }
   });
 
-  // ---- mobile burger menu ----
   const root = document.documentElement;
   const btn = document.querySelector("[data-nav-toggle]");
   const drawer = document.querySelector("[data-nav-drawer]");
@@ -34,17 +32,14 @@
     root.classList.contains("nav-open") ? closeMenu() : openMenu();
   });
 
-  // close on link click
   drawer.querySelectorAll("a").forEach((a) => {
     a.addEventListener("click", () => closeMenu());
   });
 
-  // close on Escape
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") closeMenu();
   });
 
-  // close when clicking outside
   document.addEventListener("click", (e) => {
     if (!root.classList.contains("nav-open")) return;
     const t = e.target;
@@ -52,7 +47,6 @@
     closeMenu();
   });
 
-  // close when switching to desktop
   const mq = window.matchMedia("(min-width: 769px)");
   mq.addEventListener("change", () => {
     if (mq.matches) closeMenu();

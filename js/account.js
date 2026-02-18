@@ -1,4 +1,3 @@
-// js/account.js — SIMPLE (profile + export only)
 (() => {
   const toast = (m) => (window.Selfio?.toast ? window.Selfio.toast(m) : alert(String(m)));
 
@@ -49,7 +48,6 @@
       return;
     }
 
-    // Elements
     const elEmail = document.querySelector("[data-account-email]");
     const elName = document.querySelector("[data-account-name]");
     const elMemberSince = document.querySelector("[data-member-since]");
@@ -68,7 +66,6 @@
         return;
       }
 
-      // ensure profile exists + read it
       if (typeof cloud.ensureProfile === "function") await cloud.ensureProfile();
       const profile = (typeof cloud.getMyProfile === "function")
         ? await cloud.getMyProfile()
@@ -84,13 +81,11 @@
       if (elMemberSince) elMemberSince.textContent = formatDate(profile.created_at || user.created_at);
       if (elMeta) elMeta.textContent = `${email || "—"} • ${plan.toUpperCase()}`;
 
-      // локальні кеші
       localStorage.setItem("selfio_email", email);
       localStorage.setItem("selfio_plan", plan);
       localStorage.setItem(`selfio_plan:${email || "anon"}`, plan);
     }
 
-    // Copy email
     btnCopyEmail?.addEventListener("click", async () => {
       const email = (elEmail?.value || "").trim();
       if (!email) return;
@@ -112,7 +107,6 @@
       }
     });
 
-    // Save name (debounced)
     let nameTimer = null;
     elName?.addEventListener("input", () => {
       const v = String(elName.value ?? "");
@@ -132,7 +126,6 @@
       }, 450);
     });
 
-    // Export
     btnExport?.addEventListener("click", async () => {
       try {
         const user = await cloud.getUser().catch(() => null);

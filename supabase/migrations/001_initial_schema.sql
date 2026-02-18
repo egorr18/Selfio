@@ -48,7 +48,6 @@ create trigger trg_user_plans_updated_at
 before update on public.user_plans
 for each row execute function public.set_updated_at();
 
--- Create profile + plan after auth signup
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin

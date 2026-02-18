@@ -1,4 +1,3 @@
-// js/core/api.js
 (function () {
   window.Selfio = window.Selfio || {};
 
@@ -15,7 +14,6 @@
     return data.user.id;
   }
 
-  // PROFILE
   async function getMyProfile() {
     const id = await uid();
     const { data, error } = await sb().from("profiles").select("*").eq("id", id).single();
@@ -35,7 +33,6 @@
     return data;
   }
 
-  // PLAN
   async function getMyPlan() {
     const id = await uid();
     const { data, error } = await sb()

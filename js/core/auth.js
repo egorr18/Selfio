@@ -1,4 +1,3 @@
-// js/core/auth.js
 (function () {
   window.Selfio = window.Selfio || {};
 
