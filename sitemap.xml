@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+
+  <url>
+    <loc>https://egorr18.github.io/Selfio/en/pages/index.html</loc>
+    <lastmod>2026-02-05</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://egorr18.github.io/Selfio/en/pages/index.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://egorr18.github.io/Selfio/uk/pages/index.html"/>
+  </url>
+
+  <url>
+    <loc>https://egorr18.github.io/Selfio/en/pages/why-selfio.html</loc>
+    <lastmod>2026-02-05</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://egorr18.github.io/Selfio/en/pages/why-selfio.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://egorr18.github.io/Selfio/uk/pages/why-selfio.html"/>
+  </url>
+
+  <url>
+    <loc>https://egorr18.github.io/Selfio/en/pages/solutions.html</loc>
+    <lastmod>2026-02-05</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://egorr18.github.io/Selfio/en/pages/solutions.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://egorr18.github.io/Selfio/uk/pages/solutions.html"/>
+  </url>
+
+  <url>
+    <loc>https://egorr18.github.io/Selfio/en/pages/community.html</loc>
+    <lastmod>2026-02-05</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://egorr18.github.io/Selfio/en/pages/community.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://egorr18.github.io/Selfio/uk/pages/community.html"/>
+  </url>
+
+  <url>
+    <loc>https://egorr18.github.io/Selfio/en/pages/pricing.html</loc>
+    <lastmod>2026-02-05</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://egorr18.github.io/Selfio/en/pages/pricing.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://egorr18.github.io/Selfio/uk/pages/pricing.html"/>
+  </url>
+  
+</urlset>
