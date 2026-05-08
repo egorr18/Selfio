@@ -1,0 +1,133 @@
+@model HabitTracker.ViewModels.AnalyticsViewModel
+
+@{
+    ViewData["Title"] = "Аналітика";
+}
+
+<section class="d-flex justify-content-between align-items-start gap-3 mb-3">
+    <div>
+        <h1>Аналітика</h1>
+        <p class="text-muted mb-0">Статистика виконання звичок станом на @Model.Today.ToString("dd.MM.yyyy").</p>
+    </div>
+    <a class="btn btn-outline-primary" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
+</section>
+
+@if (Model.TotalHabits == 0)
+{
+    <section class="card p-4 text-center">
+        <h2 class="h4">Аналітика ще недоступна</h2>
+        <p class="text-muted">Створи хоча б одну звичку, щоб система почала рахувати прогрес.</p>
+        <a class="btn btn-primary mx-auto" asp-controller="Habits" asp-action="Create">Додати звичку</a>
+    </section>
+}
+else
+{
+    <section class="row g-3 mb-3">
+        <div class="col-md-4">
+            <article class="card h-100 p-3">
+                <div class="text-muted small">Daily completion rate</div>
+                <div class="display-6 fw-semibold">@Model.DailyCompletionPercentage%</div>
+                <div class="text-muted">@Model.CompletedToday / @Model.TotalHabits виконано сьогодні</div>
+                <div class="progress mt-3" style="height: 12px;">
+                    <div class="progress-bar" style="width:@Model.DailyCompletionPercentage%;"></div>
+                </div>
+            </article>
+        </div>
+        <div class="col-md-4">
+            <article class="card h-100 p-3">
+                <div class="text-muted small">Weekly statistics</div>
+                <div class="display-6 fw-semibold">@Model.WeeklyCompletionPercentage%</div>
+                <div class="text-muted">@Model.WeeklyCompletedRecords / @Model.WeeklyPossibleRecords виконань за 7 днів</div>
+                <div class="progress mt-3" style="height: 12px;">
+                    <div class="progress-bar bg-success" style="width:@Model.WeeklyCompletionPercentage%;"></div>
+                </div>
+            </article>
+        </div>
+        <div class="col-md-4">
+            <article class="card h-100 p-3">
+                <div class="text-muted small">Monthly statistics</div>
+                <div class="display-6 fw-semibold">@Model.MonthlyCompletionPercentage%</div>
+                <div class="text-muted">@Model.MonthlyCompletedRecords / @Model.MonthlyPossibleRecords виконань за 30 днів</div>
+                <div class="progress mt-3" style="height: 12px;">
+                    <div class="progress-bar bg-info" style="width:@Model.MonthlyCompletionPercentage%;"></div>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <section class="row g-3 mb-3">
+        <div class="col-md-4">
+            <article class="card h-100 p-3">
+                <div class="text-muted small">Current streak</div>
+                <div class="display-6 fw-semibold">@Model.CurrentStreak</div>
+                <div class="text-muted">днів поспіль із виконаною звичкою</div>
+            </article>
+        </div>
+        <div class="col-md-4">
+            <article class="card h-100 p-3">
+                <div class="text-muted small">Best habit</div>
+                @if (Model.BestHabit is null)
+                {
+                    <div class="h4">-</div>
+                }
+                else
+                {
+                    <div class="h4">@Model.BestHabit.Title</div>
+                    <div class="text-muted">@Model.BestHabit.CompletionPercentage% за 30 днів</div>
+                }
+            </article>
+        </div>
+        <div class="col-md-4">
+            <article class="card h-100 p-3">
+                <div class="text-muted small">Weak habit</div>
+                @if (Model.WeakHabit is null)
+                {
+                    <div class="h4">-</div>
+                }
+                else
+                {
+                    <div class="h4">@Model.WeakHabit.Title</div>
+                    <div class="text-muted">@Model.WeakHabit.CompletionPercentage% за 30 днів</div>
+                }
+            </article>
+        </div>
+    </section>
+
+    <section class="card p-3">
+        <h2 class="h5 mb-3">Прогрес за звичками</h2>
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                <tr>
+                    <th>Звичка</th>
+                    <th>Виконано днів</th>
+                    <th>Період</th>
+                    <th>Відсоток</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach (var habit in Model.HabitPerformances)
+                {
+                    <tr>
+                        <td>@habit.Title</td>
+                        <td>@habit.CompletedDays</td>
+                        <td>@habit.TrackedDays днів</td>
+                        <td style="min-width:180px;">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="progress flex-grow-1" style="height: 10px;">
+                                    <div class="progress-bar" style="width:@habit.CompletionPercentage%;"></div>
+                                </div>
+                                <span>@habit.CompletionPercentage%</span>
+                            </div>
+                        </td>
+                        <td>
+                            <a class="btn btn-outline-secondary btn-sm" asp-controller="Habits" asp-action="Details" asp-route-id="@habit.HabitId">Деталі</a>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </section>
+}

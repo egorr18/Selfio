@@ -1,0 +1,44 @@
+@model HabitTracker.ViewModels.HabitDetailsViewModel
+
+@{
+    ViewData["Title"] = "Деталі звички";
+}
+
+<section class="card p-4">
+    <div class="d-flex justify-content-between align-items-start gap-3">
+        <div>
+            <h1>@Model.Title</h1>
+            @if (!string.IsNullOrWhiteSpace(Model.CategoryName))
+            {
+                <span class="badge mb-2" style="background:@Model.CategoryColor">@Model.CategoryName</span>
+            }
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-outline-secondary" asp-action="Edit" asp-route-id="@Model.Id">Редагувати</a>
+            <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@Model.Id">Видалити</a>
+        </div>
+    </div>
+
+    <p class="text-muted mt-3">
+        @(string.IsNullOrWhiteSpace(Model.Description) ? "Опис не додано." : Model.Description)
+    </p>
+
+    <dl class="row mt-3">
+        <dt class="col-sm-3">Частота</dt>
+        <dd class="col-sm-9">@Model.Frequency</dd>
+
+        <dt class="col-sm-3">Пріоритет</dt>
+        <dd class="col-sm-9">@Model.Priority</dd>
+
+        <dt class="col-sm-3">Колір</dt>
+        <dd class="col-sm-9">@(Model.Color ?? "Не задано")</dd>
+
+        <dt class="col-sm-3">Іконка</dt>
+        <dd class="col-sm-9">@(Model.Icon ?? "Не задано")</dd>
+
+        <dt class="col-sm-3">Створено</dt>
+        <dd class="col-sm-9">@Model.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</dd>
+    </dl>
+
+    <a class="btn btn-outline-secondary" asp-action="Index">Назад до списку</a>
+</section>

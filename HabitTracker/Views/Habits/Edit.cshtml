@@ -1,0 +1,18 @@
+@model HabitTracker.ViewModels.HabitFormViewModel
+
+@{
+    ViewData["Title"] = "Редагувати звичку";
+}
+
+<section class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card p-4">
+            <h1 class="h3 mb-3">Редагувати звичку</h1>
+            <partial name="_HabitForm" model="Model" />
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

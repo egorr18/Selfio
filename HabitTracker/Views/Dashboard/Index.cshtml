@@ -1,0 +1,127 @@
+@model HabitTracker.ViewModels.DashboardViewModel
+
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<section class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+    <div>
+        <p class="text-uppercase text-muted fw-semibold mb-1">Сьогодні: @Model.Today.ToString("dd.MM.yyyy")</p>
+        <h1 class="mb-1">Привіт, @Model.Username!</h1>
+        <p class="text-muted mb-0">Відмічай звички, стеж за прогресом і тримай темп.</p>
+    </div>
+    <a class="btn btn-primary" asp-controller="Habits" asp-action="Create">Додати звичку</a>
+</section>
+
+<section class="row g-3 mb-3">
+    <div class="col-md-3">
+        <article class="card h-100 p-3">
+            <div class="text-muted small">Активні звички</div>
+            <div class="display-6 fw-semibold">@Model.TotalHabits</div>
+        </article>
+    </div>
+    <div class="col-md-3">
+        <article class="card h-100 p-3">
+            <div class="text-muted small">Виконано сьогодні</div>
+            <div class="display-6 fw-semibold">@Model.CompletedToday</div>
+        </article>
+    </div>
+    <div class="col-md-3">
+        <article class="card h-100 p-3">
+            <div class="text-muted small">Не виконано</div>
+            <div class="display-6 fw-semibold">@Model.NotCompletedToday</div>
+        </article>
+    </div>
+    <div class="col-md-3">
+        <article class="card h-100 p-3">
+            <div class="text-muted small">Поточний streak</div>
+            <div class="display-6 fw-semibold">@Model.CurrentStreak</div>
+            <div class="text-muted small">днів поспіль</div>
+        </article>
+    </div>
+</section>
+
+<section class="card p-4 mb-3">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+        <h2 class="h5 mb-0">Прогрес дня</h2>
+        <span class="fw-semibold">@Model.CompletedToday / @Model.TotalHabits (@Model.CompletionPercentage%)</span>
+    </div>
+    <div class="progress" style="height: 18px;">
+        <div class="progress-bar" role="progressbar" style="width: @Model.CompletionPercentage%;"
+             aria-valuenow="@Model.CompletionPercentage" aria-valuemin="0" aria-valuemax="100">
+        </div>
+    </div>
+</section>
+
+@if (!Model.Habits.Any())
+{
+    <section class="card p-4 text-center">
+        <h2 class="h4">Немає активних звичок</h2>
+        <p class="text-muted">Додай першу звичку, щоб Dashboard почав показувати прогрес.</p>
+        <a class="btn btn-primary mx-auto" asp-controller="Habits" asp-action="Create">Додати звичку</a>
+    </section>
+}
+else
+{
+    <section class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+        <h2 class="h4 mb-0">Звички на сьогодні</h2>
+        <a class="btn btn-outline-secondary btn-sm" asp-controller="Analytics" asp-action="Index">Переглянути аналітику</a>
+    </section>
+
+    <section class="row g-3">
+        @foreach (var habit in Model.Habits)
+        {
+            <div class="col-md-6 col-xl-4">
+                <article class="card h-100 @(habit.IsCompletedToday ? "border-success" : "")">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between gap-2">
+                            <h3 class="h5">@habit.Title</h3>
+                            @if (habit.IsCompletedToday)
+                            {
+                                <span class="badge text-bg-success">Виконано</span>
+                            }
+                            else
+                            {
+                                <span class="badge text-bg-secondary">Очікує</span>
+                            }
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(habit.CategoryName))
+                        {
+                            <span class="badge mb-2" style="background:@habit.CategoryColor">@habit.CategoryName</span>
+                        }
+
+                        <p class="text-muted small mb-3">
+                            @(string.IsNullOrWhiteSpace(habit.Description) ? "Без опису" : habit.Description)
+                        </p>
+
+                        <div class="small text-muted mb-3">
+                            Пріоритет: @habit.Priority · Частота: @habit.Frequency
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-2">
+                            @if (habit.IsCompletedToday)
+                            {
+                                <form asp-controller="HabitRecords" asp-action="CancelToday" method="post" class="m-0">
+                                    <input type="hidden" name="habitId" value="@habit.Id" />
+                                    <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+                                    <button type="submit" class="btn btn-outline-warning btn-sm">Скасувати</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <form asp-controller="HabitRecords" asp-action="CompleteToday" method="post" class="m-0">
+                                    <input type="hidden" name="habitId" value="@habit.Id" />
+                                    <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+                                    <button type="submit" class="btn btn-success btn-sm">Виконано сьогодні</button>
+                                </form>
+                            }
+
+                            <a class="btn btn-outline-secondary btn-sm" asp-controller="Habits" asp-action="Details" asp-route-id="@habit.Id">Деталі</a>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        }
+    </section>
+}

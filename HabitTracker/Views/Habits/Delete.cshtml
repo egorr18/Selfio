@@ -1,0 +1,23 @@
+@model HabitTracker.ViewModels.HabitDetailsViewModel
+
+@{
+    ViewData["Title"] = "Видалити звичку";
+}
+
+<section class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card p-4 border-danger">
+            <h1 class="h3">Видалити звичку?</h1>
+            <p class="text-muted">
+                Звичка <strong>@Model.Title</strong> буде прихована зі списку. Історія виконання залишиться в базі для майбутньої аналітики.
+            </p>
+
+            <form asp-action="Delete" asp-route-id="@Model.Id" method="post">
+                <div class="d-flex flex-wrap gap-2">
+                    <button type="submit" class="btn btn-danger">Так, видалити</button>
+                    <a class="btn btn-outline-secondary" asp-action="Details" asp-route-id="@Model.Id">Скасувати</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
