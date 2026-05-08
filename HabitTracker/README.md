@@ -54,6 +54,6 @@ The local `habittracker.db` file is ignored by git.
 - Dashboard
 - Analytics: daily, weekly, monthly progress, streak, best habit, weak habit
 
-## Note About GitHub Pages
+## GitHub Pages Note
 
 GitHub Pages can host only static HTML/CSS/JS. The ASP.NET Core MVC version must be run locally with `dotnet run` or deployed to a .NET hosting platform.
