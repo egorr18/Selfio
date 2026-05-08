@@ -30,6 +30,7 @@ public class AnalyticsService(ApplicationDbContext dbContext) : IAnalyticsServic
 
         var monthlyCompleted = CountCompletedRecords(habits, monthStart, today);
         var monthlyPossible = totalHabits * MonthLength;
+        var weeklyActivity = BuildWeeklyActivity(habits, weekStart, today);
 
         var performances = habits
             .Select(habit =>
@@ -68,6 +69,9 @@ public class AnalyticsService(ApplicationDbContext dbContext) : IAnalyticsServic
             CurrentStreak = CalculateCurrentStreak(habits, today),
             BestHabit = performances.FirstOrDefault(),
             WeakHabit = performances.OrderBy(item => item.CompletionPercentage).ThenBy(item => item.Title).FirstOrDefault(),
+            WeeklyInsight = BuildWeeklyInsight(weeklyActivity),
+            MonthlyInsight = BuildMonthlyInsight(CalculatePercentage(monthlyCompleted, monthlyPossible)),
+            WeeklyActivity = weeklyActivity,
             HabitPerformances = performances
         };
     }
@@ -117,5 +121,49 @@ public class AnalyticsService(ApplicationDbContext dbContext) : IAnalyticsServic
         return total == 0
             ? 0
             : (int)Math.Round((double)completed / total * 100);
+    }
+
+    private static List<WeeklyActivityViewModel> BuildWeeklyActivity(List<Habit> habits, DateOnly from, DateOnly to)
+    {
+        var days = new List<WeeklyActivityViewModel>();
+
+        for (var date = from; date <= to; date = date.AddDays(1))
+        {
+            var completed = habits.Count(habit => HasCompletedRecord(habit, date));
+
+            days.Add(new WeeklyActivityViewModel
+            {
+                Date = date,
+                DayLabel = date.ToString("ddd"),
+                Completed = completed,
+                Total = habits.Count
+            });
+        }
+
+        return days;
+    }
+
+    private static string BuildWeeklyInsight(List<WeeklyActivityViewModel> weeklyActivity)
+    {
+        if (weeklyActivity.Count == 0 || weeklyActivity.All(day => day.Total == 0))
+        {
+            return "Додай першу звичку, щоб побачити тижневий ритм.";
+        }
+
+        var bestDay = weeklyActivity.OrderByDescending(day => day.Percentage).First();
+        var weakDay = weeklyActivity.OrderBy(day => day.Percentage).First();
+
+        return $"Найсильніший день тижня: {bestDay.Date:dd.MM} ({bestDay.Percentage}%). Найслабший: {weakDay.Date:dd.MM} ({weakDay.Percentage}%).";
+    }
+
+    private static string BuildMonthlyInsight(int monthlyPercentage)
+    {
+        return monthlyPercentage switch
+        {
+            >= 80 => "Місячна стабільність висока. Можна обережно додати нову маленьку звичку.",
+            >= 50 => "Є робочий ритм. Сфокусуйся на одній слабкій звичці, а не на всіх одразу.",
+            > 0 => "Початок уже є. Спростити звички краще, ніж кинути їх повністю.",
+            _ => "За місяць ще немає виконань. Почни з дії, яку можна зробити за 2 хвилини."
+        };
     }
 }

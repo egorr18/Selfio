@@ -1,8 +1,34 @@
 @model HabitTracker.ViewModels.HabitFormViewModel
 
-<form method="post" novalidate>
+<form method="post" novalidate class="habit-form">
     <input asp-for="Id" type="hidden" />
     <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+    <section class="template-picker mb-4">
+        <div>
+            <p class="eyebrow">Habit templates</p>
+            <h2>Швидкий старт</h2>
+            <p>Ідея з конкурентів: користувач не вигадує все з нуля, а стартує з готового шаблону.</p>
+        </div>
+        <div class="template-grid">
+            <button type="button" class="template-card" data-title="Пити воду" data-description="Випити 8 склянок води протягом дня." data-icon="💧" data-color="#1c7ed6" data-priority="2">
+                <span>💧</span>
+                <strong>Вода</strong>
+            </button>
+            <button type="button" class="template-card" data-title="Читати 10 сторінок" data-description="Прочитати мінімум 10 сторінок книги або навчального матеріалу." data-icon="📘" data-color="#7048e8" data-priority="2">
+                <span>📘</span>
+                <strong>Читання</strong>
+            </button>
+            <button type="button" class="template-card" data-title="Тренування" data-description="Зробити коротке тренування або прогулянку." data-icon="🏃" data-color="#2f9e44" data-priority="3">
+                <span>🏃</span>
+                <strong>Спорт</strong>
+            </button>
+            <button type="button" class="template-card" data-title="Вивчати C#" data-description="Приділити 30 хвилин практиці C# або роботі над курсовим проєктом." data-icon="💻" data-color="#f08c00" data-priority="3">
+                <span>💻</span>
+                <strong>Навчання</strong>
+            </button>
+        </div>
+    </section>
 
     <div class="mb-3">
         <label asp-for="Title" class="form-label">Назва</label>
@@ -39,13 +65,19 @@
     <div class="row g-3 mt-1">
         <div class="col-md-6">
             <label asp-for="Color" class="form-label">Колір</label>
-            <input asp-for="Color" class="form-control" placeholder="#1c7ed6" />
+            <div class="color-picker-row">
+                <input asp-for="Color" class="form-control" placeholder="#1c7ed6" />
+                <button type="button" class="color-dot" style="--dot:#1c7ed6" data-color="#1c7ed6" aria-label="Синій"></button>
+                <button type="button" class="color-dot" style="--dot:#2f9e44" data-color="#2f9e44" aria-label="Зелений"></button>
+                <button type="button" class="color-dot" style="--dot:#f08c00" data-color="#f08c00" aria-label="Жовтий"></button>
+                <button type="button" class="color-dot" style="--dot:#7048e8" data-color="#7048e8" aria-label="Фіолетовий"></button>
+            </div>
             <span asp-validation-for="Color" class="text-danger"></span>
         </div>
 
         <div class="col-md-6">
             <label asp-for="Icon" class="form-label">Іконка</label>
-            <input asp-for="Icon" class="form-control" placeholder="book, sport, water..." />
+            <input asp-for="Icon" class="form-control" placeholder="💧, 📘, 🏃, 💻..." />
             <span asp-validation-for="Icon" class="text-danger"></span>
         </div>
     </div>

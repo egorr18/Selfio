@@ -30,22 +30,14 @@ public class HabitService(ApplicationDbContext dbContext) : IHabitService
             query = query.Where(habit => habit.HabitCategoryId == categoryId.Value);
         }
 
-        var habits = await query
+        var habitEntities = await query
             .OrderByDescending(habit => habit.Priority)
             .ThenBy(habit => habit.Title)
-            .Select(habit => new HabitListItemViewModel
-            {
-                Id = habit.Id,
-                Title = habit.Title,
-                Description = habit.Description,
-                CategoryName = habit.Category != null ? habit.Category.Name : null,
-                CategoryColor = habit.Category != null ? habit.Category.Color : null,
-                Frequency = habit.Frequency,
-                Priority = habit.Priority,
-                CreatedAt = habit.CreatedAt,
-                IsCompletedToday = habit.Records.Any(record => record.Date == today && record.IsCompleted)
-            })
             .ToListAsync();
+
+        var habits = habitEntities
+            .Select(habit => MapHabitListItem(habit, today))
+            .ToList();
 
         return new HabitIndexViewModel
         {
@@ -195,26 +187,18 @@ public class HabitService(ApplicationDbContext dbContext) : IHabitService
             .Distinct()
             .ToListAsync();
 
-        var habits = await dbContext.Habits
+        var habitEntities = await dbContext.Habits
             .AsNoTracking()
             .Include(habit => habit.Category)
             .Include(habit => habit.Records)
             .Where(habit => habit.UserId == userId && !habit.IsArchived)
             .OrderByDescending(habit => habit.Priority)
             .ThenBy(habit => habit.Title)
-            .Select(habit => new HabitListItemViewModel
-            {
-                Id = habit.Id,
-                Title = habit.Title,
-                Description = habit.Description,
-                CategoryName = habit.Category != null ? habit.Category.Name : null,
-                CategoryColor = habit.Category != null ? habit.Category.Color : null,
-                Frequency = habit.Frequency,
-                Priority = habit.Priority,
-                CreatedAt = habit.CreatedAt,
-                IsCompletedToday = habit.Records.Any(record => record.Date == today && record.IsCompleted)
-            })
             .ToListAsync();
+
+        var habits = habitEntities
+            .Select(habit => MapHabitListItem(habit, today))
+            .ToList();
 
         return new DashboardViewModel
         {
@@ -240,6 +224,47 @@ public class HabitService(ApplicationDbContext dbContext) : IHabitService
         }
 
         return streak;
+    }
+
+    private static int CalculateHabitStreak(IEnumerable<DateOnly> completedDates, DateOnly today)
+    {
+        return CalculateCurrentStreak(completedDates, today);
+    }
+
+    private static int CalculatePercentage(int completed, int total)
+    {
+        return total == 0
+            ? 0
+            : (int)Math.Round((double)completed / total * 100);
+    }
+
+    private static HabitListItemViewModel MapHabitListItem(Habit habit, DateOnly today)
+    {
+        var completedDates = habit.Records
+            .Where(record => record.IsCompleted)
+            .Select(record => record.Date)
+            .Distinct()
+            .ToList();
+
+        var monthlyCompleted = completedDates
+            .Count(date => date >= today.AddDays(-29) && date <= today);
+
+        return new HabitListItemViewModel
+        {
+            Id = habit.Id,
+            Title = habit.Title,
+            Description = habit.Description,
+            CategoryName = habit.Category?.Name,
+            CategoryColor = habit.Category?.Color,
+            Frequency = habit.Frequency,
+            Priority = habit.Priority,
+            Color = habit.Color,
+            Icon = habit.Icon,
+            CreatedAt = habit.CreatedAt,
+            IsCompletedToday = completedDates.Contains(today),
+            CurrentStreak = CalculateHabitStreak(completedDates, today),
+            MonthlyCompletionPercentage = CalculatePercentage(monthlyCompleted, 30)
+        };
     }
 
     private async Task<List<SelectListItem>> BuildCategorySelectListAsync(int? selectedCategoryId)

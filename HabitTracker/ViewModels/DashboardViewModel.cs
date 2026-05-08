@@ -18,5 +18,34 @@ public class DashboardViewModel
 
     public int CurrentStreak { get; set; }
 
+    public int ConsistencyScore => Math.Min(100, (CompletionPercentage + Math.Min(CurrentStreak * 8, 40)) / 2);
+
+    public int ExperiencePoints => CompletedToday * 15 + CurrentStreak * 10;
+
+    public int Level => Math.Max(1, ExperiencePoints / 100 + 1);
+
+    public string FocusMessage
+    {
+        get
+        {
+            if (TotalHabits == 0)
+            {
+                return "Почни з однієї маленької звички. Найкращий трекер той, який не заважає діяти.";
+            }
+
+            if (CompletionPercentage == 100)
+            {
+                return "Ідеальний день закрито. Збережи темп і не ускладнюй систему.";
+            }
+
+            if (CompletionPercentage >= 60)
+            {
+                return $"Гарний ритм. Залишилось {NotCompletedToday} звичок до повного дня.";
+            }
+
+            return "Вибери одну найпростішу дію і закрий її зараз. Малий прогрес теж рахується.";
+        }
+    }
+
     public List<HabitListItemViewModel> Habits { get; set; } = [];
 }

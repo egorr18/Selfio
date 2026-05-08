@@ -4,12 +4,16 @@
     ViewData["Title"] = "Редагувати звичку";
 }
 
-<section class="row justify-content-center">
-    <div class="col-lg-7">
-        <div class="card p-4">
-            <h1 class="h3 mb-3">Редагувати звичку</h1>
-            <partial name="_HabitForm" model="Model" />
+<section class="form-shell">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Edit habit</p>
+            <h1>Редагувати звичку</h1>
+            <p>Онови назву, пріоритет, колір або категорію без втрати історії виконань.</p>
         </div>
+    </div>
+    <div class="data-card">
+        <partial name="_HabitForm" model="Model" />
     </div>
 </section>
 

@@ -4,124 +4,140 @@
     ViewData["Title"] = "Dashboard";
 }
 
-<section class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
-    <div>
-        <p class="text-uppercase text-muted fw-semibold mb-1">Сьогодні: @Model.Today.ToString("dd.MM.yyyy")</p>
-        <h1 class="mb-1">Привіт, @Model.Username!</h1>
-        <p class="text-muted mb-0">Відмічай звички, стеж за прогресом і тримай темп.</p>
+<section class="product-hero dashboard-hero mb-4">
+    <div class="hero-copy">
+        <p class="eyebrow">Сьогодні: @Model.Today.ToString("dd.MM.yyyy")</p>
+        <h1>Привіт, @Model.Username!</h1>
+        <p>@Model.FocusMessage</p>
+        <div class="hero-actions">
+            <a class="btn btn-primary" asp-controller="Habits" asp-action="Create">+ Додати звичку</a>
+            <a class="btn btn-ghost" asp-controller="Analytics" asp-action="Index">Аналітика</a>
+        </div>
     </div>
-    <a class="btn btn-primary" asp-controller="Habits" asp-action="Create">Додати звичку</a>
-</section>
 
-<section class="row g-3 mb-3">
-    <div class="col-md-3">
-        <article class="card h-100 p-3">
-            <div class="text-muted small">Активні звички</div>
-            <div class="display-6 fw-semibold">@Model.TotalHabits</div>
-        </article>
-    </div>
-    <div class="col-md-3">
-        <article class="card h-100 p-3">
-            <div class="text-muted small">Виконано сьогодні</div>
-            <div class="display-6 fw-semibold">@Model.CompletedToday</div>
-        </article>
-    </div>
-    <div class="col-md-3">
-        <article class="card h-100 p-3">
-            <div class="text-muted small">Не виконано</div>
-            <div class="display-6 fw-semibold">@Model.NotCompletedToday</div>
-        </article>
-    </div>
-    <div class="col-md-3">
-        <article class="card h-100 p-3">
-            <div class="text-muted small">Поточний streak</div>
-            <div class="display-6 fw-semibold">@Model.CurrentStreak</div>
-            <div class="text-muted small">днів поспіль</div>
-        </article>
-    </div>
-</section>
-
-<section class="card p-4 mb-3">
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
-        <h2 class="h5 mb-0">Прогрес дня</h2>
-        <span class="fw-semibold">@Model.CompletedToday / @Model.TotalHabits (@Model.CompletionPercentage%)</span>
-    </div>
-    <div class="progress" style="height: 18px;">
-        <div class="progress-bar" role="progressbar" style="width: @Model.CompletionPercentage%;"
-             aria-valuenow="@Model.CompletionPercentage" aria-valuemin="0" aria-valuemax="100">
+    <div class="daily-panel">
+        <div class="daily-ring" style="--value:@Model.CompletionPercentage">
+            <span>@Model.CompletionPercentage%</span>
+        </div>
+        <div>
+            <div class="panel-label">Daily focus</div>
+            <strong>@Model.CompletedToday / @Model.TotalHabits виконано</strong>
+            <p>@Model.NotCompletedToday звичок ще чекають на дію.</p>
         </div>
     </div>
 </section>
 
+<section class="metric-grid mb-4">
+    <article class="metric-card">
+        <span>Активні звички</span>
+        <strong>@Model.TotalHabits</strong>
+        <small>у твоєму плані</small>
+    </article>
+    <article class="metric-card">
+        <span>Streak</span>
+        <strong>@Model.CurrentStreak</strong>
+        <small>днів поспіль</small>
+    </article>
+    <article class="metric-card">
+        <span>Consistency score</span>
+        <strong>@Model.ConsistencyScore</strong>
+        <small>з 100</small>
+    </article>
+    <article class="metric-card accent">
+        <span>Level @Model.Level</span>
+        <strong>@Model.ExperiencePoints XP</strong>
+        <small>легка гейміфікація</small>
+    </article>
+</section>
+
+<section class="insight-strip mb-4">
+    <div>
+        <span class="insight-icon">✓</span>
+        <strong>Порада дня</strong>
+    </div>
+    <p>Не намагайся закрити все одразу. Найкраща стратегія - виконати одну просту звичку і зберегти ритм.</p>
+</section>
+
 @if (!Model.Habits.Any())
 {
-    <section class="card p-4 text-center">
-        <h2 class="h4">Немає активних звичок</h2>
-        <p class="text-muted">Додай першу звичку, щоб Dashboard почав показувати прогрес.</p>
-        <a class="btn btn-primary mx-auto" asp-controller="Habits" asp-action="Create">Додати звичку</a>
+    <section class="empty-state">
+        <p class="eyebrow">30-second setup</p>
+        <h2>Створи першу звичку</h2>
+        <p>Вибери готовий шаблон або додай власну дію. Dashboard одразу почне рахувати прогрес.</p>
+        <div class="template-preview">
+            <span>💧 Вода</span>
+            <span>📘 Читання</span>
+            <span>🏃 Спорт</span>
+        </div>
+        <a class="btn btn-primary" asp-controller="Habits" asp-action="Create">Почати</a>
     </section>
 }
 else
 {
-    <section class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
-        <h2 class="h4 mb-0">Звички на сьогодні</h2>
-        <a class="btn btn-outline-secondary btn-sm" asp-controller="Analytics" asp-action="Index">Переглянути аналітику</a>
+    <section class="section-heading mb-3">
+        <div>
+            <p class="eyebrow">Today list</p>
+            <h2>Звички на сьогодні</h2>
+        </div>
+        <a class="btn btn-outline-secondary btn-sm" asp-controller="Habits" asp-action="Index">Усі звички</a>
     </section>
 
-    <section class="row g-3">
+    <section class="habit-grid">
         @foreach (var habit in Model.Habits)
         {
-            <div class="col-md-6 col-xl-4">
-                <article class="card h-100 @(habit.IsCompletedToday ? "border-success" : "")">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between gap-2">
-                            <h3 class="h5">@habit.Title</h3>
-                            @if (habit.IsCompletedToday)
-                            {
-                                <span class="badge text-bg-success">Виконано</span>
-                            }
-                            else
-                            {
-                                <span class="badge text-bg-secondary">Очікує</span>
-                            }
-                        </div>
+            var color = string.IsNullOrWhiteSpace(habit.Color) ? habit.CategoryColor ?? "#2f6f5e" : habit.Color;
+            var icon = string.IsNullOrWhiteSpace(habit.Icon) ? "✓" : habit.Icon;
 
-                        @if (!string.IsNullOrWhiteSpace(habit.CategoryName))
-                        {
-                            <span class="badge mb-2" style="background:@habit.CategoryColor">@habit.CategoryName</span>
-                        }
+            <article class="habit-card @(habit.IsCompletedToday ? "is-complete" : "")" style="--habit-color:@color">
+                <div class="habit-card-top">
+                    <div class="habit-icon">@icon</div>
+                    <span class="status-pill">@(habit.IsCompletedToday ? "Виконано" : "Очікує")</span>
+                </div>
 
-                        <p class="text-muted small mb-3">
-                            @(string.IsNullOrWhiteSpace(habit.Description) ? "Без опису" : habit.Description)
-                        </p>
+                <h3>@habit.Title</h3>
+                <p>@(string.IsNullOrWhiteSpace(habit.Description) ? "Без опису" : habit.Description)</p>
 
-                        <div class="small text-muted mb-3">
-                            Пріоритет: @habit.Priority · Частота: @habit.Frequency
-                        </div>
+                <div class="habit-meta">
+                    @if (!string.IsNullOrWhiteSpace(habit.CategoryName))
+                    {
+                        <span>@habit.CategoryName</span>
+                    }
+                    <span>@habit.Priority</span>
+                    <span>@habit.Frequency</span>
+                </div>
 
-                        <div class="d-flex flex-wrap gap-2">
-                            @if (habit.IsCompletedToday)
-                            {
-                                <form asp-controller="HabitRecords" asp-action="CancelToday" method="post" class="m-0">
-                                    <input type="hidden" name="habitId" value="@habit.Id" />
-                                    <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
-                                    <button type="submit" class="btn btn-outline-warning btn-sm">Скасувати</button>
-                                </form>
-                            }
-                            else
-                            {
-                                <form asp-controller="HabitRecords" asp-action="CompleteToday" method="post" class="m-0">
-                                    <input type="hidden" name="habitId" value="@habit.Id" />
-                                    <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
-                                    <button type="submit" class="btn btn-success btn-sm">Виконано сьогодні</button>
-                                </form>
-                            }
-
-                            <a class="btn btn-outline-secondary btn-sm" asp-controller="Habits" asp-action="Details" asp-route-id="@habit.Id">Деталі</a>
-                        </div>
+                <div class="mini-stats">
+                    <div>
+                        <strong>@habit.CurrentStreak</strong>
+                        <small>streak</small>
                     </div>
-                </article>
-            </div>
+                    <div>
+                        <strong>@habit.MonthlyCompletionPercentage%</strong>
+                        <small>30 днів</small>
+                    </div>
+                </div>
+
+                <div class="habit-actions">
+                    @if (habit.IsCompletedToday)
+                    {
+                        <form asp-controller="HabitRecords" asp-action="CancelToday" method="post">
+                            <input type="hidden" name="habitId" value="@habit.Id" />
+                            <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+                            <button type="submit" class="btn btn-outline-warning btn-sm">Скасувати</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <form asp-controller="HabitRecords" asp-action="CompleteToday" method="post">
+                            <input type="hidden" name="habitId" value="@habit.Id" />
+                            <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+                            <button type="submit" class="btn btn-success btn-sm">Виконано</button>
+                        </form>
+                    }
+
+                    <a class="btn btn-outline-secondary btn-sm" asp-controller="Habits" asp-action="Details" asp-route-id="@habit.Id">Деталі</a>
+                </div>
+            </article>
         }
     </section>
 }

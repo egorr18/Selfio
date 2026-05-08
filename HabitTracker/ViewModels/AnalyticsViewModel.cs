@@ -28,5 +28,11 @@ public class AnalyticsViewModel
 
     public HabitPerformanceViewModel? WeakHabit { get; set; }
 
+    public string WeeklyInsight { get; set; } = string.Empty;
+
+    public string MonthlyInsight { get; set; } = string.Empty;
+
+    public List<WeeklyActivityViewModel> WeeklyActivity { get; set; } = [];
+
     public List<HabitPerformanceViewModel> HabitPerformances { get; set; } = [];
 }

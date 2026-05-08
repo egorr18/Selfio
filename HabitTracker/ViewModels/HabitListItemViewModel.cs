@@ -18,7 +18,15 @@ public class HabitListItemViewModel
 
     public HabitPriority Priority { get; set; }
 
+    public string? Color { get; set; }
+
+    public string? Icon { get; set; }
+
     public DateTime CreatedAt { get; set; }
 
     public bool IsCompletedToday { get; set; }
+
+    public int CurrentStreak { get; set; }
+
+    public int MonthlyCompletionPercentage { get; set; }
 }
