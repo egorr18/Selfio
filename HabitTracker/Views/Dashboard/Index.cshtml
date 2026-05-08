@@ -82,42 +82,33 @@ else
         <a class="btn btn-outline-secondary btn-sm" asp-controller="Habits" asp-action="Index">Усі звички</a>
     </section>
 
-    <section class="habit-grid">
+    <section class="today-list">
         @foreach (var habit in Model.Habits)
         {
             var color = string.IsNullOrWhiteSpace(habit.Color) ? habit.CategoryColor ?? "#2f6f5e" : habit.Color;
             var icon = string.IsNullOrWhiteSpace(habit.Icon) ? "✓" : habit.Icon;
 
-            <article class="habit-card @(habit.IsCompletedToday ? "is-complete" : "")" style="--habit-color:@color">
-                <div class="habit-card-top">
+            <article class="today-row @(habit.IsCompletedToday ? "is-complete" : "is-waiting")" style="--habit-color:@color">
+                <div class="today-main">
                     <div class="habit-icon">@icon</div>
-                    <span class="status-pill">@(habit.IsCompletedToday ? "Виконано" : "Очікує")</span>
+                    <div>
+                        <h3>@habit.Title</h3>
+                        <p>@(string.IsNullOrWhiteSpace(habit.Description) ? "Без опису" : habit.Description)</p>
+                    </div>
                 </div>
 
-                <h3>@habit.Title</h3>
-                <p>@(string.IsNullOrWhiteSpace(habit.Description) ? "Без опису" : habit.Description)</p>
-
-                <div class="habit-meta">
+                <div class="today-meta">
+                    <span class="status-pill">@(habit.IsCompletedToday ? "Виконано" : "Очікує")</span>
                     @if (!string.IsNullOrWhiteSpace(habit.CategoryName))
                     {
                         <span>@habit.CategoryName</span>
                     }
                     <span>@habit.Priority</span>
-                    <span>@habit.Frequency</span>
+                    <span>@habit.CurrentStreak day streak</span>
+                    <span>@habit.MonthlyCompletionPercentage% / 30d</span>
                 </div>
 
-                <div class="mini-stats">
-                    <div>
-                        <strong>@habit.CurrentStreak</strong>
-                        <small>streak</small>
-                    </div>
-                    <div>
-                        <strong>@habit.MonthlyCompletionPercentage%</strong>
-                        <small>30 днів</small>
-                    </div>
-                </div>
-
-                <div class="habit-actions">
+                <div class="today-actions">
                     @if (habit.IsCompletedToday)
                     {
                         <form asp-controller="HabitRecords" asp-action="CancelToday" method="post">

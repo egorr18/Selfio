@@ -33,8 +33,42 @@ const initializeHabitForm = () => {
   });
 };
 
+const initializeThemeToggle = () => {
+  const toggle = document.querySelector("[data-theme-toggle]");
+  const text = document.querySelector(".theme-toggle-text");
+  const icon = document.querySelector(".theme-toggle-icon");
+
+  const applyTheme = (theme) => {
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem("habitTrackerTheme", theme);
+
+    if (text) {
+      text.textContent = theme === "dark" ? "Темна" : "Світла";
+    }
+
+    if (icon) {
+      icon.textContent = theme === "dark" ? "●" : "○";
+    }
+  };
+
+  applyTheme(localStorage.getItem("habitTrackerTheme") || "dark");
+
+  if (!toggle) {
+    return;
+  }
+
+  toggle.addEventListener("click", () => {
+    const current = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+    applyTheme(current === "dark" ? "light" : "dark");
+  });
+};
+
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initializeHabitForm);
+  document.addEventListener("DOMContentLoaded", () => {
+    initializeThemeToggle();
+    initializeHabitForm();
+  });
 } else {
+  initializeThemeToggle();
   initializeHabitForm();
 }

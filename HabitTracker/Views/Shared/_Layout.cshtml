@@ -4,6 +4,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - HabitTracker</title>
+    <script>
+        document.documentElement.dataset.theme = localStorage.getItem("habitTrackerTheme") || "dark";
+    </script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/HabitTracker.styles.css" asp-append-version="true" />
@@ -32,6 +35,11 @@
                             <a class="nav-link text-dark" asp-area="" asp-controller="Analytics" asp-action="Index">Аналітика</a>
                         </li>
                     </ul>
+
+                    <button type="button" class="theme-toggle" data-theme-toggle aria-label="Перемкнути тему">
+                        <span class="theme-toggle-icon">◐</span>
+                        <span class="theme-toggle-text">Тема</span>
+                    </button>
 
                     @if (User.Identity?.IsAuthenticated == true)
                     {
