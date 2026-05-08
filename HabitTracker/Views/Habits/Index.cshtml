@@ -1,0 +1,92 @@
+@model HabitTracker.ViewModels.HabitIndexViewModel
+
+@{
+    ViewData["Title"] = "Звички";
+}
+
+<section class="d-flex justify-content-between align-items-start gap-3 mb-3">
+    <div>
+        <h1>Звички</h1>
+        <p class="text-muted mb-0">Керуй власними звичками, категоріями та пріоритетами.</p>
+    </div>
+    <a class="btn btn-primary" asp-action="Create">Додати звичку</a>
+</section>
+
+<section class="card p-3 mb-3">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-md-6">
+            <label asp-for="SearchTerm" class="form-label">Пошук</label>
+            <input asp-for="SearchTerm" class="form-control" placeholder="Назва або опис..." />
+        </div>
+        <div class="col-md-4">
+            <label asp-for="CategoryId" class="form-label">Категорія</label>
+            <select asp-for="CategoryId" asp-items="Model.Categories" class="form-select"></select>
+        </div>
+        <div class="col-md-2 d-grid">
+            <button type="submit" class="btn btn-outline-primary">Фільтрувати</button>
+        </div>
+    </form>
+</section>
+
+@if (!Model.Habits.Any())
+{
+    <section class="card p-4 text-center">
+        <h2 class="h4">Звичок поки немає</h2>
+        <p class="text-muted">Створи першу звичку, щоб почати відстеження прогресу.</p>
+        <a class="btn btn-primary mx-auto" asp-action="Create">Створити звичку</a>
+    </section>
+}
+else
+{
+    <section class="row g-3">
+        @foreach (var habit in Model.Habits)
+        {
+            <div class="col-md-6 col-xl-4">
+                <article class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between gap-2">
+                            <h2 class="h5">@habit.Title</h2>
+                            <span class="badge text-bg-light">@habit.Priority</span>
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(habit.CategoryName))
+                        {
+                            <span class="badge mb-2" style="background:@habit.CategoryColor">@habit.CategoryName</span>
+                        }
+
+                        <p class="text-muted small mb-3">
+                            @(string.IsNullOrWhiteSpace(habit.Description) ? "Без опису" : habit.Description)
+                        </p>
+
+                        <div class="small text-muted mb-3">
+                            Частота: @habit.Frequency
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-2">
+                            @if (habit.IsCompletedToday)
+                            {
+                                <span class="badge text-bg-success align-self-center">Виконано сьогодні</span>
+                                <form asp-controller="HabitRecords" asp-action="CancelToday" method="post" class="m-0">
+                                    <input type="hidden" name="habitId" value="@habit.Id" />
+                                    <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+                                    <button type="submit" class="btn btn-outline-warning btn-sm">Скасувати</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <form asp-controller="HabitRecords" asp-action="CompleteToday" method="post" class="m-0">
+                                    <input type="hidden" name="habitId" value="@habit.Id" />
+                                    <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+                                    <button type="submit" class="btn btn-success btn-sm">Виконано</button>
+                                </form>
+                            }
+                            <a class="btn btn-outline-primary btn-sm" asp-action="Details" asp-route-id="@habit.Id">Деталі</a>
+                            <a class="btn btn-outline-secondary btn-sm" asp-action="Edit" asp-route-id="@habit.Id">Редагувати</a>
+                            <a class="btn btn-outline-danger btn-sm" asp-action="Delete" asp-route-id="@habit.Id">Видалити</a>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        }
+    </section>
+}

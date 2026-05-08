@@ -15,3 +15,20 @@ node_modules/
 
 # Supabase CLI temp
 supabase/.temp/
+
+# .NET
+bin/
+obj/
+**/bin/
+**/obj/
+TestResults/
+
+# Local SQLite runtime files
+*.db
+*.db-shm
+*.db-wal
+
+# User/local settings
+*.user
+*.suo
+.vs/

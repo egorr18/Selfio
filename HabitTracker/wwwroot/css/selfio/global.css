@@ -1,0 +1,428 @@
+/* ===== GLOBAL BOX-SIZING (fix iOS overflow) ===== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* ===== BASE ===== */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.6;
+  background: var(--bg);
+  color: var(--text);
+}
+
+a { text-decoration: none; color: inherit; }
+
+img { max-width: 100%; display: block; }
+
+.story__video img {
+  width: 100%;
+  max-width: 740px;
+  border-radius: 8px;
+}
+
+/* ===== Lighthouse fix: don't rely on UA styles for H1 in sections ===== */
+section h1,
+article h1,
+nav h1,
+aside h1 {
+  font-size: 42px;
+  line-height: 1.2;
+  margin: 0 0 16px;
+}
+
+/* ===== CONTAINER ===== */
+.container {
+  max-width: var(--container-width);
+  padding: 0 20px;
+  margin: 0 auto;
+}
+
+/* ===== BUTTONS ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 28px;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  background: transparent;
+  color: inherit;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
+}
+
+.btn--primary { background: var(--green-main); color: var(--white); }
+.btn--primary:hover { background: var(--green-dark); }
+
+.btn--secondary {
+  background: var(--surface);
+  border: 1px solid var(--green-main);
+}
+.btn--secondary:hover {
+  background: rgba(47,111,98,0.10);
+}
+
+
+/* ===== ACCESSIBILITY: focus styles ===== */
+:where(a, button, input, select, textarea):focus-visible {
+  outline: 3px solid rgba(47, 111, 98, 0.35);
+  outline-offset: 3px;
+}
+
+/* ===== HEADER ===== */
+.header{
+  background: var(--header-bg, transparent);
+  border-bottom: 1px solid var(--border, rgba(255,255,255,.10));
+  padding: 0;
+}
+
+/* ховаємо у верхній смузі */
+.header__inner > .lang-switch,
+.header__inner > .theme-toggle {
+  display: none;
+}
+
+
+.header__inner{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+
+  position: relative; /* for drawer */
+  height: 80px;       /* як раніше */
+
+  /* ❌ NO card look on desktop */
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  overflow: visible;
+}
+
+.logo {
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--green-main);
+  line-height: 1;
+}
+
+.header__drawer {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.nav {
+  display: flex;
+  gap: 32px;
+}
+
+.nav a {
+  font-size: 15px;
+  position: relative;
+  padding: 6px 0;
+}
+
+.nav a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -6px;
+  width: 0;
+  height: 2px;
+  background: var(--green-main);
+  transition: width 0.2s ease;
+}
+.nav a:hover::after { width: 100%; }
+.nav a.is-active::after { width: 100%; }
+
+.header__actions {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+}
+
+/* ===== BURGER ===== */
+.nav-toggle {
+  display: none; /* desktop hidden */
+  width: 44px;
+  height: 44px;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  background: var(--white);
+  cursor: pointer;
+
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.nav-toggle span {
+  width: 22px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--green-main);
+  display: block;
+  transition: transform .2s ease, opacity .2s ease;
+}
+
+/* X animation */
+.nav-open .nav-toggle span:nth-child(1){ transform: translateY(7px) rotate(45deg); }
+.nav-open .nav-toggle span:nth-child(2){ opacity: 0; }
+.nav-open .nav-toggle span:nth-child(3){ transform: translateY(-7px) rotate(-45deg); }
+
+/* ===== FOOTER ===== */
+.footer {
+  background: var(--green-dark);
+  padding: 80px 0;
+}
+
+.footer__grid {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.footer__brand {
+  font-size: 20px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.footer__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.footer__nav a { color: #fff; }
+
+/* ===== SECTION REVEAL ===== */
+section.animate > .container {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+section.animate.visible > .container {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ===== TOAST ===== */
+.selfio-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  max-width: min(520px, calc(100vw - 24px));
+  padding: 10px 12px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.12);
+  background: rgba(20, 20, 20, .92);
+  color: #fff;
+  font-size: 14px;
+  z-index: 9999;
+  transition: opacity .18s ease, transform .18s ease;
+  opacity: 1;
+}
+.selfio-toast--hidden {
+  opacity: 0;
+  transform: translateX(-50%) translateY(8px);
+  pointer-events: none;
+}
+.selfio-toast[data-type="error"] { background: rgba(180, 40, 40, .92); }
+.selfio-toast[data-type="success"] { background: rgba(30, 120, 70, .92); }
+
+@media (prefers-reduced-motion: reduce) {
+  section.animate > .container,
+  section.animate.visible > .container {
+    transition: none;
+    transform: none;
+    opacity: 1;
+  }
+}
+
+.theme-toggle{
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+}
+.theme-toggle:hover{
+  box-shadow: 0 8px 20px var(--shadow);
+}
+
+/* LANGUAGE SWITCHER */
+.lang-switch{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  font-weight:600;
+  font-size:14px;
+}
+
+.lang-link[aria-current="true"]{
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+
+@media (max-width: 480px) {
+  section h1,
+  article h1,
+  nav h1,
+  aside h1 {
+    font-size: 28px;
+  }
+.btn {
+  padding: 12px 16px; }
+
+/* utility: horizontal scroll wrapper for tables */
+.scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.scroll-x > table { min-width: 720px; }
+
+/* iOS Safari: normalize form controls */
+button, input, select, textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-text-fill-color: currentColor;
+}
+
+/* Make btn--secondary green everywhere (light + dark) */
+.btn--secondary{
+  color: var(--white) !important;
+  border: 1px solid var(--green-main) !important;
+  -webkit-text-fill-color: currentColor;
+}
+
+.btn--secondary:hover{
+  background: var(--green-dark) !important;
+  border-color: var(--green-dark) !important;
+}
+
+.btn--primary{
+  box-shadow: 0 10px 26px rgba(47,111,98,0.22);
+}
+.btn--primary:hover{
+  box-shadow: 0 14px 32px rgba(47,111,98,0.28);
+}
+}
+
+@media (max-width: 768px) {
+  section h1,
+  article h1,
+  nav h1,
+  aside h1 {
+    font-size: 34px;
+  }
+
+    .container { padding: 0 4px; }
+
+  .header{
+    background: transparent;
+    border-bottom: 0;
+    padding: 12px 0;
+  }
+
+  .nav-toggle {
+    display: inline-flex;
+    margin-left: auto;
+  }
+
+  .header__inner{
+    height: auto;
+    min-height: 80px;
+    padding: 12px 14px;
+
+    border-radius: var(--header-radius, 18px);
+    background: var(--header-bg, var(--card-bg, rgba(255,255,255,.04)));
+    border: 1px solid var(--border, rgba(255,255,255,.10));
+  }
+
+  /* Drawer panel */
+  .header__drawer {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 0;
+    right: 0;
+
+    margin-left: 0;
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+
+    padding: 12px;
+    background: var(--green-dark);
+    border-radius: 18px;
+    box-shadow: 0 18px 50px rgba(0,0,0,0.35);
+    z-index: 50;
+
+    overflow: hidden;
+  }
+
+  .nav-open .header__drawer { display: flex; }
+
+  .nav.nav--collapsible {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .nav.nav--collapsible a {
+    color: #fff;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.06);
+  }
+  .nav.nav--collapsible a:hover { background: rgba(255,255,255,0.12); }
+  .nav.nav--collapsible a::after { display: none; }
+
+  /* Actions centered + same size */
+  .header__actions {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .header__actions .btn {
+    width: 100%;
+    max-width: 520px;
+    height: var(--ui-btn-h);
+    padding: 0 18px;
+
+    color: #fff;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.18);
+  }
+
+  /* щоб на iOS не було “стрибаючого” hover */
+  .header__actions .btn:hover {
+    transform: none;
+    box-shadow: none;
+    background: rgba(255,255,255,0.12);
+  }
+}

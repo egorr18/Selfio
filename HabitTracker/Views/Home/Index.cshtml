@@ -1,0 +1,49 @@
+@{
+    ViewData["Title"] = "Головна";
+}
+
+<section class="hero-section py-5">
+    <div class="row align-items-center g-4">
+        <div class="col-lg-6">
+            <p class="text-uppercase text-muted fw-semibold mb-2">Курсовий проєкт з ООП C#</p>
+            <h1 class="display-5 fw-bold">HabitTracker</h1>
+            <p class="lead">
+                Вебсервіс для відстеження звичок, щоденного прогресу та базової аналітики користувача.
+            </p>
+            <div class="d-flex flex-wrap gap-2">
+                <a class="btn btn-primary" asp-controller="Account" asp-action="Register">Почати</a>
+                <a class="btn btn-outline-secondary" asp-controller="Dashboard" asp-action="Index">Перейти до Dashboard</a>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <img class="img-fluid rounded shadow-sm" src="~/images/hero.jpg" alt="HabitTracker dashboard preview" />
+        </div>
+    </div>
+</section>
+
+<section class="row g-3 mt-3">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h5">Звички</h2>
+                <p class="mb-0">Створення, редагування, категорії та щоденне виконання.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h5">Аналітика</h2>
+                <p class="mb-0">Відсоток виконання, streak, тижнева й місячна статистика.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h5">ООП</h2>
+                <p class="mb-0">Моделі, сервіси, інкапсуляція, композиція та поліморфізм.</p>
+            </div>
+        </div>
+    </div>
+</section>
