@@ -17,7 +17,7 @@
             <div class="container-fluid">
                 <a class="navbar-brand fw-semibold" asp-area="" asp-controller="Home" asp-action="Index">HabitTracker</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+                        aria-expanded="false" aria-label="Перемкнути навігацію">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
@@ -34,17 +34,27 @@
                     </ul>
 
                     <button type="button" class="theme-toggle" data-theme-toggle aria-label="Перемкнути тему">
-                        <span class="theme-toggle-icon">◐</span>
+                        <span class="theme-toggle-icon">●</span>
                         <span class="theme-toggle-text">Тема</span>
                     </button>
 
                     @if (User.Identity?.IsAuthenticated == true)
                     {
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="text-muted small">@User.Identity.Name</span>
-                            <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
-                                <button type="submit" class="btn btn-outline-secondary btn-sm">Вийти</button>
-                            </form>
+                        <div class="dropdown profile-menu">
+                            <button class="profile-menu-button dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <span class="profile-avatar">@User.Identity.Name?.Substring(0, 1).ToUpperInvariant()</span>
+                                <span class="profile-name">@User.Identity.Name</span>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-end profile-dropdown">
+                                <a class="dropdown-item" asp-controller="Profile" asp-action="Index">Профіль</a>
+                                <a class="dropdown-item" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
+                                <a class="dropdown-item" asp-controller="Habits" asp-action="Index">Звички</a>
+                                <a class="dropdown-item" asp-controller="Analytics" asp-action="Index">Аналітика</a>
+                                <div class="dropdown-divider"></div>
+                                <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
+                                    <button type="submit" class="dropdown-item logout-item">Вийти</button>
+                                </form>
+                            </div>
                         </div>
                     }
                     else

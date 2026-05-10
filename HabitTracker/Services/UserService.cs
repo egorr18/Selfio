@@ -60,6 +60,29 @@ public class UserService(
         return AuthResult.Success(user);
     }
 
+    public async Task<AuthResult> ChangePasswordAsync(int userId, ChangePasswordViewModel model)
+    {
+        var user = await dbContext.Users.FirstOrDefaultAsync(item => item.Id == userId);
+
+        if (user is null)
+        {
+            return AuthResult.Failure("Користувача не знайдено.");
+        }
+
+        var verificationResult = passwordHasher.VerifyHashedPassword(user, user.PasswordHash, model.CurrentPassword);
+        if (verificationResult == PasswordVerificationResult.Failed)
+        {
+            return AuthResult.Failure("Поточний пароль введено неправильно.");
+        }
+
+        user.PasswordHash = passwordHasher.HashPassword(user, model.NewPassword);
+        user.UpdatedAt = DateTime.UtcNow;
+
+        await dbContext.SaveChangesAsync();
+
+        return AuthResult.Success(user);
+    }
+
     private static string NormalizeEmail(string email)
     {
         return email.Trim().ToLowerInvariant();

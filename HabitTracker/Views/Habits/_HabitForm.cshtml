@@ -11,20 +11,20 @@
             <p>Обери шаблон або заповни власну звичку вручну.</p>
         </div>
         <div class="template-grid">
-            <button type="button" class="template-card" data-title="Пити воду" data-description="Випити 8 склянок води протягом дня." data-icon="💧" data-color="#1c7ed6" data-priority="2">
-                <span>💧</span>
+            <button type="button" class="template-card" data-title="Пити воду" data-description="Випити 8 склянок води протягом дня." data-icon="W" data-color="#1c7ed6" data-priority="2">
+                <span>W</span>
                 <strong>Вода</strong>
             </button>
-            <button type="button" class="template-card" data-title="Читати 10 сторінок" data-description="Прочитати мінімум 10 сторінок книги або навчального матеріалу." data-icon="📘" data-color="#7048e8" data-priority="2">
-                <span>📘</span>
+            <button type="button" class="template-card" data-title="Читати 10 сторінок" data-description="Прочитати мінімум 10 сторінок книги або навчального матеріалу." data-icon="B" data-color="#7048e8" data-priority="2">
+                <span>B</span>
                 <strong>Читання</strong>
             </button>
-            <button type="button" class="template-card" data-title="Тренування" data-description="Зробити коротке тренування або прогулянку." data-icon="🏃" data-color="#2f9e44" data-priority="3">
-                <span>🏃</span>
+            <button type="button" class="template-card" data-title="Тренування" data-description="Зробити коротке тренування або прогулянку." data-icon="R" data-color="#2f9e44" data-priority="3">
+                <span>R</span>
                 <strong>Спорт</strong>
             </button>
-            <button type="button" class="template-card" data-title="Вивчати C#" data-description="Приділити 30 хвилин практиці C# або роботі над курсовим проєктом." data-icon="💻" data-color="#f08c00" data-priority="3">
-                <span>💻</span>
+            <button type="button" class="template-card" data-title="Вивчати C#" data-description="Приділити 30 хвилин практиці C# або роботі над курсовим проєктом." data-icon="C#" data-color="#f08c00" data-priority="3">
+                <span>C#</span>
                 <strong>Навчання</strong>
             </button>
         </div>
@@ -76,8 +76,8 @@
         </div>
 
         <div class="col-md-6">
-            <label asp-for="Icon" class="form-label">Іконка</label>
-            <input asp-for="Icon" class="form-control" placeholder="💧, 📘, 🏃, 💻..." />
+            <label asp-for="Icon" class="form-label">Іконка або коротка мітка</label>
+            <input asp-for="Icon" class="form-control" placeholder="W, B, R, C#, 10m..." />
             <span asp-validation-for="Icon" class="text-danger"></span>
         </div>
     </div>

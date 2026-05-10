@@ -1,0 +1,271 @@
+@model HabitTracker.ViewModels.ProfileViewModel
+
+@{
+    ViewData["Title"] = "Профіль";
+    var initial = string.IsNullOrWhiteSpace(Model.Username)
+        ? "U"
+        : Model.Username.Substring(0, 1).ToUpperInvariant();
+}
+
+<section class="profile-hero mb-4">
+    <div class="profile-identity">
+        <div class="profile-avatar-large">@initial</div>
+        <div>
+            <p class="eyebrow">Profile / Settings</p>
+            <h1>@Model.Username</h1>
+            <p>@Model.Email</p>
+        </div>
+    </div>
+    <div class="profile-meta-card">
+        <span>Акаунт створено</span>
+        <strong>@Model.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy")</strong>
+    </div>
+</section>
+
+<section class="profile-settings">
+    <nav class="profile-tab-list nav" role="tablist" aria-label="Налаштування профілю">
+        <button class="active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab" aria-controls="overview" aria-selected="true">
+            <span>Огляд</span>
+            <small>Статистика акаунта</small>
+        </button>
+        <button id="appearance-tab" data-bs-toggle="tab" data-bs-target="#appearance" type="button" role="tab" aria-controls="appearance" aria-selected="false">
+            <span>Вигляд</span>
+            <small>Тема та інтерфейс</small>
+        </button>
+        <button id="preferences-tab" data-bs-toggle="tab" data-bs-target="#preferences" type="button" role="tab" aria-controls="preferences" aria-selected="false">
+            <span>Звички</span>
+            <small>Шаблони та пріоритети</small>
+        </button>
+        <button id="security-tab" data-bs-toggle="tab" data-bs-target="#security" type="button" role="tab" aria-controls="security" aria-selected="false">
+            <span>Безпека</span>
+            <small>Доступ до акаунта</small>
+        </button>
+        <button id="data-tab" data-bs-toggle="tab" data-bs-target="#data" type="button" role="tab" aria-controls="data" aria-selected="false">
+            <span>Дані</span>
+            <small>Приватність і база</small>
+        </button>
+    </nav>
+
+    <div class="tab-content profile-tab-content">
+        <section id="overview" class="tab-pane fade show active profile-section" role="tabpanel" aria-labelledby="overview-tab" tabindex="0">
+            <div class="section-heading compact">
+                <div>
+                    <p class="eyebrow">Overview</p>
+                    <h2>Загальна статистика</h2>
+                    <p>Короткий зріз прогресу, який користувач очікує побачити у профілі.</p>
+                </div>
+                <a class="btn btn-primary" asp-controller="Dashboard" asp-action="Index">Перейти до Dashboard</a>
+            </div>
+
+            <div class="metric-grid">
+                <article class="metric-card">
+                    <span>Активні звички</span>
+                    <strong>@Model.ActiveHabits</strong>
+                    <small>у твоєму акаунті</small>
+                </article>
+                <article class="metric-card">
+                    <span>Виконання</span>
+                    <strong>@Model.CompletedRecords</strong>
+                    <small>збережених записів</small>
+                </article>
+                <article class="metric-card">
+                    <span>Completion rate</span>
+                    <strong>@Model.CompletionRate%</strong>
+                    <small>за поточний період</small>
+                </article>
+                <article class="metric-card accent">
+                    <span>Current streak</span>
+                    <strong>@Model.CurrentStreak</strong>
+                    <small>днів поспіль</small>
+                </article>
+            </div>
+
+            <div class="profile-insights">
+                <article>
+                    <span>Найсильніша звичка</span>
+                    <strong>@(Model.BestHabitTitle ?? "Поки немає даних")</strong>
+                    @if (Model.BestHabitPercentage.HasValue)
+                    {
+                        <small>@Model.BestHabitPercentage% успішності</small>
+                    }
+                    else
+                    {
+                        <small>Потрібно більше виконань для аналізу</small>
+                    }
+                </article>
+                <article>
+                    <span>Потребує уваги</span>
+                    <strong>@(Model.WeakHabitTitle ?? "Поки немає даних")</strong>
+                    @if (Model.WeakHabitPercentage.HasValue)
+                    {
+                        <small>@Model.WeakHabitPercentage% успішності</small>
+                    }
+                    else
+                    {
+                        <small>Система покаже слабке місце після збору даних</small>
+                    }
+                </article>
+            </div>
+        </section>
+
+        <section id="appearance" class="tab-pane fade profile-section" role="tabpanel" aria-labelledby="appearance-tab" tabindex="0">
+            <div class="settings-panel">
+                <div>
+                    <p class="eyebrow">Appearance</p>
+                    <h2>Вигляд застосунку</h2>
+                    <p>Обери комфортний режим інтерфейсу. Налаштування зберігається у браузері, тому тема залишиться після перезапуску застосунку.</p>
+                </div>
+                <div class="theme-choice-grid" aria-label="Вибір теми">
+                    <button class="theme-choice" type="button" data-theme-choice="dark">
+                        <span class="theme-choice-swatch dark-swatch"></span>
+                        <strong>Темна</strong>
+                        <small>Productivity dashboard</small>
+                    </button>
+                    <button class="theme-choice" type="button" data-theme-choice="light">
+                        <span class="theme-choice-swatch light-swatch"></span>
+                        <strong>Світла</strong>
+                        <small>Чистий режим</small>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section id="preferences" class="tab-pane fade profile-section" role="tabpanel" aria-labelledby="preferences-tab" tabindex="0">
+            <div class="settings-panel">
+                <div>
+                    <p class="eyebrow">Habit Preferences</p>
+                    <h2>Параметри звичок</h2>
+                    <p>Задай стандартні значення для нових звичок. Коли відкриєш сторінку створення, ці параметри автоматично підставляться у порожню форму.</p>
+                </div>
+                <form class="habit-preferences-card" data-habit-preferences-form>
+                    <div>
+                        <label class="form-label" for="defaultFrequency">Частота</label>
+                        <select class="form-select" id="defaultFrequency" name="defaultFrequency">
+                            <option value="1">Daily</option>
+                            <option value="2">Weekly</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label" for="defaultPriority">Пріоритет</label>
+                        <select class="form-select" id="defaultPriority" name="defaultPriority">
+                            <option value="1">Low</option>
+                            <option value="2">Medium</option>
+                            <option value="3">High</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label" for="defaultColor">Колір</label>
+                        <input class="form-control" id="defaultColor" name="defaultColor" type="text" placeholder="#2f6f5e" maxlength="20" />
+                    </div>
+                    <div>
+                        <label class="form-label" for="defaultIcon">Іконка/мітка</label>
+                        <input class="form-control" id="defaultIcon" name="defaultIcon" type="text" placeholder="H" maxlength="40" />
+                    </div>
+                    <button class="btn btn-primary w-100" type="submit">Зберегти параметри</button>
+                    <small class="preference-save-status" data-preference-status aria-live="polite"></small>
+                    <a class="btn btn-outline-secondary w-100" asp-controller="Habits" asp-action="Create">Створити звичку</a>
+                </form>
+            </div>
+        </section>
+
+        <section id="security" class="tab-pane fade profile-section" role="tabpanel" aria-labelledby="security-tab" tabindex="0">
+            <div class="settings-panel">
+                <div>
+                    <p class="eyebrow">Security</p>
+                    <h2>Безпека акаунта</h2>
+                    <p>Паролі зберігаються у хешованому вигляді. Для зміни пароля потрібно знати поточний пароль, тому випадкова людина не зможе змінити доступ до акаунта.</p>
+                </div>
+                <form class="security-form-card" asp-controller="Profile" asp-action="ChangePassword" method="post">
+                    @if (TempData["SecuritySuccess"] is string securitySuccess)
+                    {
+                        <div class="alert alert-success mb-2">@securitySuccess</div>
+                    }
+                    @if (TempData["SecurityError"] is string securityError)
+                    {
+                        <div class="alert alert-danger mb-2">@securityError</div>
+                    }
+
+                    <div>
+                        <label class="form-label" for="CurrentPassword">Поточний пароль</label>
+                        <input class="form-control" id="CurrentPassword" name="CurrentPassword" type="password" autocomplete="current-password" />
+                    </div>
+                    <div>
+                        <label class="form-label" for="NewPassword">Новий пароль</label>
+                        <input class="form-control" id="NewPassword" name="NewPassword" type="password" autocomplete="new-password" />
+                    </div>
+                    <div>
+                        <label class="form-label" for="ConfirmPassword">Повторити пароль</label>
+                        <input class="form-control" id="ConfirmPassword" name="ConfirmPassword" type="password" autocomplete="new-password" />
+                    </div>
+                    <button class="btn btn-primary w-100" type="submit">Змінити пароль</button>
+                    <div class="security-note compact">
+                        <strong>Cookie auth</strong>
+                        <small>Habits і Analytics доступні тільки після входу.</small>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <section id="data" class="tab-pane fade profile-section" role="tabpanel" aria-labelledby="data-tab" tabindex="0">
+            <div class="settings-panel">
+                <div>
+                    <p class="eyebrow">Data / Privacy</p>
+                    <h2>Дані та приватність</h2>
+                    <p>Усі звички та записи виконання прив'язані до твого акаунта. Контролери і сервіси завжди перевіряють UserId, тому користувач не може переглядати або змінювати чужі дані.</p>
+                </div>
+                <div class="data-summary">
+                    <div>
+                        <span>Storage</span>
+                        <strong>SQLite + EF Core</strong>
+                    </div>
+                    <div>
+                        <span>User scope</span>
+                        <strong>Власні дані</strong>
+                    </div>
+                    <div>
+                        <span>Updated</span>
+                        <strong>@Model.UpdatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="data-privacy-grid mt-3">
+                <article>
+                    <span>Усього звичок</span>
+                    <strong>@Model.TotalHabits</strong>
+                    <small>активні та архівовані</small>
+                </article>
+                <article>
+                    <span>Активні</span>
+                    <strong>@Model.ActiveHabits</strong>
+                    <small>видимі на Dashboard</small>
+                </article>
+                <article>
+                    <span>Архівовані</span>
+                    <strong>@Model.ArchivedHabits</strong>
+                    <small>видалені користувачем</small>
+                </article>
+                <article>
+                    <span>Записи виконання</span>
+                    <strong>@Model.CompletedRecords</strong>
+                    <small>для аналітики прогресу</small>
+                </article>
+            </div>
+
+            <div class="privacy-principles mt-3">
+                <div>
+                    <strong>Що зберігається</strong>
+                    <p>Username, email, хеш пароля, звички, категорії, записи виконання та нотатки до виконання.</p>
+                </div>
+                <div>
+                    <strong>Що не зберігається</strong>
+                    <p>Пароль у відкритому вигляді. Після реєстрації або зміни пароля в базі зберігається тільки хеш.</p>
+                </div>
+                <div>
+                    <strong>Перспективи розвитку</strong>
+                    <p>Експорт статистики, видалення акаунта та завантаження резервної копії можна додати окремим модулем.</p>
+                </div>
+            </div>
+        </section>
+    </div>
+</section>
