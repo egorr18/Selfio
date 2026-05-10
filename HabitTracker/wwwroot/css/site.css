@@ -32,7 +32,6 @@ body {
     var(--ht-bg);
   color: var(--ht-text);
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  margin-bottom: 72px;
 }
 
 a {
@@ -67,6 +66,7 @@ a:hover {
 }
 
 main {
+  padding-bottom: 32px;
   padding-top: 22px;
 }
 
@@ -794,15 +794,6 @@ main {
   width: 100%;
 }
 
-.footer {
-  background: var(--ht-surface);
-  bottom: 0;
-  line-height: 56px;
-  position: absolute;
-  white-space: nowrap;
-  width: 100%;
-}
-
 @media (max-width: 992px) {
   .product-hero,
   .analytics-layout,
@@ -836,10 +827,6 @@ main {
 }
 
 @media (max-width: 576px) {
-  body {
-    margin-bottom: 96px;
-  }
-
   .product-hero {
     padding: 22px;
   }
@@ -1643,11 +1630,6 @@ main {
   background: rgba(69, 196, 154, 0.18);
   border-color: rgba(69, 196, 154, 0.4);
   color: #ffffff;
-}
-
-[data-theme] .footer {
-  background: color-mix(in srgb, var(--ht-surface) 90%, transparent);
-  border-top-color: var(--ht-border) !important;
 }
 
 @media (max-width: 992px) {
