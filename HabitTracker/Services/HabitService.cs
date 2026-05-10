@@ -283,8 +283,8 @@ public class HabitService(
             Color = habit.Color,
             Icon = habit.Icon,
             CreatedAt = habit.CreatedAt,
-            IsCompletedToday = completedDates.Contains(today),
-            CurrentStreak = progressCalculator.CalculateStreak(completedDates, today),
+            IsCompletedToday = progressCalculator.IsSatisfiedForDate(habit, today),
+            CurrentStreak = progressCalculator.CalculateStreak(habit, today),
             MonthlyCompletionPercentage = progressCalculator.CalculatePercentage(monthlyCompleted, monthlyExpected)
         };
     }

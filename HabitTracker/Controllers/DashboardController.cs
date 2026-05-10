@@ -2,6 +2,7 @@ using HabitTracker.Services;
 using HabitTracker.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace HabitTracker.Controllers;
 
@@ -20,7 +21,7 @@ public class DashboardController(
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> QuickAdd(QuickHabitViewModel quickHabit)
+    public async Task<IActionResult> QuickAdd([Bind(Prefix = "QuickHabit")] QuickHabitViewModel quickHabit)
     {
         var userId = currentUserService.UserId ?? throw new InvalidOperationException("Authenticated user id is missing.");
 

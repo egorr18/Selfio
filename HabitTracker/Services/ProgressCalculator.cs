@@ -63,4 +63,53 @@ public class ProgressCalculator : IProgressCalculator
 
         return streak;
     }
+
+    public int CalculateStreak(Habit habit, DateOnly today)
+    {
+        if (habit.Frequency != HabitFrequency.Weekly)
+        {
+            return CalculateStreak(GetCompletedDates(habit), today);
+        }
+
+        var completedDates = GetCompletedDates(habit);
+        var streak = 0;
+        var cursor = today;
+
+        while (HasCompletedInPeriod(completedDates, cursor.AddDays(-(DaysInWeek - 1)), cursor))
+        {
+            streak++;
+            cursor = cursor.AddDays(-DaysInWeek);
+        }
+
+        return streak;
+    }
+
+    public bool IsSatisfiedForDate(Habit habit, DateOnly date)
+    {
+        if (habit.Frequency != HabitFrequency.Weekly)
+        {
+            return HasCompletedRecord(habit, date);
+        }
+
+        return HasCompletedInPeriod(GetCompletedDates(habit), date.AddDays(-(DaysInWeek - 1)), date);
+    }
+
+    private static List<DateOnly> GetCompletedDates(Habit habit)
+    {
+        return habit.Records
+            .Where(record => record.IsCompleted)
+            .Select(record => record.Date)
+            .Distinct()
+            .ToList();
+    }
+
+    private static bool HasCompletedRecord(Habit habit, DateOnly date)
+    {
+        return habit.Records.Any(record => record.IsCompleted && record.Date == date);
+    }
+
+    private static bool HasCompletedInPeriod(IEnumerable<DateOnly> completedDates, DateOnly from, DateOnly to)
+    {
+        return completedDates.Any(date => date >= from && date <= to);
+    }
 }

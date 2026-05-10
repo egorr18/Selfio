@@ -25,7 +25,7 @@ public class AnalyticsService(
             .ToListAsync();
 
         var totalHabits = habits.Count;
-        var completedToday = habits.Count(habit => HasCompletedRecord(habit, today));
+        var completedToday = habits.Count(habit => progressCalculator.IsSatisfiedForDate(habit, today));
 
         var weeklyCompleted = CountCompletedOccurrences(habits, weekStart, today);
         var weeklyPossible = CountExpectedOccurrences(habits, weekStart, today);
@@ -116,13 +116,13 @@ public class AnalyticsService(
         return streak;
     }
 
-    private static List<WeeklyActivityViewModel> BuildWeeklyActivity(List<Habit> habits, DateOnly from, DateOnly to)
+    private List<WeeklyActivityViewModel> BuildWeeklyActivity(List<Habit> habits, DateOnly from, DateOnly to)
     {
         var days = new List<WeeklyActivityViewModel>();
 
         for (var date = from; date <= to; date = date.AddDays(1))
         {
-            var completed = habits.Count(habit => HasCompletedRecord(habit, date));
+            var completed = habits.Count(habit => progressCalculator.IsSatisfiedForDate(habit, date));
 
             days.Add(new WeeklyActivityViewModel
             {
