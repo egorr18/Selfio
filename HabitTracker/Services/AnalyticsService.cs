@@ -5,7 +5,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HabitTracker.Services;
 
-public class AnalyticsService(ApplicationDbContext dbContext) : IAnalyticsService
+public class AnalyticsService(
+    ApplicationDbContext dbContext,
+    IProgressCalculator progressCalculator) : IAnalyticsService
 {
     private const int WeekLength = 7;
     private const int MonthLength = 30;
@@ -25,29 +27,26 @@ public class AnalyticsService(ApplicationDbContext dbContext) : IAnalyticsServic
         var totalHabits = habits.Count;
         var completedToday = habits.Count(habit => HasCompletedRecord(habit, today));
 
-        var weeklyCompleted = CountCompletedRecords(habits, weekStart, today);
-        var weeklyPossible = totalHabits * WeekLength;
+        var weeklyCompleted = CountCompletedOccurrences(habits, weekStart, today);
+        var weeklyPossible = CountExpectedOccurrences(habits, weekStart, today);
 
-        var monthlyCompleted = CountCompletedRecords(habits, monthStart, today);
-        var monthlyPossible = totalHabits * MonthLength;
+        var monthlyCompleted = CountCompletedOccurrences(habits, monthStart, today);
+        var monthlyPossible = CountExpectedOccurrences(habits, monthStart, today);
         var weeklyActivity = BuildWeeklyActivity(habits, weekStart, today);
 
         var performances = habits
             .Select(habit =>
             {
-                var completed = habit.Records
-                    .Where(record => record.IsCompleted && record.Date >= monthStart && record.Date <= today)
-                    .Select(record => record.Date)
-                    .Distinct()
-                    .Count();
+                var completed = progressCalculator.CountCompletedOccurrences(habit, monthStart, today);
+                var expected = progressCalculator.CountExpectedOccurrences(habit, monthStart, today);
 
                 return new HabitPerformanceViewModel
                 {
                     HabitId = habit.Id,
                     Title = habit.Title,
                     CompletedDays = completed,
-                    TrackedDays = MonthLength,
-                    CompletionPercentage = CalculatePercentage(completed, MonthLength)
+                    TrackedDays = expected,
+                    CompletionPercentage = progressCalculator.CalculatePercentage(completed, expected)
                 };
             })
             .OrderByDescending(item => item.CompletionPercentage)
@@ -59,18 +58,18 @@ public class AnalyticsService(ApplicationDbContext dbContext) : IAnalyticsServic
             Today = today,
             TotalHabits = totalHabits,
             CompletedToday = completedToday,
-            DailyCompletionPercentage = CalculatePercentage(completedToday, totalHabits),
+            DailyCompletionPercentage = progressCalculator.CalculatePercentage(completedToday, totalHabits),
             WeeklyCompletedRecords = weeklyCompleted,
             WeeklyPossibleRecords = weeklyPossible,
-            WeeklyCompletionPercentage = CalculatePercentage(weeklyCompleted, weeklyPossible),
+            WeeklyCompletionPercentage = progressCalculator.CalculatePercentage(weeklyCompleted, weeklyPossible),
             MonthlyCompletedRecords = monthlyCompleted,
             MonthlyPossibleRecords = monthlyPossible,
-            MonthlyCompletionPercentage = CalculatePercentage(monthlyCompleted, monthlyPossible),
+            MonthlyCompletionPercentage = progressCalculator.CalculatePercentage(monthlyCompleted, monthlyPossible),
             CurrentStreak = CalculateCurrentStreak(habits, today),
             BestHabit = performances.FirstOrDefault(),
             WeakHabit = performances.OrderBy(item => item.CompletionPercentage).ThenBy(item => item.Title).FirstOrDefault(),
             WeeklyInsight = BuildWeeklyInsight(weeklyActivity),
-            MonthlyInsight = BuildMonthlyInsight(CalculatePercentage(monthlyCompleted, monthlyPossible)),
+            MonthlyInsight = BuildMonthlyInsight(progressCalculator.CalculatePercentage(monthlyCompleted, monthlyPossible)),
             WeeklyActivity = weeklyActivity,
             HabitPerformances = performances
         };
@@ -81,13 +80,14 @@ public class AnalyticsService(ApplicationDbContext dbContext) : IAnalyticsServic
         return habit.Records.Any(record => record.Date == date && record.IsCompleted);
     }
 
-    private static int CountCompletedRecords(IEnumerable<Habit> habits, DateOnly from, DateOnly to)
+    private int CountCompletedOccurrences(IEnumerable<Habit> habits, DateOnly from, DateOnly to)
     {
-        return habits.Sum(habit => habit.Records
-            .Where(record => record.IsCompleted && record.Date >= from && record.Date <= to)
-            .Select(record => record.Date)
-            .Distinct()
-            .Count());
+        return habits.Sum(habit => progressCalculator.CountCompletedOccurrences(habit, from, to));
+    }
+
+    private int CountExpectedOccurrences(IEnumerable<Habit> habits, DateOnly from, DateOnly to)
+    {
+        return habits.Sum(habit => progressCalculator.CountExpectedOccurrences(habit, from, to));
     }
 
     private static int CalculateCurrentStreak(List<Habit> habits, DateOnly today)
@@ -114,13 +114,6 @@ public class AnalyticsService(ApplicationDbContext dbContext) : IAnalyticsServic
         }
 
         return streak;
-    }
-
-    private static int CalculatePercentage(int completed, int total)
-    {
-        return total == 0
-            ? 0
-            : (int)Math.Round((double)completed / total * 100);
     }
 
     private static List<WeeklyActivityViewModel> BuildWeeklyActivity(List<Habit> habits, DateOnly from, DateOnly to)

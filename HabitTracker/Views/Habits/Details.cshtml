@@ -2,43 +2,145 @@
 
 @{
     ViewData["Title"] = "Деталі звички";
+    var color = string.IsNullOrWhiteSpace(Model.Color) ? Model.CategoryColor ?? "#45c49a" : Model.Color;
+    var icon = string.IsNullOrWhiteSpace(Model.Icon) ? "✓" : Model.Icon;
 }
 
-<section class="card p-4">
-    <div class="d-flex justify-content-between align-items-start gap-3">
+<section class="habit-detail-hero mb-4" style="--habit-color:@color">
+    <div class="habit-detail-main">
+        <div class="habit-detail-icon">@icon</div>
         <div>
+            <p class="eyebrow">Habit profile</p>
             <h1>@Model.Title</h1>
-            @if (!string.IsNullOrWhiteSpace(Model.CategoryName))
-            {
-                <span class="badge mb-2" style="background:@Model.CategoryColor">@Model.CategoryName</span>
-            }
-        </div>
-        <div class="d-flex flex-wrap gap-2">
-            <a class="btn btn-outline-secondary" asp-action="Edit" asp-route-id="@Model.Id">Редагувати</a>
-            <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@Model.Id">Видалити</a>
+            <p>@(string.IsNullOrWhiteSpace(Model.Description) ? "Опис не додано." : Model.Description)</p>
+            <div class="habit-meta">
+                @if (!string.IsNullOrWhiteSpace(Model.CategoryName))
+                {
+                    <span>@Model.CategoryName</span>
+                }
+                <span>@Model.Priority</span>
+                <span>@Model.Frequency</span>
+                <span>@(Model.IsCompletedToday ? "Сьогодні виконано" : "Сьогодні очікує")</span>
+            </div>
         </div>
     </div>
 
-    <p class="text-muted mt-3">
-        @(string.IsNullOrWhiteSpace(Model.Description) ? "Опис не додано." : Model.Description)
-    </p>
+    <div class="habit-detail-actions">
+        @if (Model.IsCompletedToday)
+        {
+            <form asp-controller="HabitRecords" asp-action="CancelToday" method="post">
+                <input type="hidden" name="habitId" value="@Model.Id" />
+                <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+                <button type="submit" class="btn btn-outline-warning">Скасувати сьогодні</button>
+            </form>
+        }
+        else
+        {
+            <form asp-controller="HabitRecords" asp-action="CompleteToday" method="post" class="complete-note-form">
+                <input type="hidden" name="habitId" value="@Model.Id" />
+                <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+                <input class="form-control" name="note" maxlength="300" placeholder="Нотатка дня (необов'язково)" />
+                <button type="submit" class="btn btn-success">Виконано сьогодні</button>
+            </form>
+        }
 
-    <dl class="row mt-3">
-        <dt class="col-sm-3">Частота</dt>
-        <dd class="col-sm-9">@Model.Frequency</dd>
-
-        <dt class="col-sm-3">Пріоритет</dt>
-        <dd class="col-sm-9">@Model.Priority</dd>
-
-        <dt class="col-sm-3">Колір</dt>
-        <dd class="col-sm-9">@(Model.Color ?? "Не задано")</dd>
-
-        <dt class="col-sm-3">Іконка</dt>
-        <dd class="col-sm-9">@(Model.Icon ?? "Не задано")</dd>
-
-        <dt class="col-sm-3">Створено</dt>
-        <dd class="col-sm-9">@Model.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</dd>
-    </dl>
-
-    <a class="btn btn-outline-secondary" asp-action="Index">Назад до списку</a>
+        <a class="btn btn-outline-secondary" asp-action="Edit" asp-route-id="@Model.Id">Редагувати</a>
+        <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@Model.Id">Видалити</a>
+    </div>
 </section>
+
+<section class="metric-grid mb-4">
+    <article class="metric-card">
+        <span>Current streak</span>
+        <strong>@Model.CurrentStreak</strong>
+        <small>днів поспіль</small>
+    </article>
+    <article class="metric-card">
+        <span>30-day progress</span>
+        <strong>@Model.MonthlyCompletionPercentage%</strong>
+        <small>@Model.CompletedLast30Days / @Model.ExpectedLast30Days очікуваних виконань</small>
+    </article>
+    <article class="metric-card">
+        <span>Frequency</span>
+        <strong class="metric-text">@Model.Frequency</strong>
+        <small>режим звички</small>
+    </article>
+    <article class="metric-card accent">
+        <span>Created</span>
+        <strong class="metric-text">@Model.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy")</strong>
+        <small>дата створення</small>
+    </article>
+</section>
+
+<section class="data-card mb-4">
+    <div class="section-heading compact">
+        <div>
+            <p class="eyebrow">30-day heatmap</p>
+            <h2>Історія виконання</h2>
+            <p>Кожна клітинка показує один день: зелена - виконано, темна - ще ні.</p>
+        </div>
+    </div>
+
+    <div class="habit-heatmap">
+        @foreach (var day in Model.HeatmapDays)
+        {
+            var title = day.Note is null
+                ? $"{day.Label} {(day.IsCompleted ? "виконано" : "не виконано")}"
+                : $"{day.Label} виконано: {day.Note}";
+
+            <span class="heatmap-cell @(day.IsCompleted ? "is-done" : "") @(day.IsToday ? "is-today" : "")"
+                  title="@title">
+                <span>@day.Date.Day</span>
+            </span>
+        }
+    </div>
+</section>
+
+<section class="detail-grid">
+    <article class="data-card">
+        <p class="eyebrow">Settings</p>
+        <h2>Параметри</h2>
+        <dl class="detail-list">
+            <dt>Категорія</dt>
+            <dd>@(Model.CategoryName ?? "Без категорії")</dd>
+
+            <dt>Пріоритет</dt>
+            <dd>@Model.Priority</dd>
+
+            <dt>Колір</dt>
+            <dd><span class="color-preview" style="--habit-color:@color"></span>@color</dd>
+
+            <dt>Іконка</dt>
+            <dd>@icon</dd>
+        </dl>
+    </article>
+
+    <article class="data-card">
+        <p class="eyebrow">Next step</p>
+        <h2>Рекомендація</h2>
+        @if (!string.IsNullOrWhiteSpace(Model.TodayNote))
+        {
+            <div class="today-note">
+                <strong>Нотатка сьогодні</strong>
+                <p>@Model.TodayNote</p>
+            </div>
+        }
+
+        @if (Model.MonthlyCompletionPercentage >= 80)
+        {
+            <p class="mb-0">Звичка стабільна. Можна залишити темп або трохи підняти складність.</p>
+        }
+        else if (Model.MonthlyCompletionPercentage >= 40)
+        {
+            <p class="mb-0">Є нормальний ритм. Спробуй прив'язати звичку до конкретного часу дня.</p>
+        }
+        else
+        {
+            <p class="mb-0">Звичку варто спростити: менше обсяг, чіткіший час або простіша перша дія.</p>
+        }
+    </article>
+</section>
+
+<div class="mt-4">
+    <a class="btn btn-outline-secondary" asp-action="Index">Назад до списку</a>
+</div>

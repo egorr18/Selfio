@@ -11,9 +11,9 @@ public class HabitRecordsController(
 {
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> CompleteToday(int habitId, string? returnUrl = null)
+    public async Task<IActionResult> CompleteToday(int habitId, string? note = null, string? returnUrl = null)
     {
-        var handled = await habitRecordService.MarkCompletedTodayAsync(GetRequiredUserId(), habitId);
+        var handled = await habitRecordService.MarkCompletedTodayAsync(GetRequiredUserId(), habitId, note);
         if (!handled)
         {
             return NotFound();

@@ -6,7 +6,7 @@ namespace HabitTracker.Services;
 
 public class HabitRecordService(ApplicationDbContext dbContext) : IHabitRecordService
 {
-    public async Task<bool> MarkCompletedTodayAsync(int userId, int habitId)
+    public async Task<bool> MarkCompletedTodayAsync(int userId, int habitId, string? note = null)
     {
         var today = DateOnly.FromDateTime(DateTime.Today);
         var habit = await dbContext.Habits
@@ -21,7 +21,7 @@ public class HabitRecordService(ApplicationDbContext dbContext) : IHabitRecordSe
         var existingRecord = habit.Records.FirstOrDefault(record => record.Date == today);
         if (existingRecord is not null)
         {
-            existingRecord.MarkCompleted();
+            existingRecord.MarkCompleted(NormalizeNote(note));
         }
         else
         {
@@ -29,7 +29,8 @@ public class HabitRecordService(ApplicationDbContext dbContext) : IHabitRecordSe
             {
                 HabitId = habit.Id,
                 Date = today,
-                IsCompleted = true
+                IsCompleted = true,
+                Note = NormalizeNote(note)
             });
         }
 
@@ -57,5 +58,15 @@ public class HabitRecordService(ApplicationDbContext dbContext) : IHabitRecordSe
         record.Cancel();
         await dbContext.SaveChangesAsync();
         return true;
+    }
+
+    private static string? NormalizeNote(string? note)
+    {
+        if (string.IsNullOrWhiteSpace(note))
+        {
+            return null;
+        }
+
+        return note.Trim();
     }
 }

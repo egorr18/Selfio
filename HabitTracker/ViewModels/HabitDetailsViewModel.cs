@@ -23,4 +23,18 @@ public class HabitDetailsViewModel
     public string? Icon { get; set; }
 
     public DateTime CreatedAt { get; set; }
+
+    public bool IsCompletedToday { get; set; }
+
+    public string? TodayNote { get; set; }
+
+    public int CurrentStreak { get; set; }
+
+    public int CompletedLast30Days { get; set; }
+
+    public int ExpectedLast30Days { get; set; }
+
+    public int MonthlyCompletionPercentage { get; set; }
+
+    public List<HabitHeatmapDayViewModel> HeatmapDays { get; set; } = [];
 }

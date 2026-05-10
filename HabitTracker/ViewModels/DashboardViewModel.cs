@@ -1,5 +1,7 @@
 namespace HabitTracker.ViewModels;
 
+using Microsoft.AspNetCore.Mvc.Rendering;
+
 public class DashboardViewModel
 {
     public string Username { get; set; } = string.Empty;
@@ -48,4 +50,8 @@ public class DashboardViewModel
     }
 
     public List<HabitListItemViewModel> Habits { get; set; } = [];
+
+    public QuickHabitViewModel QuickHabit { get; set; } = new();
+
+    public List<SelectListItem> Categories { get; set; } = [];
 }

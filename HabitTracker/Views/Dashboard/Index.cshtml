@@ -58,6 +58,32 @@
     <p>Не намагайся закрити все одразу. Найкраща стратегія - виконати одну просту звичку і зберегти ритм.</p>
 </section>
 
+<section class="quick-add-panel mb-4">
+    <div>
+        <p class="eyebrow">Quick add</p>
+        <h2>Додати звичку за 10 секунд</h2>
+    </div>
+
+    <form asp-controller="Dashboard" asp-action="QuickAdd" method="post" class="quick-add-form">
+        <div>
+            <label asp-for="QuickHabit.Title" class="form-label">Назва</label>
+            <input asp-for="QuickHabit.Title" class="form-control" placeholder="Наприклад: 10 хвилин англійської" />
+            <span asp-validation-for="QuickHabit.Title" class="text-danger"></span>
+        </div>
+        <div>
+            <label asp-for="QuickHabit.HabitCategoryId" class="form-label">Категорія</label>
+            <select asp-for="QuickHabit.HabitCategoryId" asp-items="Model.Categories" class="form-select"></select>
+        </div>
+        <div>
+            <label asp-for="QuickHabit.Priority" class="form-label">Пріоритет</label>
+            <select asp-for="QuickHabit.Priority" asp-items="Html.GetEnumSelectList<HabitPriority>()" class="form-select"></select>
+        </div>
+        <input asp-for="QuickHabit.Icon" type="hidden" value="✓" />
+        <input asp-for="QuickHabit.Color" type="hidden" value="#45c49a" />
+        <button type="submit" class="btn btn-primary">Додати</button>
+    </form>
+</section>
+
 @if (!Model.Habits.Any())
 {
     <section class="empty-state">

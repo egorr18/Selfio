@@ -6,7 +6,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HabitTracker.Services;
 
-public class HabitService(ApplicationDbContext dbContext) : IHabitService
+public class HabitService(
+    ApplicationDbContext dbContext,
+    IProgressCalculator progressCalculator) : IHabitService
 {
     public async Task<HabitIndexViewModel> GetIndexAsync(int userId, string? searchTerm, int? categoryId)
     {
@@ -50,24 +52,69 @@ public class HabitService(ApplicationDbContext dbContext) : IHabitService
 
     public async Task<HabitDetailsViewModel?> GetDetailsAsync(int userId, int habitId)
     {
-        return await dbContext.Habits
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        var monthStart = today.AddDays(-29);
+
+        var habit = await dbContext.Habits
             .AsNoTracking()
             .Include(habit => habit.Category)
+            .Include(habit => habit.Records)
             .Where(habit => habit.Id == habitId && habit.UserId == userId && !habit.IsArchived)
-            .Select(habit => new HabitDetailsViewModel
-            {
-                Id = habit.Id,
-                Title = habit.Title,
-                Description = habit.Description,
-                CategoryName = habit.Category != null ? habit.Category.Name : null,
-                CategoryColor = habit.Category != null ? habit.Category.Color : null,
-                Frequency = habit.Frequency,
-                Priority = habit.Priority,
-                Color = habit.Color,
-                Icon = habit.Icon,
-                CreatedAt = habit.CreatedAt
-            })
             .FirstOrDefaultAsync();
+
+        if (habit is null)
+        {
+            return null;
+        }
+
+        var completedDates = habit.Records
+            .Where(record => record.IsCompleted)
+            .Select(record => record.Date)
+            .Distinct()
+            .ToHashSet();
+
+        var recordByDate = habit.Records
+            .Where(record => record.IsCompleted)
+            .GroupBy(record => record.Date)
+            .ToDictionary(group => group.Key, group => group.First());
+
+        var heatmapDays = Enumerable.Range(0, 30)
+            .Select(offset =>
+            {
+                var date = monthStart.AddDays(offset);
+                return new HabitHeatmapDayViewModel
+                {
+                    Date = date,
+                    IsCompleted = completedDates.Contains(date),
+                    IsToday = date == today,
+                    Note = recordByDate.TryGetValue(date, out var record) ? record.Note : null
+                };
+            })
+            .ToList();
+
+        var completedLast30Days = progressCalculator.CountCompletedOccurrences(habit, monthStart, today);
+        var expectedLast30Days = progressCalculator.CountExpectedOccurrences(habit, monthStart, today);
+
+        return new HabitDetailsViewModel
+        {
+            Id = habit.Id,
+            Title = habit.Title,
+            Description = habit.Description,
+            CategoryName = habit.Category?.Name,
+            CategoryColor = habit.Category?.Color,
+            Frequency = habit.Frequency,
+            Priority = habit.Priority,
+            Color = habit.Color,
+            Icon = habit.Icon,
+            CreatedAt = habit.CreatedAt,
+            IsCompletedToday = completedDates.Contains(today),
+            TodayNote = recordByDate.TryGetValue(today, out var todayRecord) ? todayRecord.Note : null,
+            CurrentStreak = progressCalculator.CalculateStreak(completedDates, today),
+            CompletedLast30Days = completedLast30Days,
+            ExpectedLast30Days = expectedLast30Days,
+            MonthlyCompletionPercentage = progressCalculator.CalculatePercentage(completedLast30Days, expectedLast30Days),
+            HeatmapDays = heatmapDays
+        };
     }
 
     public async Task<HabitFormViewModel> CreateFormAsync()
@@ -206,48 +253,23 @@ public class HabitService(ApplicationDbContext dbContext) : IHabitService
             Today = today,
             TotalHabits = habits.Count,
             CompletedToday = habits.Count(habit => habit.IsCompletedToday),
-            CurrentStreak = CalculateCurrentStreak(completedDates, today),
-            Habits = habits
+            CurrentStreak = progressCalculator.CalculateStreak(completedDates, today),
+            Habits = habits,
+            Categories = await BuildCategorySelectListAsync(null)
         };
     }
 
-    private static int CalculateCurrentStreak(IEnumerable<DateOnly> completedDates, DateOnly today)
+    private HabitListItemViewModel MapHabitListItem(Habit habit, DateOnly today)
     {
-        var dates = completedDates.ToHashSet();
-        var streak = 0;
-        var cursor = today;
-
-        while (dates.Contains(cursor))
-        {
-            streak++;
-            cursor = cursor.AddDays(-1);
-        }
-
-        return streak;
-    }
-
-    private static int CalculateHabitStreak(IEnumerable<DateOnly> completedDates, DateOnly today)
-    {
-        return CalculateCurrentStreak(completedDates, today);
-    }
-
-    private static int CalculatePercentage(int completed, int total)
-    {
-        return total == 0
-            ? 0
-            : (int)Math.Round((double)completed / total * 100);
-    }
-
-    private static HabitListItemViewModel MapHabitListItem(Habit habit, DateOnly today)
-    {
+        var monthStart = today.AddDays(-29);
         var completedDates = habit.Records
             .Where(record => record.IsCompleted)
             .Select(record => record.Date)
             .Distinct()
             .ToList();
 
-        var monthlyCompleted = completedDates
-            .Count(date => date >= today.AddDays(-29) && date <= today);
+        var monthlyCompleted = progressCalculator.CountCompletedOccurrences(habit, monthStart, today);
+        var monthlyExpected = progressCalculator.CountExpectedOccurrences(habit, monthStart, today);
 
         return new HabitListItemViewModel
         {
@@ -262,8 +284,8 @@ public class HabitService(ApplicationDbContext dbContext) : IHabitService
             Icon = habit.Icon,
             CreatedAt = habit.CreatedAt,
             IsCompletedToday = completedDates.Contains(today),
-            CurrentStreak = CalculateHabitStreak(completedDates, today),
-            MonthlyCompletionPercentage = CalculatePercentage(monthlyCompleted, 30)
+            CurrentStreak = progressCalculator.CalculateStreak(completedDates, today),
+            MonthlyCompletionPercentage = progressCalculator.CalculatePercentage(monthlyCompleted, monthlyExpected)
         };
     }
 
