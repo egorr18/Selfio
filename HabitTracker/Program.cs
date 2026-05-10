@@ -19,6 +19,7 @@ builder.Services.AddScoped<IHabitRecordService, HabitRecordService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 builder.Services.AddScoped<IProgressCalculator, ProgressCalculator>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
+builder.Services.AddScoped<IExcelExportService, ExcelExportService>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>

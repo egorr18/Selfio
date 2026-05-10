@@ -1425,6 +1425,24 @@ main {
   margin-bottom: 0;
 }
 
+.export-panel {
+  display: grid;
+  gap: 10px;
+}
+
+.export-form {
+  display: grid;
+  gap: 10px;
+}
+
+.export-form .form-label {
+  color: var(--ht-muted);
+  font-size: 0.78rem;
+  font-weight: 850;
+  margin-bottom: -4px;
+  text-transform: uppercase;
+}
+
 .today-list {
   display: grid;
   gap: 10px;

@@ -9,6 +9,7 @@ namespace HabitTracker.Controllers;
 public class ProfileController(
     IProfileService profileService,
     IUserService userService,
+    IExcelExportService excelExportService,
     ICurrentUserService currentUserService) : Controller
 {
     public async Task<IActionResult> Index()
@@ -45,5 +46,17 @@ public class ProfileController(
 
         TempData["SecuritySuccess"] = "Пароль успішно змінено.";
         return RedirectToAction(nameof(Index), new { tab = "security" });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> ExportHabits(string period = "week")
+    {
+        var userId = currentUserService.UserId ?? throw new InvalidOperationException("Authenticated user id is missing.");
+        var export = await excelExportService.ExportHabitsAsync(userId, period);
+
+        return File(
+            export.Content,
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            export.FileName);
     }
 }

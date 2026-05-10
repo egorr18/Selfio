@@ -261,9 +261,18 @@
                     <strong>Що не зберігається</strong>
                     <p>Пароль у відкритому вигляді. Після реєстрації або зміни пароля в базі зберігається тільки хеш.</p>
                 </div>
-                <div>
-                    <strong>Перспективи розвитку</strong>
-                    <p>Експорт статистики, видалення акаунта та завантаження резервної копії можна додати окремим модулем.</p>
+                <div class="export-panel">
+                    <strong>Експорт звичок</strong>
+                    <p>Завантаж XLSX-файл зі своїми звичками, записами виконання та короткою статистикою за вибраний період.</p>
+                    <form asp-controller="Profile" asp-action="ExportHabits" method="get" class="export-form">
+                        <label class="form-label" for="exportPeriod">Період</label>
+                        <select class="form-select" id="exportPeriod" name="period">
+                            <option value="day">1 день</option>
+                            <option value="week" selected>Тиждень</option>
+                            <option value="month">Місяць</option>
+                        </select>
+                        <button class="btn btn-primary w-100" type="submit">Експортувати XLSX</button>
+                    </form>
                 </div>
             </div>
         </section>
