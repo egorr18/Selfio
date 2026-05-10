@@ -916,7 +916,18 @@ main {
 [data-theme] .form-select {
   background: color-mix(in srgb, var(--ht-surface-2, var(--ht-surface)) 92%, #000 8%);
   border-color: var(--ht-border);
+  border-radius: 10px;
   color: var(--ht-text);
+}
+
+[data-theme] .form-select option {
+  background: var(--ht-surface-2, var(--ht-surface));
+  color: var(--ht-text);
+}
+
+[data-theme="dark"] .form-select option {
+  background: #121c28;
+  color: #edf4f1;
 }
 
 [data-theme] .form-control::placeholder {
@@ -927,6 +938,45 @@ main {
   --bs-table-bg: transparent;
   --bs-table-color: var(--ht-text);
   --bs-table-border-color: var(--ht-border);
+  --bs-table-striped-color: var(--ht-text);
+  --bs-table-hover-color: var(--ht-text);
+  color: var(--ht-text);
+}
+
+[data-theme] .table th {
+  color: var(--ht-muted);
+  font-size: 0.78rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+[data-theme] .table td {
+  color: var(--ht-text);
+}
+
+[data-theme] .table td span,
+[data-theme] .table td small {
+  color: var(--ht-muted);
+}
+
+[data-theme="dark"] .table th {
+  color: #a9b8b3;
+}
+
+[data-theme="dark"] .table td {
+  color: #edf4f1;
+}
+
+[data-theme="dark"] .table .btn-outline-secondary {
+  background: rgba(237, 244, 241, 0.1);
+  border-color: rgba(237, 244, 241, 0.18);
+  color: #edf4f1;
+}
+
+[data-theme="dark"] .table .btn-outline-secondary:hover {
+  background: rgba(69, 196, 154, 0.18);
+  border-color: rgba(69, 196, 154, 0.4);
+  color: #ffffff;
 }
 
 [data-theme] .footer {
